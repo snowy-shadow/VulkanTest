@@ -1,4 +1,7 @@
 #define GLFW_INCLUDE_VULKAN
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEFAULT_ALIGNED_GENTYPES
+
 #include <GLFW/glfw3.h>
 
 #include <iostream>
@@ -30,6 +33,9 @@
 
 // Linear algebra
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
 
 // Window properties
 const uint32_t WIDTH = 800;
@@ -48,7 +54,7 @@ const std::vector<const char*> DeviceExtensions
     VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-// NDEBUG is c++ macro Not DEBUG
+// NDEBUG is c++ macro (Not DEBUG)
 #ifdef NDEBUG
 const bool EnableValidationLayers{ false };
 
@@ -122,7 +128,7 @@ struct Vertex
 
     /*
     describes which rate to load data from memory throughout the vertices
-    It specifies the number of bytes between data entries and whether to move to the next data entry after each vertex or after each instance 
+    It specifies the number of bytes between data entries and whether to move to the next data entry after each vertex or after each instance
     */
     static auto GetBindingDescription()
     {
@@ -176,9 +182,25 @@ struct Vertex
 const std::vector<Vertex> Vertices
 {
     // interleaving vertex attributes
-    { { 0.0f, -0.5f }, { 1.0f, 1.0f, 1.0f } },
-    { { 0.5f, 0.5f }, { 0.0f, 1.0f, 0.0f } },
-    { { -0.5f, 0.5f },{ 0.0f, 0.0f, 1.0f } }
+    {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+    {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}}
+};
+
+// index buffer
+const std::vector<uint16_t> Indices =
+{
+    0, 1, 2, 2, 3, 0
+};
+
+// this is binary compatible, allowing for memcpy
+struct UniformBufferObject
+{
+    // use align to prevent weird behaviour
+    alignas(16) glm::mat4 Model;
+    alignas(16) glm::mat4 View;
+    alignas(16) glm::mat4 Projection;
 };
 
 class HelloTriangleApplication
@@ -216,6 +238,7 @@ private:
 
     // pipeline
     VkRenderPass RenderPass;
+    VkDescriptorSetLayout DescriptorSetLayout;
     VkPipelineLayout PipelineLayout;
     VkPipeline GraphicsPipeline;
 
@@ -234,6 +257,14 @@ private:
     // vertex
     VkBuffer VertexBuffer;
     VkDeviceMemory VertexBufferMemory;
+    VkBuffer IndexBuffer;
+    VkDeviceMemory IndexBufferMemory;
+
+    std::vector<VkBuffer> UniformBuffers;
+    std::vector<VkDeviceMemory> UniformBuffersMemory;
+    std::vector<void*> UniformBuffersMapped;
+    VkDescriptorPool DescriptorPool;
+    std::vector<VkDescriptorSet> DescriptorSets;
 
     void InitWindow()
     {
@@ -248,8 +279,8 @@ private:
 
         // create Window
         Window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr); // width, height, title, 
-                                                                                            // specify monitor to open Window, only for opengl
-        // store user pointer inside Window
+        // specify monitor to open Window, only for opengl
+// store user pointer inside Window
         glfwSetWindowUserPointer(Window, this);
         // detect resize
         glfwSetFramebufferSizeCallback(Window, FramebufferResizeCallback);
@@ -265,16 +296,26 @@ private:
     {
         CreateVkInstance();
         SetupDebugMessenger();
+
         CreateSurface();
         PickPhysicalDevice();
         CreateLogicalDevice();
+
         CreateSwapChain();
         CreateImageViews();
         CreateRenderPass();
+        CreateDescriptorSetLayout();
         CreateGraphicsPipeline();
         CreateFramebuffer();
+
         CreateCommandPool();
+
         CreateVertexBuffer();
+        CreateIndexBuffer();
+        CreateUniformBuffer();
+        CreateDescriptorPool();
+        CreateDescriptorSets();
+
         CreateCommandBuffer();
         CreateSyncObjects();
     }
@@ -563,7 +604,7 @@ private:
                                                                                 pointer to variable that stores handle to new obj created
                                                                                 */
 
-        // almost all VK functions return value of vkResult: VK_SUCCESS or an error code
+                                                                                // almost all VK functions return value of vkResult: VK_SUCCESS or an error code
         if (Result != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create instance!");
@@ -589,14 +630,25 @@ private:
     {
         SwapChainCleanUp();
 
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            vkDestroyBuffer(Device, UniformBuffers[i], nullptr);
+            vkFreeMemory(Device, UniformBuffersMemory[i], nullptr);
+        }
+
+        vkDestroyDescriptorPool(Device, DescriptorPool, nullptr);
+        vkDestroyDescriptorSetLayout(Device, DescriptorSetLayout, nullptr);
+
         vkDestroyPipeline(Device, GraphicsPipeline, nullptr);
 
         vkDestroyPipelineLayout(Device, PipelineLayout, nullptr);
 
         vkDestroyRenderPass(Device, RenderPass, nullptr);
 
-        vkDestroyBuffer(Device, VertexBuffer, nullptr);
+        vkDestroyBuffer(Device, IndexBuffer, nullptr);
+        vkFreeMemory(Device, IndexBufferMemory, nullptr);
 
+        vkDestroyBuffer(Device, VertexBuffer, nullptr);
         vkFreeMemory(Device, VertexBufferMemory, nullptr);
 
         for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -706,12 +758,12 @@ private:
         CreateDebugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 
         // messages severity displayed
-        CreateDebugInfo.messageSeverity = //VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+        CreateDebugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 
         // message type displayed
-        CreateDebugInfo.messageType = //VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+        CreateDebugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
@@ -963,6 +1015,31 @@ private:
         }
     }
 
+    void CreateDescriptorSetLayout()
+    {
+        VkDescriptorSetLayoutBinding UBO_LayoutBinding{};
+        // binding used
+        UBO_LayoutBinding.binding = 0;
+        // type
+        UBO_LayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        // shader var can represent an array of UBO, specify number of values in array
+        UBO_LayoutBinding.descriptorCount = 1;
+        // which shader stage the descriptor is being referenced
+        UBO_LayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        // optional
+        UBO_LayoutBinding.pImmutableSamplers = nullptr;
+
+        VkDescriptorSetLayoutCreateInfo LayoutInfo{};
+        LayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        LayoutInfo.bindingCount = 1;
+        LayoutInfo.pBindings = &UBO_LayoutBinding;
+
+        if (vkCreateDescriptorSetLayout(Device, &LayoutInfo, nullptr, &DescriptorSetLayout) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create descriptor set layout");
+        }
+    }
+
     void CreateGraphicsPipeline()
     {
         auto VertShaderCode = ReadFile("../Resources/vert.spv");
@@ -1043,7 +1120,7 @@ private:
         // type of face culling: disable culling, cull the front faces, cull the back faces or both
         RasterizerInfo.cullMode = VK_CULL_MODE_BACK_BIT;
         // vertex order for faces considered front: clockwise or counter clockwise
-        RasterizerInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        RasterizerInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         RasterizerInfo.depthBiasEnable = VK_FALSE;
         // optionals, can alter depth vlaue by adding constant value or bias based on fragment's slope
         RasterizerInfo.depthBiasConstantFactor = 0.0f;
@@ -1069,10 +1146,10 @@ private:
         // 2 different structs for types of color blending, this is per frambuffer
         VkPipelineColorBlendAttachmentState ColorblendAttachmentInfo{};
 
-        ColorblendAttachmentInfo.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | 
-                                                    VK_COLOR_COMPONENT_G_BIT |
-                                                    VK_COLOR_COMPONENT_B_BIT |
-                                                    VK_COLOR_COMPONENT_A_BIT;
+        ColorblendAttachmentInfo.colorWriteMask = VK_COLOR_COMPONENT_R_BIT |
+            VK_COLOR_COMPONENT_G_BIT |
+            VK_COLOR_COMPONENT_B_BIT |
+            VK_COLOR_COMPONENT_A_BIT;
         ColorblendAttachmentInfo.blendEnable = VK_FALSE;
         // optionals
         ColorblendAttachmentInfo.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
@@ -1125,8 +1202,8 @@ private:
         VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
         PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
         // optionals
-        PipelineLayoutInfo.setLayoutCount = 0;
-        PipelineLayoutInfo.pSetLayouts = nullptr;
+        PipelineLayoutInfo.setLayoutCount = 1;
+        PipelineLayoutInfo.pSetLayouts = &DescriptorSetLayout;
         // another way of passing dynamic values to shaders
         PipelineLayoutInfo.pushConstantRangeCount = 0;
         PipelineLayoutInfo.pPushConstantRanges = nullptr;
@@ -1410,8 +1487,8 @@ private:
 
         /*
         Temp host visible buffer
-		    VK_BUFFER_USAGE_TRANSFER_SRC_BIT: Buffer can be used as source in a memory transfer operation.
-		    VK_BUFFER_USAGE_TRANSFER_DST_BIT: Buffer can be used as destination in a memory transfer operation.
+            VK_BUFFER_USAGE_TRANSFER_SRC_BIT: Buffer can be used as source in a memory transfer operation.
+            VK_BUFFER_USAGE_TRANSFER_DST_BIT: Buffer can be used as destination in a memory transfer operation.
          */
         CreateBuffer(BufferSize,
             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
@@ -1444,9 +1521,63 @@ private:
         vkFreeMemory(Device, StagingBufferMemory, nullptr);
     }
 
+    void CreateIndexBuffer()
+    {
+        VkDeviceSize BufferSize = sizeof(Indices[0]) * Indices.size();
+
+        VkBuffer StagingBuffer;
+        VkDeviceMemory StagingBufferMemory;
+
+        CreateBuffer(BufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+            VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            StagingBuffer,
+            StagingBufferMemory);
+
+        void* Data;
+        vkMapMemory(Device, StagingBufferMemory, 0, BufferSize, 0, &Data);
+        memcpy(Data, Indices.data(), (size_t)BufferSize);
+        vkUnmapMemory(Device, StagingBufferMemory);
+
+        CreateBuffer(BufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+            VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+            IndexBuffer,
+            IndexBufferMemory);
+
+        CopyBuffer(StagingBuffer, IndexBuffer, BufferSize);
+
+        vkDestroyBuffer(Device, StagingBuffer, nullptr);
+        vkFreeMemory(Device, StagingBufferMemory, nullptr);
+
+
+    }
+
+    void CreateUniformBuffer()
+    {
+        VkDeviceSize BufferSize = sizeof(UniformBufferObject);
+
+        UniformBuffers.resize(MAX_FRAMES_IN_FLIGHT);
+        UniformBuffersMemory.resize(MAX_FRAMES_IN_FLIGHT);
+        UniformBuffersMapped.resize(MAX_FRAMES_IN_FLIGHT);
+
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            CreateBuffer(BufferSize,
+                VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
+                VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                UniformBuffers[i],
+                UniformBuffersMemory[i]);
+
+            // persistent mapping
+            vkMapMemory(Device, UniformBuffersMemory[i], 0, BufferSize, 0, &UniformBuffersMapped[i]);
+        }
+    }
+
     void CopyBuffer(VkBuffer SrcBuffer, VkBuffer DstBuffer, VkDeviceSize Size)
     {
-	    // mem transfer are executed using cmd buffer
+        // mem transfer are executed using cmd buffer
         VkCommandBufferAllocateInfo BufferAllocInfo{};
         BufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         BufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
@@ -1489,7 +1620,7 @@ private:
     uint32_t FindMemoryType(uint32_t TypeFilter, VkMemoryPropertyFlags Properties)
     {
         /*
-        2 arrays: 
+        2 arrays:
             memory type: VRAM, swap in RAM, etc
             memory heap: where the mem comes from
         */
@@ -1596,8 +1727,19 @@ private:
         VkDeviceSize Offsets[] = { 0 };
         // cmdbuffer, offset, number of bindings, array of vertex buffers to bind, byte offset to start reading vertex data
         vkCmdBindVertexBuffers(CommandBuffer, 0, 1, Vertexbuffers, Offsets);
+        vkCmdBindIndexBuffer(CommandBuffer, IndexBuffer, 0, VK_INDEX_TYPE_UINT16);
 
-        vkCmdDraw(CommandBuffer, static_cast<uint32_t>(Vertices.size()), 1, 0, 0);
+        /*
+            where descriptor set binds to
+            layout descriptor set based on
+            index of first descriptor set
+            number of sets to bind
+            array of sets to bind
+            array of offfsets used for dynamic descriptors
+        */
+        vkCmdBindDescriptorSets(CommandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, PipelineLayout, 0, 1, &DescriptorSets[CurrentFrame], 0, nullptr);
+        // buffer, num of indices, instances, offset into index buffer, offset to add indices in index buffer, offset for instancing
+        vkCmdDrawIndexed(CommandBuffer, static_cast<uint32_t>(Indices.size()), 1, 0, 0, 0);
 
         vkCmdEndRenderPass(CommandBuffer);
 
@@ -1621,7 +1763,7 @@ private:
         vkWaitForFences(Device, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
 
         uint32_t ImageIndex;
-        /*        
+        /*
         vkAcquireNextImageKHR
             VK_ERROR_OUT_OF_DATE_KHR: The swap chain has become incompatible with the surface and can no longer be used for rendering. Usually happens after a Window resize.
         vkQueuePresentKHR
@@ -1631,8 +1773,8 @@ private:
         // object to signal when Presentation engine is finished with image, null, output the index of avaialbe image in the swap chain 
         VkResult Result = vkAcquireNextImageKHR(Device, SwapChain, UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &ImageIndex);
 
-        if(Result == VK_ERROR_OUT_OF_DATE_KHR)
-        { 
+        if (Result == VK_ERROR_OUT_OF_DATE_KHR)
+        {
             RecreateSwapChain();
             return;
         }
@@ -1640,7 +1782,10 @@ private:
         {
             throw std::runtime_error("failed to acquire swap chain image");
         }
-        
+
+
+        UpdateUniformBuffer(CurrentFrame);
+
         // reset to unsignaled state if we want to submit work
         vkResetFences(Device, 1, &InFlightFences[CurrentFrame]);
 
@@ -1648,6 +1793,7 @@ private:
         vkResetCommandBuffer(CommandBuffers[CurrentFrame], 0);
 
         RecordCommandBuffer(CommandBuffers[CurrentFrame], ImageIndex);
+
 
         VkSubmitInfo SubmitInfo{};
         SubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1704,6 +1850,114 @@ private:
 
         CurrentFrame = (CurrentFrame++) % MAX_FRAMES_IN_FLIGHT;
     }
+
+    void UpdateUniformBuffer(uint32_t CurrentImage)
+    {
+        // constant rotation using delta Time per frame
+        static auto StartTime = std::chrono::high_resolution_clock::now();
+
+        auto CurrentTime = std::chrono::high_resolution_clock::now();
+
+        float Time = std::chrono::duration<float, std::chrono::seconds::period>(CurrentTime - StartTime).count();
+
+        UniformBufferObject UBO{};
+        // existing transformation, rotation angle, rotation axis
+        // glm::mat4(1.0f) -> Identity matrix
+        UBO.Model = glm::rotate(glm::mat4(1.0f), Time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // eye pos, center pos, up axis
+        UBO.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        // FOV, aspect ratio, near view plane, far view plane
+        // use current swapchain extent to find aspect ratio in case of window resize
+        UBO.Projection = glm::perspective(glm::radians(45.0f), SwapChainExtent.width / static_cast<float>(SwapChainExtent.height), 0.1f, 10.0f);
+
+        // Y coord of the clip is inverted, need to flip
+        UBO.Projection[1][1] *= -1;
+
+        memcpy(UniformBuffersMapped[CurrentImage], &UBO, sizeof(UBO));
+    }
+
+    void CreateDescriptorPool()
+    {
+        // can't be created directly, nned to be allocated
+        VkDescriptorPoolSize PoolSize{};
+        PoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        PoolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        VkDescriptorPoolCreateInfo PoolInfo{};
+        PoolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        PoolInfo.poolSizeCount = 1;
+        PoolInfo.pPoolSizes = &PoolSize;
+        PoolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+        if (vkCreateDescriptorPool(Device, &PoolInfo, nullptr, &DescriptorPool) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to create descriptor pool");
+        }
+    }
+
+    void CreateDescriptorSets()
+    {
+        std::vector<VkDescriptorSetLayout> Layouts(MAX_FRAMES_IN_FLIGHT, DescriptorSetLayout);
+
+        VkDescriptorSetAllocateInfo AllocateInfo{};
+        AllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        AllocateInfo.descriptorPool = DescriptorPool;
+        AllocateInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+        AllocateInfo.pSetLayouts = Layouts.data();
+
+        DescriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+
+        if (vkAllocateDescriptorSets(Device, &AllocateInfo, DescriptorSets.data()) != VK_SUCCESS)
+        {
+            throw std::runtime_error("Failed to allocate descriptor sets");
+        }
+
+        // populate every descriptor
+        for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+        {
+            VkDescriptorBufferInfo BufferInfo{};
+            BufferInfo.buffer = UniformBuffers[i];
+            BufferInfo.offset = 0;
+            // region containing data for the descriptor
+            BufferInfo.range = sizeof(UniformBufferObject);
+
+            /*
+            If overwriting the whole buffer,
+            then it is also possible to use the VK_WHOLE_SIZE value for the range
+            */
+
+            // The configuration of descriptors is updated using the vkUpdateDescriptorSets function, takes an array of VkWriteDescriptorSet structs
+            VkWriteDescriptorSet DescriptorWrite{};
+            DescriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            // descriptor set to update and bind
+            DescriptorWrite.dstSet = DescriptorSets[i];
+            DescriptorWrite.dstBinding = 0;
+            // descripotrs can be array, but not using array, so first index
+            DescriptorWrite.dstArrayElement = 0;
+            // the type of descriptor being updated, can update multiple at once
+            DescriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            // how many elements to update
+            DescriptorWrite.descriptorCount = 1;
+
+            // for buffer data
+            DescriptorWrite.pBufferInfo = &BufferInfo;
+            // optionals
+            // for image data
+            DescriptorWrite.pImageInfo = nullptr;
+            // for buffer view data
+            DescriptorWrite.pTexelBufferView = nullptr;
+
+            /*
+            It accepts two kinds of arrays :
+                an array of VkWriteDescriptorSet
+                an array of VkCopyDescriptorSet
+            */
+            vkUpdateDescriptorSets(Device, 1, &DescriptorWrite, 0, nullptr);
+        }
+    }
+
 
     void CreateSyncObjects()
     {
