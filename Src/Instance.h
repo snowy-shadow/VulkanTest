@@ -20,7 +20,9 @@ namespace VT
 		void initInstance(const vk::ApplicationInfo ApplicationInfo);
 		vk::Instance& getInstance();
 
-		vk::Result CreateWindowSurface(GLFWwindow* Window);
+		vk::SurfaceKHR& getSurface();
+
+		vk::Result createWindowSurface(GLFWwindow* Window);
 
 		~Instance();
 	private:

@@ -40,9 +40,11 @@ namespace VT
 			vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
 #endif
 
-		m_LogicalDevice = m_PhysicalDevice.createPhysicalDevice(m_VulkanInstance.enumeratePhysicalDevices(),
+		m_LogicalDevice = m_PhysicalDevice.createLogicalDevice(
+			m_VulkanInstance.enumeratePhysicalDevices(),
 			{ "VK_KHR_swapchain" }, 
-			{ {vk::QueueFlagBits::eGraphics, 0.f} });
+			{ {vk::QueueFlagBits::eGraphics, 0.f} },
+			m_Surface);
 	}
 
 	vk::Instance& Instance::getInstance()
@@ -50,7 +52,12 @@ namespace VT
 		return m_VulkanInstance;
 	}
 
-	vk::Result Instance::CreateWindowSurface(GLFWwindow* Window)
+	vk::SurfaceKHR& Instance::getSurface()
+	{
+		return m_Surface;
+	}
+
+	vk::Result Instance::createWindowSurface(GLFWwindow* Window)
 	{
 		return static_cast<vk::Result>(glfwCreateWindowSurface(m_VulkanInstance, Window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&m_Surface)));
 	}

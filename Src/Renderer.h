@@ -14,12 +14,13 @@ namespace VT
 		~Renderer();
 
 		GLFWwindow* getWindow();
+		void createSwapChain();
 
 		void update();
 	
 	private:
 		Window m_Window{ {1280, 720}, "VulkanTest" };
 		Pipeline GraphicsPipeLine{ "../Shaders/Vertex.spv", "../Shaders/Fragment.spv" };
-		SwapChain m_SwapChain;
+		std::vector<SwapChain> m_SwapChain;
 	};
 }

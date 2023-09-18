@@ -1,14 +1,14 @@
 #include "PhysicalDevice.h"
 
-#include <iostream>
-
 namespace  VT
 {
-	vk::Device PhysicalDevice::createPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, 
+	vk::Device PhysicalDevice::createLogicalDevice(
+		const std::vector<vk::PhysicalDevice>& DeviceList, 
 		const std::vector<const char*>& RequiredExtensions,
-		const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues)
+		const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues,
+		const vk::SurfaceKHR& Surface)
 	{
-		if(!findDevice(std::forward<decltype(DeviceList)>(DeviceList), std::forward<decltype(RequiredExtensions)>(RequiredExtensions)))
+		if(!findPhysicalDevice(std::forward<decltype(DeviceList)>(DeviceList), std::forward<decltype(RequiredExtensions)>(RequiredExtensions)))
 		{
 			throw std::runtime_error("Cannot find compatible physical device");
 		}
@@ -30,7 +30,8 @@ namespace  VT
 	void PhysicalDevice::addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority, const uint32_t& QueueCount)
 	{
 		auto Queue{ findQueue(RequiredQueue, QueueCount) };
-		m_DeviceQueues.emplace_back(vk::DeviceQueueCreateInfo 
+
+		m_DeviceQueues.emplace_back(vk::DeviceQueueCreateInfo
 		{
 			.queueFamilyIndex = Queue.at(0),
 			.queueCount = Queue.at(1),
@@ -43,7 +44,7 @@ namespace  VT
 	 *					    PRIVATE
 	 * ==================================================
 	 */
-	bool PhysicalDevice::findDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& RequiredExtensions)
+	bool PhysicalDevice::findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& RequiredExtensions)
 	{
 		for(const auto& Device : DeviceList)
 		{
@@ -77,16 +78,39 @@ namespace  VT
 		return true;
 	}
 
-	std::array<uint32_t, 2> PhysicalDevice::findQueue(const vk::QueueFlagBits& RequiredQueue, const uint32_t& QueueCount) const
+	uint32_t PhysicalDevice::findPresentQueueIndex(const vk::SurfaceKHR& Surface) const
+	{
+		for(const auto& Index : m_PhysicalDevice.getQueueFamilyProperties().size())
+		{
+			if(m_PhysicalDevice.getSurfaceSupportKHR(Index, Surface))
+			{
+				return Index;
+			}
+		}
+
+		throw std::runtime_error("Cannot find Present queue");
+	}
+
+	std::array<uint32_t, 2> PhysicalDevice::findQueue(const vk::QueueFlagBits& RequiredQueue, const uint32_t& QueueCount)
 	{
 		auto QueueFamilies{ m_PhysicalDevice.getQueueFamilyProperties() };
 
 		auto Iterator{ std::find_if(QueueFamilies.cbegin(), QueueFamilies.cend(),
-		[RequiredQueue, QueueCount](const vk::QueueFamilyProperties& QFP) { return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount); }) };
+		[RequiredQueue, QueueCount](const vk::QueueFamilyProperties& QFP)
+		{
+			return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount);
+
+		}) };
 
 		if (Iterator == QueueFamilies.cend()){throw std::runtime_error("No compatible physical device queue family");}
 
 		auto Index{ static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator)) };
+
+		// check if graphics queue can present
+		if (RequiredQueue == vk::QueueFlagBits::eGraphics)
+		{
+			m_PresentQueueInfo = m_PhysicalDevice.getSurfaceSupportKHR(Index, m_Surface) ? std::tuple{ Index, true } : std::tuple{ findPresentQueueIndex(m_Surface), false };
+		}
 
 		return { Index, QueueFamilies.at(Index).queueCount };
 	}
