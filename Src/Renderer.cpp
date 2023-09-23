@@ -18,13 +18,23 @@ namespace VT
 		return m_Window.m_Window;
 	}
 
+	void Renderer::createSwapChain(const PhysicalDevice& PD, const uint32_t& Amount)
+	{
+		for(uint32_t i = 0; i < Amount; i++)
+		{
+			m_SwapChain.emplace_back(SwapChain());
+		}
+
+		for(auto& SC : m_SwapChain)
+		{
+			SC.createSwapChain(PD);
+		}
+	}
+
+
 	void Renderer::update()
 	{
-		// maybe put this into VT::Window
-		while (!glfwWindowShouldClose(m_Window.m_Window))
-		{
-			glfwPollEvents();
-		}
+
 	}
 }
 

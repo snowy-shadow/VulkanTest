@@ -18,11 +18,10 @@ namespace VT
 	{
 	public:
 		void initInstance(const vk::ApplicationInfo ApplicationInfo);
-		vk::Instance& getInstance();
 
-		vk::SurfaceKHR& getSurface();
+		void initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions);
 
-		vk::Result createWindowSurface(GLFWwindow* Window);
+		PhysicalDevice getPhysicalDevice() const;
 
 		~Instance();
 	private:
@@ -30,7 +29,7 @@ namespace VT
 		bool isSupported(std::vector<const char*> RequiredExtensions = {}, std::vector<const char*> RequiredLayers = {}) const;
 
 		vk::Instance m_VulkanInstance;
-		vk::SurfaceKHR m_Surface{};
+		vk::SurfaceKHR m_Surface;
 
 		PhysicalDevice m_PhysicalDevice;
 		vk::Device m_LogicalDevice;

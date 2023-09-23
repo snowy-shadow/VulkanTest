@@ -7,7 +7,6 @@
 #include "Instance.h"
 #include "Renderer.h"
 
-
 namespace VT
 {
 	class App
@@ -18,11 +17,7 @@ namespace VT
 		void run();
 
 	private:
-
-		
 		Renderer m_Renderer;
-
-
 		Instance m_VulkanInstance;
 	};
 }

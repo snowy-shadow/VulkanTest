@@ -4,7 +4,6 @@
 #include "SwapChain.h"
 #include "Window.h"
 
-
 namespace VT
 {
 	class Renderer
@@ -14,7 +13,7 @@ namespace VT
 		~Renderer();
 
 		GLFWwindow* getWindow();
-		void createSwapChain();
+		void createSwapChain(const PhysicalDevice&, const uint32_t& Amount = 1);
 
 		void update();
 	

@@ -39,27 +39,37 @@ namespace VT
 			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
 			vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
 #endif
-
-		m_LogicalDevice = m_PhysicalDevice.createLogicalDevice(
-			m_VulkanInstance.enumeratePhysicalDevices(),
-			{ "VK_KHR_swapchain" }, 
-			{ {vk::QueueFlagBits::eGraphics, 0.f} },
-			m_Surface);
 	}
 
-	vk::Instance& Instance::getInstance()
+	void Instance::initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions)
 	{
-		return m_VulkanInstance;
+		if (static_cast<vk::Result>(glfwCreateWindowSurface(m_VulkanInstance, Window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&m_Surface))) != vk::Result::eSuccess)
+		{
+			throw std::runtime_error("Failed to create window surface");
+		}
+
+		// find device
+		if (!m_PhysicalDevice.findPhysicalDevice(m_VulkanInstance.enumeratePhysicalDevices(), RequiredExtensions)) { throw std::runtime_error("Cannot find compatible physical device"); }
+
+		// add queue
+		std::vector<std::tuple<vk::QueueFlagBits, float>> RequiredQueues = { {vk::QueueFlagBits::eGraphics, 0.f} };
+		for (const auto& Q : RequiredQueues)
+		{
+			m_PhysicalDevice.addQueue(std::get<vk::QueueFlagBits>(Q), std::get<float>(Q));
+		}
+
+		m_PhysicalDevice.bindSurface(m_Surface);
+
+		// find present queue
+		if (!m_PhysicalDevice.findPresentQueue()) { throw std::runtime_error("Did not find present queue"); }
+
+		// create device;
+		m_LogicalDevice = m_PhysicalDevice.createLogicalDevice(RequiredExtensions);
 	}
 
-	vk::SurfaceKHR& Instance::getSurface()
+	PhysicalDevice Instance::getPhysicalDevice() const
 	{
-		return m_Surface;
-	}
-
-	vk::Result Instance::createWindowSurface(GLFWwindow* Window)
-	{
-		return static_cast<vk::Result>(glfwCreateWindowSurface(m_VulkanInstance, Window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&m_Surface)));
+		return m_PhysicalDevice;
 	}
 
 	Instance::~Instance()

@@ -6,7 +6,6 @@ VT::Window::Window(const std::array<int, 2>& Dimension_XY, const char* WindowNam
 
 	if (!glfwVulkanSupported()){throw std::runtime_error("GLFW did not find Vulkan loader or LCD");}
 
-
 	// do not create opengl context
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
