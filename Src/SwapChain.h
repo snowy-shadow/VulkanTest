@@ -10,19 +10,24 @@ namespace VT
 	class SwapChain
 	{
 	public:
-		void createSwapChain(const PhysicalDevice& PD);
+		void createSwapChain(const PhysicalDevice& PD,
+			const std::vector<vk::SurfaceFormatKHR>& PreferedFormats,
+			const std::vector<vk::PresentModeKHR>& PreferedPresentations);
 
-		void setImageFormat(const vk::Format& Format = vk::Format::eB8G8R8A8Unorm);
-		void setImageCount(const uint32_t& Amount = 1);
-		void setMaxWidthHeight(const uint32_t& Width = 1920, const uint32_t& Height = 1080);
+		void setImageCount(const uint32_t& Amount);
+		void setWidthHeight(const std::array<uint32_t, 2> XY);
 
 
 	private:
-		uint32_t m_ImageCount;
-		uint32_t m_Width, m_Height;
+		bool FormatSupported(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& SurfaceFormat);
+		bool PresentModeSupported(const std::vector<vk::PresentModeKHR>& SupportedPresentation, const std::vector<vk::PresentModeKHR>& PresentModes);
+
+
+		uint32_t m_ImageCount = 2;
+		std::array<uint32_t, 2> m_WidthHeight{ 1920, 1080 };
 
 		vk::SurfaceCapabilitiesKHR m_SurfaceCapabilities;
-		vk::Format m_SurfaceFormat;
+		vk::SurfaceFormatKHR m_SurfaceFormat;
 		vk::PresentModeKHR m_PresentMode;
 
 		vk::SwapchainKHR m_SwapChain;

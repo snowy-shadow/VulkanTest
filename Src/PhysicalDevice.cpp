@@ -68,6 +68,15 @@ namespace  VT
 			if (m_PhysicalDevice.getSurfaceSupportKHR(Index, m_Surface))
 			{
 				m_PresentQueue = std::tuple{ Index, false };
+				constexpr float QueuePriority{ 1.f };
+
+				// create seperate presentation queue
+				m_DeviceQueues.emplace_back(vk::DeviceQueueCreateInfo
+					{
+						.queueFamilyIndex = static_cast<uint32_t>(Index),
+						.queueCount = 1,
+						.pQueuePriorities = &QueuePriority
+					});
 				return true;
 			}
 		}

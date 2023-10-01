@@ -11,11 +11,5 @@ endif()
 
 project ("VulkanTest" VERSION 0.1 LANGUAGES CXX)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/CMake")
-
-# Custom libraries
-set(GLFW_PATH "D:\\Applications\\glfw-3.3.7.bin.WIN64")
-# set(ENV{VULKAN_SDK} "D:\\Applications\\Vulkan")
-
 # Include sub-projects.
 add_subdirectory (Src)
