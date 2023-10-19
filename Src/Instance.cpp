@@ -11,7 +11,7 @@ namespace VT
 		// Extentions
 		uint32_t glfwExtensionCount{ 0 };
 		const char** glfwExtensions{ glfwGetRequiredInstanceExtensions(&glfwExtensionCount) };
-		std::vector<const char*> Extentions{glfwExtensions, glfwExtensions + glfwExtensionCount };
+		std::vector<const char*> Extentions{ glfwExtensions, glfwExtensions + glfwExtensionCount };
 
 		#ifndef NDEBUG
 		Layers.push_back("VK_LAYER_KHRONOS_validation");
@@ -70,7 +70,7 @@ namespace VT
 		return m_LogicalDevice;
 	}
 
-	Instance::~Instance()
+	void Instance::destroy()
 	{
 		m_LogicalDevice.destroy();
 

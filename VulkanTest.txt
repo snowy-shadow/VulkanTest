@@ -1,0 +1,14 @@
+Launching Vulkan Application:
+- Layers overridden by "Validation" configuration.
+- Application: VulkanTest.exe
+- Executable: S:\Dev\Projects\VulkanTest\out\build\x64-debug\src\VulkanTest.exe
+- Working Directory: S:\Dev\Projects\VulkanTest\out\build\x64-debug\src
+- Log file: S:\Dev\Projects\VulkanTest\VulkanTest.txt
+UNASSIGNED-khronos-validation-createinstance-status-message(INFO / SPEC): msgNum: -671457468 - Validation Information: [ UNASSIGNED-khronos-validation-createinstance-status-message ] Object 0: handle = 0x2523ac94440, type = VK_OBJECT_TYPE_INSTANCE; | MessageID = 0xd7fa5f44 | Khronos Validation Layer Active:
+    Settings File: Found at C:\Users\TDKua\AppData\Local\LunarG\vkconfig\override\vk_layer_settings.txt specified by VkConfig application override.
+    Current Enables: None.
+    Current Disables: VK_VALIDATION_FEATURE_DISABLE_THREAD_SAFETY_EXT.
+
+    Objects: 1
+        [0] 0x2523ac94440, type: 1, name: NULL
+Process terminated

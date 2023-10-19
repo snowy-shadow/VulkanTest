@@ -11,6 +11,7 @@ namespace VT
 		m_Renderer.bindInstance(m_VulkanInstance);
 		m_Renderer.bindWindow(m_Window);
 		m_Renderer.createSwapChain();
+
 	}
 
 
@@ -26,6 +27,8 @@ namespace VT
 
 	App::~App()
 	{
+		m_Renderer.destroy();
+		m_VulkanInstance.destroy();
 	}
 
 

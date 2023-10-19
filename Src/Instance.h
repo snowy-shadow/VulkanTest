@@ -20,7 +20,7 @@ namespace VT
 
 		vk::Device& getLogicalDevice();
 
-		~Instance();
+		void destroy();
 
 	private:
 		bool isSupported(std::vector<const char*> RequiredExtensions = {}, std::vector<const char*> RequiredLayers = {}) const;

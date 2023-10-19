@@ -1,13 +1,14 @@
 #pragma once
+#include <list>
 
 #include "Pipeline.h"
 #include "SwapChain.h"
 #include "Window.h"
+#include "Instance.h"
+
 
 namespace VT
 {
-	class Instance;
-
 	class Renderer
 	{
 	public:
@@ -19,11 +20,12 @@ namespace VT
 		void bindWindow(Window& Window);
 
 		void update();
+		void destroy();
 	
 	private:
 		Window* m_Window;
 		Pipeline GraphicsPipeLine{ "../Shaders/Vertex.spv", "../Shaders/Fragment.spv" };
-		std::vector<SwapChain> m_SwapChain;
+		std::list<SwapChain> m_SwapChain;
 
 		// Instance handle
 		Instance* m_Instance{ nullptr };

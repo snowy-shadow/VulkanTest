@@ -1,7 +1,5 @@
 #include "PhysicalDevice.h"
 
-#include <iostream>
-
 namespace  VT
 {
 	vk::Device PhysicalDevice::createLogicalDevice(const std::vector<const char*>& DeviceExtensionName)

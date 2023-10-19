@@ -1,6 +1,5 @@
 #include "Renderer.h"
 
-#include "Instance.h"
 
 namespace VT
 {
@@ -12,7 +11,6 @@ namespace VT
 
 	Renderer::~Renderer()
 	{
-		for(auto& SC : m_SwapChain) { SC.destroySwapChain(m_Instance->getLogicalDevice()); }
 	}
 
 	void Renderer::createSwapChain(const uint32_t& Amount)
@@ -27,10 +25,9 @@ namespace VT
 
 		for(auto& SC : m_SwapChain)
 		{
-			SC.bindDevices(m_Instance->m_PhysicalDevice, m_Instance->m_Surface);
+			SC.bindDevices(m_Instance->m_LogicalDevice, m_Instance->m_PhysicalDevice, m_Instance->m_Surface);
 
 			SC.createSwapChain(
-				m_Instance->m_LogicalDevice,
 				{ {vk::Format::eA8B8G8R8UnormPack32, vk::ColorSpaceKHR::eSrgbNonlinear} },
 				{vk::PresentModeKHR::eFifo}, 
 				{ vk::CompositeAlphaFlagBitsKHR::ePreMultiplied, vk::CompositeAlphaFlagBitsKHR::ePostMultiplied, vk::CompositeAlphaFlagBitsKHR::eOpaque },
@@ -50,6 +47,10 @@ namespace VT
 	void Renderer::update()
 	{
 
+	}
+	void Renderer::destroy()
+	{
+		for (auto& SC : m_SwapChain) { SC.destroySwapChain(); }
 	}
 }
 

@@ -2,22 +2,26 @@
 
 namespace VT
 {
-	SwapChain::SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount) : m_ImageCount(ImageAmount), m_WidthHeight(WidthHeight) {}
+	SwapChain::SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount)
+	{
+		m_WidthHeight = WidthHeight;
+		m_ImageCount = ImageAmount;
+	}
 
-	void SwapChain::bindDevices(PhysicalDevice& PD, vk::SurfaceKHR& Surface)
+	void SwapChain::bindDevices(vk::Device LogicalDevice, PhysicalDevice& PD, vk::SurfaceKHR& Surface)
 	{
 		m_PhysicalDevice = &PD;
 		m_Surface = &Surface;
+		m_LogicalDevice = LogicalDevice;
 	}
 
 	void SwapChain::createSwapChain(
-		vk::Device& LogicalDevice,
 		const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
 		const std::vector<vk::PresentModeKHR>& PreferredPresentations,
 		const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
 		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform)
 	{
-		assert(m_PhysicalDevice && m_Surface);
+		assert(m_PhysicalDevice && m_Surface && m_LogicalDevice);
 
 		vk::PhysicalDevice PD = m_PhysicalDevice->getPhysicalDevice();
 
@@ -49,19 +53,14 @@ namespace VT
 			SC_Info.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
 		}
 
-		std::cout << m_SwapChain << "\n";
-		m_SwapChain = LogicalDevice.createSwapchainKHR(SC_Info);
-		std::cout << "after " << m_SwapChain << "\n";
+		m_SwapChain = m_LogicalDevice.createSwapchainKHR(SC_Info);
 	}
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
-	void SwapChain::destroySwapChain(vk::Device& LogicalDevice){ LogicalDevice.destroy(m_SwapChain);  }
-
-	SwapChain::~SwapChain()
+	void SwapChain::destroySwapChain()
 	{
-		// makes sure swapchain is deleted
-		assert(!m_SwapChain);
+		m_LogicalDevice.destroySwapchainKHR(m_SwapChain);
 	}
 
 	/* ====================================================================
