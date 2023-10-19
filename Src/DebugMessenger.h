@@ -18,7 +18,7 @@ namespace VT
 		return VK_FALSE;
 	}
 
-	inline vk::DebugUtilsMessengerEXT createDebugMessenger(vk::Instance& Instance, vk::DispatchLoaderDynamic& DLD,
+	inline vk::DebugUtilsMessengerEXT createDebugMessenger(const vk::Instance& Instance, const vk::DispatchLoaderDynamic& DLD,
 		vk::DebugUtilsMessageSeverityFlagsEXT MessageSeverity,
 		vk::DebugUtilsMessageTypeFlagsEXT MessageType)
 	{

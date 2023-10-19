@@ -6,8 +6,11 @@ namespace VT
 	App::App()
 	{
 		m_VulkanInstance.initInstance({ .apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) });
-		m_VulkanInstance.initDevice(m_Renderer.getWindow(), { "VK_KHR_swapchain" });
-		m_Renderer.createSwapChain(m_VulkanInstance.getPhysicalDevice());
+		m_VulkanInstance.initDevice(m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
+
+		m_Renderer.bindInstance(m_VulkanInstance);
+		m_Renderer.bindWindow(m_Window);
+		m_Renderer.createSwapChain();
 	}
 
 
@@ -15,7 +18,7 @@ namespace VT
 	void VT::App::run()
 	{
 		// maybe put this into VT::Window
-		while (!glfwWindowShouldClose(m_Renderer.getWindow()))
+		while (!glfwWindowShouldClose(m_Window.m_Window))
 		{
 			glfwPollEvents();
 		}

@@ -8,7 +8,6 @@
 
 namespace VT
 {
-
 	struct Window
 	{
 		Window(const std::array<int, 2>& Dimension_XY, const char* WindowName);
@@ -17,8 +16,6 @@ namespace VT
 
 		Window(const Window&) = delete;
 		Window& operator = (const Window&) = delete;
-
-
 
 		GLFWwindow* m_Window{ nullptr };
 	};

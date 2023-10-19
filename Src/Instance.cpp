@@ -3,7 +3,7 @@
 
 namespace VT
 {
-	void Instance::initInstance(const vk::ApplicationInfo ApplicationInfo)
+	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)
 	{
 		// Layers
 		std::vector<const char*> Layers{};
@@ -41,7 +41,7 @@ namespace VT
 #endif
 	}
 
-	void Instance::initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions)
+	void Instance::initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues)
 	{
 		if (static_cast<vk::Result>(glfwCreateWindowSurface(m_VulkanInstance, Window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&m_Surface))) != vk::Result::eSuccess)
 		{
@@ -52,24 +52,22 @@ namespace VT
 		if (!m_PhysicalDevice.findPhysicalDevice(m_VulkanInstance.enumeratePhysicalDevices(), RequiredExtensions)) { throw std::runtime_error("Cannot find compatible physical device"); }
 
 		// add queue
-		std::vector<std::tuple<vk::QueueFlagBits, float>> RequiredQueues = { {vk::QueueFlagBits::eGraphics, 0.f} };
 		for (const auto& Q : RequiredQueues)
 		{
 			m_PhysicalDevice.addQueue(std::get<vk::QueueFlagBits>(Q), std::get<float>(Q));
 		}
 
-		m_PhysicalDevice.bindSurface(m_Surface);
-
 		// find present queue
-		if (!m_PhysicalDevice.findPresentQueue()) { throw std::runtime_error("Did not find present queue"); }
+		if (!m_PhysicalDevice.findPresentQueue(m_Surface, 1.f, 1)) { throw std::runtime_error("Did not find present queue"); }
 
 		// create device;
 		m_LogicalDevice = m_PhysicalDevice.createLogicalDevice(RequiredExtensions);
 	}
 
-	PhysicalDevice Instance::getPhysicalDevice() const
+	vk::Device& Instance::getLogicalDevice()
 	{
-		return m_PhysicalDevice;
+		assert(m_LogicalDevice);
+		return m_LogicalDevice;
 	}
 
 	Instance::~Instance()

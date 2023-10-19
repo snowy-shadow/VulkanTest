@@ -2,34 +2,78 @@
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan_hash.hpp>
+#include <vulkan/vulkan_raii.hpp>
 
-#include "PhysicalDevice.h"
+#include "Instance.h"
 
 namespace VT
 {
 	class SwapChain
 	{
 	public:
-		void createSwapChain(const PhysicalDevice& PD,
-			const std::vector<vk::SurfaceFormatKHR>& PreferedFormats,
-			const std::vector<vk::PresentModeKHR>& PreferedPresentations);
+		SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount = 2);
+		void bindDevices(PhysicalDevice&, vk::SurfaceKHR&);
 
 		void setImageCount(const uint32_t& Amount);
-		void setWidthHeight(const std::array<uint32_t, 2> XY);
 
+		void createSwapChain(
+			vk::Device& LogicalDevice,
+			const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
+			const std::vector<vk::PresentModeKHR>& PreferredPresentations,
+			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
+			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform);
+
+		void destroySwapChain(vk::Device& LogicalDevice);
+
+		~SwapChain();
 
 	private:
-		bool FormatSupported(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& SurfaceFormat);
-		bool PresentModeSupported(const std::vector<vk::PresentModeKHR>& SupportedPresentation, const std::vector<vk::PresentModeKHR>& PresentModes);
+		vk::SurfaceFormatKHR findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& SurfaceFormat) const;
+		vk::PresentModeKHR findPresentMode(const std::vector<vk::PresentModeKHR>& SupportedPresentation, const std::vector<vk::PresentModeKHR>& PresentModes) const;
 
+		vk::SurfaceCapabilitiesKHR findSurfaceCapabilities(const vk::SurfaceCapabilitiesKHR& SurfaceCapabilities,
+			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
+			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform) const;
 
-		uint32_t m_ImageCount = 2;
+		// Configs
+		uint32_t m_ImageCount;
+		uint32_t m_ArrayLayers;
 		std::array<uint32_t, 2> m_WidthHeight{ 1920, 1080 };
+		vk::SharingMode m_SharingMode = vk::SharingMode::eExclusive;
+		bool m_SharingModeAdjust = true;
 
 		vk::SurfaceCapabilitiesKHR m_SurfaceCapabilities;
 		vk::SurfaceFormatKHR m_SurfaceFormat;
 		vk::PresentModeKHR m_PresentMode;
 
+		// Obj
 		vk::SwapchainKHR m_SwapChain;
+		std::vector<vk::Image> m_SwapChainImages;
+
+		// Creation helper
+		PhysicalDevice* m_PhysicalDevice;
+		vk::SurfaceKHR* m_Surface;
 	};
 }
+
+//namespace std
+//{
+//	template <>
+//	struct hash<vk::SurfaceFormatKHR>
+//	{
+//		auto operator()(const vk::SurfaceFormatKHR& SF) const -> size_t
+//		{
+//			return ((std::hash<vk::Format>{}(SF.format) ^ (std::hash<vk::ColorSpaceKHR>{}(SF.colorSpace) << 1)) >> 1);
+//		}
+//	};
+//
+//	template <>
+//	struct hash<vk::PresentModeKHR>
+//	{
+//		auto operator()(const vk::PresentModeKHR& PM) const -> size_t
+//		{
+//			return std::hash<size_t>{}(static_cast<size_t>(PM));
+//		}
+//	};
+//}

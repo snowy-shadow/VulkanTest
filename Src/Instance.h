@@ -1,10 +1,7 @@
 #pragma once
 
-#define VULKAN_HPP_NO_CONSTRUCTORS
-#include <vulkan/vulkan.hpp>
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-
-#include <unordered_set>
 
 #ifndef NDEBUG
 #include "DebugMessenger.h"
@@ -17,21 +14,21 @@ namespace VT
 	class Instance
 	{
 	public:
-		void initInstance(const vk::ApplicationInfo ApplicationInfo);
+		void initInstance(const vk::ApplicationInfo& ApplicationInfo);
 
-		void initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions);
+		void initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
 
-		PhysicalDevice getPhysicalDevice() const;
+		vk::Device& getLogicalDevice();
 
 		~Instance();
-	private:
 
+	private:
 		bool isSupported(std::vector<const char*> RequiredExtensions = {}, std::vector<const char*> RequiredLayers = {}) const;
 
 		vk::Instance m_VulkanInstance;
 		vk::SurfaceKHR m_Surface;
 
-		PhysicalDevice m_PhysicalDevice;
+		PhysicalDevice m_PhysicalDevice{};
 		vk::Device m_LogicalDevice;
 
 	#ifndef NDEBUG
@@ -39,5 +36,6 @@ namespace VT
 		vk::DebugUtilsMessengerEXT m_DebugMessenger;
 	#endif
 
+		friend class Renderer;
 	};
 }

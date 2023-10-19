@@ -4,9 +4,7 @@
 #include <vulkan/vulkan.hpp>
 
 #include <unordered_set>
-#include <string>
 #include <array>
-#include <tuple>
 #include <optional>
 
 namespace VT
@@ -17,34 +15,33 @@ namespace VT
 
 		vk::Device createLogicalDevice(const std::vector<const char*>& DeviceExtensionName = {});
 
-		void addQueue(const vk::QueueFlagBits& RequiredQueue = {}, const float& QueuePriority = 0.f, const uint32_t& QueueCount = 1);
+		vk::PhysicalDevice& getPhysicalDevice();
+
+		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 
 		bool findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& DeviceRequiredExtensions = {});
 
-		bool findPresentQueue();
+		bool findPresentQueue(const vk::SurfaceKHR& Surface, const float& PresentQPriority, const uint32_t& MinPresentQCount);
 
-		void bindSurface(const vk::SurfaceKHR& Surface);
+		bool findGraphicsQueueWithPresent(
+			const vk::SurfaceKHR& Surface, 
+			const float& GraphicsQPriority, const uint32_t& MinGraphicsQCount, 
+			const float& PresentQPriority, const uint32_t& MinPresentQCount);
+
+		std::array<uint32_t, 2> getGraphicsPresentQueueIndices();
+
+		bool m_GraphicsCanPresent = false;
+
+		PhysicalDevice() = default;
+		PhysicalDevice(PhysicalDevice&) = delete;
+		PhysicalDevice& operator = (PhysicalDevice) = delete;
 
 	private:
-		bool extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions) const;
-
-		std::array<uint32_t, 2> findQueue(const vk::QueueFlagBits& RequiredQueue, const uint32_t& QueueCount) const;
-
-		std::vector<vk::DeviceQueueCreateInfo> m_DeviceQueues;
+		static bool extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions);
 
 		vk::PhysicalDevice m_PhysicalDevice;
-		vk::SurfaceKHR m_Surface;
-
-		// Index, if found
-		using Index = uint32_t;
-		using IsGraphicsQueueIndex = bool;
-
-		std::optional<Index> m_GraphicsQueue;
-		std::tuple<Index, IsGraphicsQueueIndex> m_PresentQueue;
-
-
-
-		// swapchain needs m_PhysicalDevice for query
-		friend class SwapChain;
+		std::vector<vk::DeviceQueueCreateInfo> m_DeviceQueues;
+		std::optional<vk::DeviceQueueCreateInfo> m_GraphicsQueue;
+		uint32_t m_PresentQueue;
 	};
 }

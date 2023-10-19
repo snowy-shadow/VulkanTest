@@ -1,9 +1,14 @@
 #include "PhysicalDevice.h"
 
+#include <iostream>
+
 namespace  VT
 {
 	vk::Device PhysicalDevice::createLogicalDevice(const std::vector<const char*>& DeviceExtensionName)
 	{
+		// graphics queue
+		m_DeviceQueues.push_back(m_GraphicsQueue.value());
+
 		vk::DeviceCreateInfo DeviceInfo
 		{
 			.queueCreateInfoCount = static_cast<uint32_t>(m_DeviceQueues.size()),
@@ -15,19 +20,54 @@ namespace  VT
 		return m_PhysicalDevice.createDevice(DeviceInfo);
 	}
 
-	void PhysicalDevice::addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority, const uint32_t& QueueCount)
+	vk::PhysicalDevice& PhysicalDevice::getPhysicalDevice()
 	{
-		auto Queue{ findQueue(RequiredQueue, QueueCount) };
+		return m_PhysicalDevice;
+	}
 
-		// check if graphics queue
-		if (RequiredQueue & vk::QueueFlagBits::eGraphics) { m_GraphicsQueue = Queue.at(0); }
+	bool PhysicalDevice::addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority, const uint32_t& QueueCount)
+	{
+		// find queue
+		auto QueueFamilies{ m_PhysicalDevice.getQueueFamilyProperties() };
 
-		m_DeviceQueues.emplace_back(vk::DeviceQueueCreateInfo
+		auto Iterator
 		{
-			.queueFamilyIndex = Queue.at(0),
-			.queueCount = Queue.at(1),
-			.pQueuePriorities = &QueuePriority
-		});
+			std::find_if(QueueFamilies.cbegin(), QueueFamilies.cend(),
+			[RequiredQueue, QueueCount](const vk::QueueFamilyProperties& QFP)
+			{
+				return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount);
+
+			})
+		};
+
+		if (Iterator == QueueFamilies.cend()){ return false; }
+
+		auto Index{ static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator)) };
+
+		// check if graphics queue, special case
+		if (RequiredQueue & vk::QueueFlagBits::eGraphics)
+		{
+			m_GraphicsQueue = vk::DeviceQueueCreateInfo
+			{
+				.queueFamilyIndex = Index,
+				.queueCount = QueueFamilies.at(Index).queueCount,
+				.pQueuePriorities = &QueuePriority
+			};
+
+			return true;
+		}
+
+		// save queue info
+		m_DeviceQueues.push_back(
+			vk::DeviceQueueCreateInfo
+			{
+				.queueFamilyIndex = Index,
+				.queueCount = QueueFamilies.at(Index).queueCount,
+				.pQueuePriorities = &QueuePriority
+			}
+		);
+
+		return true;
 	}
 
 	bool PhysicalDevice::findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& RequiredExtensions)
@@ -44,49 +84,67 @@ namespace  VT
 	}
 
 
-	bool PhysicalDevice::findPresentQueue()
+	bool PhysicalDevice::findPresentQueue(const vk::SurfaceKHR& Surface, const float& PresentQPriority, const uint32_t& MinPresentQCount)
 	{
-		assert(m_Surface);
+		assert(m_GraphicsQueue.has_value());
 
-		// check if get queue already found a potential match
-		if (!m_GraphicsQueue.has_value())
+		if (m_PhysicalDevice.getSurfaceSupportKHR(m_GraphicsQueue.value().queueFamilyIndex, Surface))
 		{
-			addQueue(vk::QueueFlagBits::eGraphics, 0.0f, 1);
-		}
-
-		// prioritize graphics and present queue to be same index
-		if (m_PhysicalDevice.getSurfaceSupportKHR(m_GraphicsQueue.value(), m_Surface))
-		{
-			m_PresentQueue = { m_GraphicsQueue.value(), true };
+			m_GraphicsCanPresent = true;
 			return true;
 		}
 
-		size_t Size{ m_PhysicalDevice.getQueueFamilyProperties().size() };
+		m_GraphicsCanPresent = findGraphicsQueueWithPresent(Surface, 1.f, 1, 1.f, 1);
 
-		for (auto Index = 0; Index < Size; Index++)
+		return m_GraphicsCanPresent;
+	}
+
+	bool PhysicalDevice::findGraphicsQueueWithPresent(
+		const vk::SurfaceKHR& Surface,
+		const float& GraphicsQPriority, const uint32_t& MinGraphicsQCount,
+		const float& PresentQPriority, const uint32_t& MinPresentQCount)
+	{
+		if(!m_GraphicsQueue.has_value())
 		{
-			if (m_PhysicalDevice.getSurfaceSupportKHR(Index, m_Surface))
+			if(!addQueue(vk::QueueFlagBits::eGraphics, GraphicsQPriority, MinGraphicsQCount))
 			{
-				m_PresentQueue = std::tuple{ Index, false };
-				constexpr float QueuePriority{ 1.f };
-
-				// create seperate presentation queue
-				m_DeviceQueues.emplace_back(vk::DeviceQueueCreateInfo
-					{
-						.queueFamilyIndex = static_cast<uint32_t>(Index),
-						.queueCount = 1,
-						.pQueuePriorities = &QueuePriority
-					});
-				return true;
+				return false;
 			}
 		}
 
-		return false;
+		// if graphics queue exist and supports present
+		if (m_PhysicalDevice.getSurfaceSupportKHR(m_GraphicsQueue.value().queueFamilyIndex, Surface))
+		{
+			m_PresentQueue = m_GraphicsQueue.value().queueFamilyIndex;
+			return true;
+		}
+
+		// else
+		auto QueueFamilies{ m_PhysicalDevice.getQueueFamilyProperties() };
+
+		for (auto Index = 0; Index < QueueFamilies.size(); Index++)
+		{
+			if (m_PhysicalDevice.getSurfaceSupportKHR(Index, Surface))
+			{
+				m_PresentQueue = Index;
+
+				// create seperate presentation queue
+				m_DeviceQueues.push_back(
+					{
+						.queueFamilyIndex = static_cast<uint32_t>(Index),
+						.queueCount = MinPresentQCount,
+						.pQueuePriorities = &PresentQPriority
+					});
+				return false;
+			}
+		}
+
+		throw std::runtime_error("Cannot find present queue");
 	}
 
-	void PhysicalDevice::bindSurface(const vk::SurfaceKHR& Surface)
+	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices()
 	{
-		m_Surface = Surface;
+		return { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue };
 	}
 
 
@@ -96,7 +154,7 @@ namespace  VT
 	 * ==================================================
 	 */
 
-	bool PhysicalDevice::extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions) const
+	bool PhysicalDevice::extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions)
 	{
 		// construct set
 		std::unordered_set<std::string> DeviceSupportedExtentions;
@@ -115,23 +173,5 @@ namespace  VT
 		}
 
 		return true;
-	}
-
-	std::array<uint32_t, 2> PhysicalDevice::findQueue(const vk::QueueFlagBits& RequiredQueue, const uint32_t& QueueCount) const
-	{
-		auto QueueFamilies{ m_PhysicalDevice.getQueueFamilyProperties() };
-
-		auto Iterator{ std::find_if(QueueFamilies.cbegin(), QueueFamilies.cend(),
-		[RequiredQueue, QueueCount](const vk::QueueFamilyProperties& QFP)
-		{
-			return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount);
-
-		}) };
-
-		if (Iterator == QueueFamilies.cend()){throw std::runtime_error("No compatible physical device queue family");}
-
-		auto Index{ static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator)) };
-
-		return { Index, QueueFamilies.at(Index).queueCount };
 	}
 }
