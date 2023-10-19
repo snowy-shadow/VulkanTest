@@ -3,7 +3,6 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 #include <vulkan/vulkan_hash.hpp>
-#include <vulkan/vulkan_raii.hpp>
 
 #include "Instance.h"
 
@@ -56,24 +55,3 @@ namespace VT
 		vk::SurfaceKHR* m_Surface;
 	};
 }
-
-//namespace std
-//{
-//	template <>
-//	struct hash<vk::SurfaceFormatKHR>
-//	{
-//		auto operator()(const vk::SurfaceFormatKHR& SF) const -> size_t
-//		{
-//			return ((std::hash<vk::Format>{}(SF.format) ^ (std::hash<vk::ColorSpaceKHR>{}(SF.colorSpace) << 1)) >> 1);
-//		}
-//	};
-//
-//	template <>
-//	struct hash<vk::PresentModeKHR>
-//	{
-//		auto operator()(const vk::PresentModeKHR& PM) const -> size_t
-//		{
-//			return std::hash<size_t>{}(static_cast<size_t>(PM));
-//		}
-//	};
-//}

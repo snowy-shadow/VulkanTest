@@ -105,10 +105,7 @@ namespace VT
 		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform) const
 	{
 		auto SC = SurfaceCapabilities;
-
-
-
-
+		
 		// max Image count = 0 means no upper bound
 		if (SurfaceCapabilities.maxImageCount > 0) { SC.minImageCount = std::clamp(m_ImageCount, SurfaceCapabilities.minImageCount, SurfaceCapabilities.maxImageCount); }
 		else { SC.minImageCount = m_ImageCount < SurfaceCapabilities.minImageCount ? SurfaceCapabilities.minImageCount : m_ImageCount; }
