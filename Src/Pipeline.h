@@ -5,6 +5,8 @@
 #include <fstream>
 #include <stdexcept>
 
+#include "Images.h"
+
 namespace VT
 {
 	class Pipeline
@@ -19,6 +21,6 @@ namespace VT
 
 		void compileShader() const;
 
-
+		Images m_Images;
 	};
 }

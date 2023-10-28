@@ -8,6 +8,12 @@ namespace VT
 		createPipeline(VertexShaderPath, FragmentShaderPath);
 	}
 
+	void Pipeline::createPipeline(const std::string& VertexShaderPath, const std::string& FragmentShaderPath)
+	{
+		auto VertexShader{ readFile(VertexShaderPath) };
+		auto FragmentSahder{ readFile(FragmentShaderPath) };
+	}
+
 	std::vector<char> Pipeline::readFile(const std::string& FilePath)
 	{
 		std::ifstream File(FilePath, std::ios::ate | std::ios::binary);
@@ -23,13 +29,7 @@ namespace VT
 		File.close();
 		return Shader;
 	}
-	void Pipeline::createPipeline(const std::string& VertexShaderPath, const std::string& FragmentShaderPath)
-	{
-		auto VertexShader = readFile(VertexShaderPath);
-		auto FragmentSahder{ readFile(FragmentShaderPath) };
 
-
-	}
 	void Pipeline::compileShader() const
 	{
 	}

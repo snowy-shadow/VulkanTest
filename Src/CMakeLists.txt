@@ -12,7 +12,7 @@ add_executable (${PROJECT_NAME}
 "Instance.h" "Instance.cpp"
 "PhysicalDevice.h" "PhysicalDevice.cpp" 
 "SwapChain.h" "SwapChain.cpp"
-)
+ "Images.h")
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

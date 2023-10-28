@@ -22,6 +22,10 @@ namespace VT
 
 		void destroy();
 
+		Instance() {};
+		Instance(Instance&) = delete;
+		Instance& operator=(Instance&) = delete;
+
 	private:
 		bool isSupported(std::vector<const char*> RequiredExtensions = {}, std::vector<const char*> RequiredLayers = {}) const;
 

@@ -12,16 +12,22 @@ namespace VT
 	{
 	public:
 		SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount = 2);
-		void bindDevices(vk::Device, PhysicalDevice&, vk::SurfaceKHR&);
 
 		void setImageCount(const uint32_t& Amount);
 
-		void createSwapChain(
+		void bindDevice(PhysicalDevice&, vk::Device&, vk::SurfaceKHR&);
+
+		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
+
+		void setProperties(
+			PhysicalDevice& PhysicalDevice,
 			const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
 			const std::vector<vk::PresentModeKHR>& PreferredPresentations,
 			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
-			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform);
+			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform
+		);
 
+		vk::SwapchainKHR& getSwapChain();
 		void destroySwapChain();
 
 		SwapChain(const SwapChain&) = delete;
@@ -40,7 +46,6 @@ namespace VT
 		uint32_t m_ArrayLayers;
 		std::array<uint32_t, 2> m_WidthHeight{ 1920, 1080 };
 		vk::SharingMode m_SharingMode = vk::SharingMode::eExclusive;
-		bool m_SharingModeAdjust = true;
 
 		vk::SurfaceCapabilitiesKHR m_SurfaceCapabilities;
 		vk::SurfaceFormatKHR m_SurfaceFormat;
@@ -48,11 +53,10 @@ namespace VT
 
 		// Obj
 		vk::SwapchainKHR m_SwapChain;
-		std::vector<vk::Image> m_SwapChainImages;
 
-		// Creation helper
+		// Instance
+		vk::Device* m_LogicalDevice{};
 		PhysicalDevice* m_PhysicalDevice{};
 		vk::SurfaceKHR* m_Surface{};
-		vk::Device m_LogicalDevice{};
 	};
 }

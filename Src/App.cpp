@@ -14,8 +14,6 @@ namespace VT
 
 	}
 
-
-
 	void VT::App::run()
 	{
 		// maybe put this into VT::Window

@@ -14,8 +14,9 @@ namespace VT
 		void run();
 
 	private:
-		Instance m_VulkanInstance;
 		Renderer m_Renderer;
+		Instance m_VulkanInstance;
+
 
 		Window m_Window{ {1280, 720}, "VulkanTest" };
 	};

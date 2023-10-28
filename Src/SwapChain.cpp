@@ -8,31 +8,9 @@ namespace VT
 		m_ImageCount = ImageAmount;
 	}
 
-	void SwapChain::bindDevices(vk::Device LogicalDevice, PhysicalDevice& PD, vk::SurfaceKHR& Surface)
+	void SwapChain::createSwapChain(const vk::SwapchainKHR& Old)
 	{
-		m_PhysicalDevice = &PD;
-		m_Surface = &Surface;
-		m_LogicalDevice = LogicalDevice;
-	}
-
-	void SwapChain::createSwapChain(
-		const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
-		const std::vector<vk::PresentModeKHR>& PreferredPresentations,
-		const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
-		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform)
-	{
-		assert(m_PhysicalDevice && m_Surface && m_LogicalDevice);
-
-		vk::PhysicalDevice PD = m_PhysicalDevice->getPhysicalDevice();
-
-		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(*m_Surface), PreferredFormats);
-		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(*m_Surface), PreferredPresentations);
-
-		m_SurfaceCapabilities = findSurfaceCapabilities(PD.getSurfaceCapabilitiesKHR(*m_Surface), PreferredCompositeAlpha, PreferredSurfaceTransform);
-
-		// defined minImageCount == maxImageCount in m_SurfaceCapabilities
-		m_ImageCount = m_SurfaceCapabilities.minImageCount;
-		m_ArrayLayers = m_SurfaceCapabilities.maxImageArrayLayers;
+		assert(m_Surface && m_PhysicalDevice && m_LogicalDevice);
 
 		vk::SwapchainCreateInfoKHR SC_Info
 		{
@@ -44,23 +22,56 @@ namespace VT
 			.imageArrayLayers = m_ArrayLayers,
 			.imageSharingMode = m_SharingMode,
 			.presentMode = m_PresentMode,
+			.oldSwapchain = Old
 		};
 
-		if(m_SharingModeAdjust && !m_PhysicalDevice->m_GraphicsCanPresent)
+		if(!m_PhysicalDevice->m_GraphicsCanPresent)
 		{
 			SC_Info.imageSharingMode = vk::SharingMode::eConcurrent;
 			SC_Info.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());
 			SC_Info.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
 		}
 
-		m_SwapChain = m_LogicalDevice.createSwapchainKHR(SC_Info);
+		m_SwapChain = m_LogicalDevice->createSwapchainKHR(SC_Info);
+	}
+
+	void SwapChain::setProperties(
+		PhysicalDevice& PhysicalDevice,
+		const std::vector<vk::SurfaceFormatKHR>& PreferredFormats, 
+		const std::vector<vk::PresentModeKHR>& PreferredPresentations, 
+		const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha, 
+		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform)
+	{
+		vk::PhysicalDevice PD = PhysicalDevice.getPhysicalDevice();
+
+		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(*m_Surface), PreferredFormats);
+		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(*m_Surface), PreferredPresentations);
+
+		m_SurfaceCapabilities = findSurfaceCapabilities(PD.getSurfaceCapabilitiesKHR(*m_Surface), PreferredCompositeAlpha, PreferredSurfaceTransform);
+
+		// defined minImageCount == maxImageCount in m_SurfaceCapabilities
+		m_ImageCount = m_SurfaceCapabilities.minImageCount;
+		m_ArrayLayers = m_SurfaceCapabilities.maxImageArrayLayers;
+
 	}
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
+	void SwapChain::bindDevice(PhysicalDevice& PD, vk::Device& LD, vk::SurfaceKHR& Surface)
+	{
+		m_Surface = &Surface;
+		m_LogicalDevice = &LD;
+		m_PhysicalDevice = &PD;
+	}
+
+	vk::SwapchainKHR& SwapChain::getSwapChain()
+	{
+		return m_SwapChain;
+	}
+
 	void SwapChain::destroySwapChain()
 	{
-		m_LogicalDevice.destroySwapchainKHR(m_SwapChain);
+		m_LogicalDevice->destroySwapchainKHR(m_SwapChain);
 	}
 
 	/* ====================================================================
