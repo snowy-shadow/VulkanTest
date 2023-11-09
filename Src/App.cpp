@@ -10,7 +10,7 @@ namespace VT
 
 		m_Renderer.bindInstance(m_VulkanInstance);
 		m_Renderer.bindWindow(m_Window);
-		m_Renderer.createSwapChain();
+		m_Renderer.createSwapChain({"Main"});
 
 	}
 
@@ -36,6 +36,4 @@ namespace VT
 	 *					    PRIVATE
 	 * ==================================================
 	 */
-
-	
 }

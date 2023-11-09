@@ -11,23 +11,23 @@ namespace VT
 	class SwapChain
 	{
 	public:
-		SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount = 2);
+		SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount);
 
 		void setImageCount(const uint32_t& Amount);
 
-		void bindDevice(PhysicalDevice&, vk::Device&, vk::SurfaceKHR&);
+		void bindDevice(const PhysicalDevice&, const vk::Device&, const vk::SurfaceKHR&);
 
 		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
 
-		void setProperties(
-			PhysicalDevice& PhysicalDevice,
+		void setProperties
+		(
 			const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
 			const std::vector<vk::PresentModeKHR>& PreferredPresentations,
 			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
 			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform
 		);
 
-		vk::SwapchainKHR& getSwapChain();
+		std::vector<vk::Image> getSwapChainImages();
 		void destroySwapChain();
 
 		SwapChain(const SwapChain&) = delete;
@@ -55,8 +55,8 @@ namespace VT
 		vk::SwapchainKHR m_SwapChain;
 
 		// Instance
-		vk::Device* m_LogicalDevice{};
-		PhysicalDevice* m_PhysicalDevice{};
-		vk::SurfaceKHR* m_Surface{};
+		const vk::Device* m_LogicalDevice{};
+		const PhysicalDevice* m_PhysicalDevice{};
+		const vk::SurfaceKHR* m_Surface{};
 	};
 }

@@ -16,6 +16,7 @@ namespace VT
 		vk::Device createLogicalDevice(const std::vector<const char*>& DeviceExtensionName = {});
 
 		vk::PhysicalDevice& getPhysicalDevice();
+		vk::PhysicalDevice cgetPhysicalDevice() const;
 
 		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 
@@ -28,9 +29,9 @@ namespace VT
 			const float& GraphicsQPriority, const uint32_t& MinGraphicsQCount, 
 			const float& PresentQPriority, const uint32_t& MinPresentQCount);
 
-		std::array<uint32_t, 2> getGraphicsPresentQueueIndices();
+		std::array<uint32_t, 2> getGraphicsPresentQueueIndices() const;
 
-		bool m_GraphicsCanPresent = false;
+		bool GraphicsCanPresent() const;
 
 		PhysicalDevice() = default;
 		PhysicalDevice(PhysicalDevice&) = delete;
@@ -38,6 +39,8 @@ namespace VT
 
 	private:
 		static bool extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions);
+
+		bool m_GraphicsCanPresent = false;
 
 		vk::PhysicalDevice m_PhysicalDevice;
 		std::vector<vk::DeviceQueueCreateInfo> m_DeviceQueues;

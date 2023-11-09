@@ -11,7 +11,7 @@ namespace VT
 	class Renderer
 	{
 	public:
-		void createSwapChain(const uint32_t& Amount = 1);
+		void createSwapChain(const std::unordered_set<std::string_view>& SwapChainName);
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
@@ -24,7 +24,9 @@ namespace VT
 	private:
 		Window* m_Window{nullptr};
 		Pipeline GraphicsPipeLine{ "../Shaders/Vertex.spv", "../Shaders/Fragment.spv" };
+
 		std::list<SwapChain> m_SwapChain;
+		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;
 
 
 		// Instance handle

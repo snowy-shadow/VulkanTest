@@ -25,7 +25,7 @@ namespace VT
 			.oldSwapchain = Old
 		};
 
-		if(!m_PhysicalDevice->m_GraphicsCanPresent)
+		if(!m_PhysicalDevice->GraphicsCanPresent())
 		{
 			SC_Info.imageSharingMode = vk::SharingMode::eConcurrent;
 			SC_Info.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());
@@ -36,13 +36,12 @@ namespace VT
 	}
 
 	void SwapChain::setProperties(
-		PhysicalDevice& PhysicalDevice,
 		const std::vector<vk::SurfaceFormatKHR>& PreferredFormats, 
 		const std::vector<vk::PresentModeKHR>& PreferredPresentations, 
 		const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha, 
 		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform)
 	{
-		vk::PhysicalDevice PD = PhysicalDevice.getPhysicalDevice();
+		vk::PhysicalDevice PD = m_PhysicalDevice->cgetPhysicalDevice();
 
 		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(*m_Surface), PreferredFormats);
 		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(*m_Surface), PreferredPresentations);
@@ -57,16 +56,16 @@ namespace VT
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
-	void SwapChain::bindDevice(PhysicalDevice& PD, vk::Device& LD, vk::SurfaceKHR& Surface)
+	void SwapChain::bindDevice(const PhysicalDevice& PD, const vk::Device& LD, const vk::SurfaceKHR& Surface)
 	{
 		m_Surface = &Surface;
 		m_LogicalDevice = &LD;
 		m_PhysicalDevice = &PD;
 	}
 
-	vk::SwapchainKHR& SwapChain::getSwapChain()
+	std::vector<vk::Image> SwapChain::getSwapChainImages()
 	{
-		return m_SwapChain;
+		return m_LogicalDevice->getSwapchainImagesKHR(m_SwapChain);
 	}
 
 	void SwapChain::destroySwapChain()

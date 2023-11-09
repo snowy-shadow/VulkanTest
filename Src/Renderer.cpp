@@ -4,26 +4,31 @@
 namespace VT
 {
 
-	void Renderer::createSwapChain(const uint32_t& Amount)
+	void Renderer::createSwapChain(const std::unordered_set<std::string_view>& SwapChainName)
 	{
 		int Width, Height;
 		glfwGetFramebufferSize(m_Window->m_Window, &Width, &Height);
 
-		for(uint32_t i = 0; i < Amount; i++)
-		{
-			m_SwapChain.emplace_back(std::array{ static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) });
-		}
+		auto Name = SwapChainName.cbegin();
 
-		for(auto& SC : m_SwapChain)
+		for(uint32_t i = 0; i < SwapChainName.size(); i++)
 		{
-			SC.bindDevices(m_Instance->m_LogicalDevice, m_Instance->m_PhysicalDevice, m_Instance->m_Surface);
+			m_SwapChain.emplace_back(std::array{ static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) }, 2);
 
-			SC.createSwapChain(
+			const auto SC = std::prev(m_SwapChain.end());
+			SC->bindDevice(m_Instance->m_PhysicalDevice, m_Instance->m_LogicalDevice, m_Instance->m_Surface);
+
+			SC->setProperties
+			(
 				{ {vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
-				{ vk::PresentModeKHR::eFifo }, 
+				{ vk::PresentModeKHR::eFifo },
 				{ vk::CompositeAlphaFlagBitsKHR::eOpaque },
 				{ vk::SurfaceTransformFlagBitsKHR::eIdentity }
 			);
+			SC->createSwapChain();
+
+			m_SwapChainReference.emplace(*Name, i);
+			std::next(Name);
 		}
 	}
 
@@ -40,5 +45,11 @@ namespace VT
 	{
 		for (auto& SC : m_SwapChain) { SC.destroySwapChain(); }
 	}
+
+	/*
+	 * ==================================================
+	 *					    PRIVATE
+	 * ==================================================
+	 */
 }
 

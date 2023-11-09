@@ -23,6 +23,11 @@ namespace  VT
 		return m_PhysicalDevice;
 	}
 
+	vk::PhysicalDevice PhysicalDevice::cgetPhysicalDevice() const
+	{
+		return m_PhysicalDevice;
+	}
+
 	bool PhysicalDevice::addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority, const uint32_t& QueueCount)
 	{
 		// find queue
@@ -140,9 +145,14 @@ namespace  VT
 		throw std::runtime_error("Cannot find present queue");
 	}
 
-	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices()
+	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices() const
 	{
 		return { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue };
+	}
+
+	bool PhysicalDevice::GraphicsCanPresent() const
+	{
+		return m_GraphicsCanPresent;
 	}
 
 
