@@ -3,15 +3,17 @@
 
 # Add source to this project's executable.
 add_executable (${PROJECT_NAME}
-"VulkanTest.cpp" )
-#"App.h" "App.cpp" 
-#"Window.h" "Window.cpp"
-#"Renderer.h" "Renderer.cpp" 
-#"Pipeline.h" "Pipeline.cpp"
-#"Instance.h" "Instance.cpp"
-#"PhysicalDevice.h" "PhysicalDevice.cpp" 
-#"SwapChain.h" "SwapChain.cpp"
-#"Image.h" "Image.cpp")
+"VulkanTest.cpp"
+"App.h" "App.cpp" 
+"Window.h" "Window.cpp"
+"Renderer.h" "Renderer.cpp" 
+"Pipeline.h" "Pipeline.cpp"
+"Instance.h" "Instance.cpp"
+"PhysicalDevice.h" "PhysicalDevice.cpp" 
+"SwapChain.h" "SwapChain.cpp"
+"Image.h" "Image.cpp"
+"File.h" 
+"Compiler.h" "Compiler.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ${PROJECT_NAME} 
@@ -29,13 +31,12 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	)
 endif()
 
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # Custom libraries
 set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw-3.3.7")
 set(glm_DIR "S:/Dev/Dependencies/Libraries/glm-0.9.9.8/cmake/glm")
-set(ENV{VULKAN_SDK} "S:\\Dev\\Dependencies\\SDK\\Vulkan")
+# set(ENV{VULKAN_SDK} "S:\\Dev\\Dependencies\\SDK\\Vulkan")
 
 # libs
 find_package(Vulkan REQUIRED OPTIONAL_COMPONENTS dxc)
