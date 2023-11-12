@@ -1,13 +1,13 @@
 #pragma once
 
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-
 #ifndef NDEBUG
 #include "DebugMessenger.h"
 #endif
 
 #include "PhysicalDevice.h"
+
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 
 namespace VT
 {

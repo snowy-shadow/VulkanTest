@@ -28,7 +28,7 @@ namespace VT
 			SC->createSwapChain();
 
 			m_SwapChainReference.emplace(*Name, i);
-			std::next(Name);
+			Name = std::next(Name);
 		}
 	}
 

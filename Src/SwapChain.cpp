@@ -122,7 +122,7 @@ namespace VT
 		SC.maxImageCount = SC.minImageCount;
 
 		// undefined surface size, set it to image size requested
-		if (SurfaceCapabilities.currentExtent.width == std::numeric_limits<uint32_t>::max())
+		if (SurfaceCapabilities.currentExtent.width == std::numeric_limits<std::uint32_t>::max())
 		{
 			SC.currentExtent = vk::Extent2D
 			{

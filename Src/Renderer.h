@@ -1,10 +1,18 @@
 #pragma once
-#include <list>
 
-#include "Pipeline.h"
 #include "SwapChain.h"
+/*
+ * Must be included after all instances, of #include <vulkan/vulkan_hash.hpp>
+ * <atlcomcli.h> breaks <vulkan/vulkan_hash.hpp>, they must come after
+*/
+#include "Pipeline.h"
+
 #include "Window.h"
 #include "Instance.h"
+
+
+#include <list>
+#include <unordered_map>
 
 namespace VT
 {
@@ -27,7 +35,6 @@ namespace VT
 
 		std::list<SwapChain> m_SwapChain;
 		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;
-
 
 		// Instance handle
 		Instance* m_Instance{ nullptr };

@@ -1,22 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <fstream>
-#include <memory>
-#include <stdexcept>
-#include <dxc/dxcapi.h>
-
+#include "Compiler.h"
 
 namespace VT
 {
-	struct ShaderFile
-	{
-		std::string_view FileLocation;
-		std::string_view FileName;
-		std::string_view FileType;
-		std::vector<std::string_view> CL_Args;
-	};
 
 	class Pipeline
 	{
@@ -25,7 +12,7 @@ namespace VT
 
 		std::vector<char> readFile(const std::string& FilePath);
 
-		std::vector<std::uint32_t> compile(const ShaderFile&);
+		std::vector<std::uint32_t> compile(ShaderFileInfo);
 
 	private:
 

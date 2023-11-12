@@ -16,7 +16,6 @@ namespace VT
 
 	void VT::App::run()
 	{
-		// maybe put this into VT::Window
 		while (!glfwWindowShouldClose(m_Window.m_Window))
 		{
 			glfwPollEvents();
