@@ -1,4 +1,4 @@
-find_path(GLFW_INCLUDE_DIRS GLFW\\glfw3.h
+find_path(GLFW_INCLUDE_DIRS GLFW/glfw3.h
         PATH_SUFFIXES "include"
         PATHS ${GLFW_PATH})
 

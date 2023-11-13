@@ -4,7 +4,7 @@
 # Add source to this project's executable.
 add_executable (${PROJECT_NAME}
 "VulkanTest.cpp"
-"Compiler.h" "Compiler.cpp"
+"DXC_Compiler.h" "DXC_Compiler.cpp"
 "App.h" "App.cpp"
 "Window.h" "Window.cpp"
 "Renderer.h" "Renderer.cpp" 
@@ -15,6 +15,7 @@ add_executable (${PROJECT_NAME}
 "Image.h" "Image.cpp"
 "File.h" 
 )
+
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ${PROJECT_NAME} 
   PROPERTY CXX_STANDARD 20)
@@ -24,17 +25,19 @@ if (MSVC)
     # msvc is special like that
     add_compile_options(
 		/Wall
+		/WX
+		/permissive
 	)
 else()
     # additional warnings
     add_compile_options(
-	-Wall 
-	-Werror 
-	-Wpedantic
-	-O2
-	# $<$<CONFIG:RELEASE>:-O2>
-	# $<$<CONFIG:DEBUG>:-O2>
-)
+		-Wall 
+		-Werror 
+		-Wpedantic
+		-O2
+		# $<$<CONFIG:RELEASE>:-O2>
+		# $<$<CONFIG:DEBUG>:-O2>
+	)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -43,14 +46,9 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	)
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
-
-# Custom libraries
-set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw-3.3.7")
-
 # libs
 find_package(Vulkan REQUIRED OPTIONAL_COMPONENTS dxc)
-find_package(glfw3 3.3 REQUIRED)
+find_package(glfw3 REQUIRED)
 
 target_include_directories(${PROJECT_NAME} 
 PUBLIC 
@@ -62,3 +60,4 @@ ${Vulkan_LIBRARIES}
 ${Vulkan_dxc_LIBRARY}
 ${GLFW_LIBRARIES}
 )
+

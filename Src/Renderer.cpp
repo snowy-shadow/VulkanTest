@@ -36,6 +36,14 @@ namespace VT
 
 	void Renderer::bindWindow(Window& Window) { m_Window = &Window; }
 
+	void Renderer::addShader(const std::vector<DXC_ShaderFileInfo>& Files)
+	{
+		for (const auto& F : Files)
+		{
+			m_GraphicsPipeLine.loadFile(F);
+		}
+		m_GraphicsPipeLine.compileFiles("../spv");
+	}
 
 	void Renderer::update()
 	{

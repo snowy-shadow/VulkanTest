@@ -5,7 +5,7 @@
 #ifdef _WIN32
 /*
  * CComPtr
- * MUST COME BEFORE dxcapi.h && BEFORE vulkan_hash.hpp
+ * MUST COME BEFORE dxcapi.h && AFTER vulkan_hash.hpp
 */
 #include <atlcomcli.h>
 #endif
@@ -24,11 +24,18 @@ namespace VT
 		eWide = DXC_CP_WIDE,
 	};
 
+	struct DXC_ShaderFileInfo : public FileInfo
+	{
+		std::wstring CL_Args;
+	};
+
 	class DXC_Compiler
 	{
 	public:
 		DXC_Compiler();
-		CComPtr<IDxcBlob> compile(ShaderFileInfo) const;
+
+		[[nodiscard]]
+		CComPtr<IDxcBlob> compile(DXC_ShaderFileInfo) const;
 
 		DXC_Compiler(const DXC_Compiler&) = delete;
 		DXC_Compiler& operator = (const DXC_Compiler&) = delete;
@@ -36,16 +43,16 @@ namespace VT
 		CComPtr<IDxcCompiler3> m_DXC_Compiler;
 		CComPtr<IDxcUtils> m_DXC_Utils;
 	};
+}
 
-	class GLSL_Compiler
+namespace std
+{
+	template<>
+	struct hash<VT::DXC_ShaderFileInfo>
 	{
-	public:
-		GLSL_Compiler();
-		std::vector<uint32_t> compile(ShaderFileInfo);
-
-		GLSL_Compiler(const GLSL_Compiler&) = delete;
-		GLSL_Compiler& operator = (const GLSL_Compiler&) = delete;
-	private:
-
+		size_t operator()(const VT::DXC_ShaderFileInfo& F) const noexcept
+		{
+			return hash<std::wstring>()(F.CL_Args) ^ (hash<VT::FileInfo>()(F) << 7);
+		}
 	};
 }

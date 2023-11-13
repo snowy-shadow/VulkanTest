@@ -1,4 +1,4 @@
-#include "Compiler.h"
+#include "DXC_Compiler.h"
 
 namespace VT
 {
@@ -7,25 +7,26 @@ namespace VT
 		// Initialize DXC compiler
 		if (FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_DXC_Compiler))))
 		{
-			throw std::runtime_error("Could not init DXC Compiler");
+			throw std::runtime_error("Could not init DXC Compiler\n");
 		}
 
 		// Initialize DXC utility
 		if (FAILED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&m_DXC_Utils))))
 		{
-			throw std::runtime_error("Could not init DXC Utiliy");
+			throw std::runtime_error("Could not init DXC Utiliy\n");
 		}
 	}
 
 	// must receive a CComPtr<IDxcBlob>, or dangling pointer
-	CComPtr<IDxcBlob> DXC_Compiler::compile(ShaderFileInfo File) const
+	CComPtr<IDxcBlob> DXC_Compiler::compile(DXC_ShaderFileInfo File) const
 	{
 		HRESULT HRes;
-		File.CL_Args.push_back(File.FileName.c_str());
+		File.CL_Args += L" " + File.FileName;
+		const std::wstring Src = File.FileLocation + File.FileName;
 
 		CComPtr<IDxcBlobEncoding> SourceBlob;
-		HRes = m_DXC_Utils->LoadFile((File.FileLocation + File.FileName).c_str(), &File.Encoding, &SourceBlob);
-		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file"); }
+		HRes = m_DXC_Utils->LoadFile(Src.c_str(), &File.Encoding, &SourceBlob);
+		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file" + std::string(Src.cbegin(), Src.cend())); }
 
 		DxcBuffer SrcBuff
 		{
@@ -34,8 +35,9 @@ namespace VT
 			.Encoding = File.Encoding
 		};
 
+		LPCWSTR Args = File.CL_Args.c_str();
 		CComPtr<IDxcResult> CompileResult{ nullptr };
-		HRes = m_DXC_Compiler->Compile(&SrcBuff, File.CL_Args.data(), File.CL_Args.size(), nullptr, IID_PPV_ARGS(&CompileResult));
+		HRes = m_DXC_Compiler->Compile(&SrcBuff, &Args, static_cast<uint32_t>(File.CL_Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
 
 		// Output error if compilation failed
 		if (FAILED(HRes) && HRes)

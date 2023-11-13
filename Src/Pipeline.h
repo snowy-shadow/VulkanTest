@@ -1,20 +1,29 @@
 #pragma once
 
-#include "Compiler.h"
+#include "DXC_Compiler.h"
+
+#include <unordered_set>
 
 namespace VT
 {
-
 	class Pipeline
 	{
 	public:
-		Pipeline(const std::string& VertexShaderPath, const std::string& FragmentShaderPath);
+		Pipeline() = default;
 
-		std::vector<char> readFile(const std::string& FilePath);
+		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 
-		std::vector<std::uint32_t> compile(ShaderFileInfo);
+		[[nodiscard]]
+		std::vector<std::byte> compileFile(DXC_ShaderFileInfo FileInfo);
+
+		[[nodiscard]]
+		std::vector<std::byte> forceCompileFile(DXC_ShaderFileInfo FileInfo);
 
 	private:
 
+		DXC_Compiler m_Compiler;
+
+		std::string m_ShaderLog{nullptr};
+		std::filesystem::path m_WorkingDir{ "../spv" };
 	};
 }

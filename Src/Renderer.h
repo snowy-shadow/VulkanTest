@@ -10,7 +10,6 @@
 #include "Window.h"
 #include "Instance.h"
 
-
 #include <list>
 #include <unordered_map>
 
@@ -23,15 +22,17 @@ namespace VT
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
+		void addShader(const std::vector<DXC_ShaderFileInfo>&);
+
 		void update();
 		void destroy();
 
-		Renderer() {};
+		Renderer() = default;
 		Renderer(const Renderer&) = delete;
 		Renderer& operator = (const Renderer&) = delete;
 	private:
 		Window* m_Window{nullptr};
-		Pipeline GraphicsPipeLine{ "../Shaders/Vertex.spv", "../Shaders/Fragment.spv" };
+		Pipeline m_GraphicsPipeLine;
 
 		std::list<SwapChain> m_SwapChain;
 		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;

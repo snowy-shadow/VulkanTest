@@ -17,7 +17,6 @@ namespace VT
 		Renderer m_Renderer;
 		Instance m_VulkanInstance;
 
-
 		Window m_Window{ {1280, 720}, "VulkanTest" };
 	};
 }
