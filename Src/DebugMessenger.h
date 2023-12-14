@@ -14,8 +14,8 @@ namespace VT
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 		void* pUserData)
 	{
-		std::cout << "Message ID : " << pCallbackData->pMessageIdName << " Message : " << pCallbackData->pMessage << "\n";
-		return VK_FALSE;
+		std::cout << "Message ID : " << pCallbackData->pMessageIdName << "\nMessage : " << pCallbackData->pMessage << "\n";
+		return vk::False;
 	}
 
 	inline vk::DebugUtilsMessengerEXT createDebugMessenger(const vk::Instance& Instance, const vk::DispatchLoaderDynamic& DLD,

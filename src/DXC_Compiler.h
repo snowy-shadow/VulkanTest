@@ -39,9 +39,10 @@ namespace VT
 
 		DXC_Compiler(const DXC_Compiler&) = delete;
 		DXC_Compiler& operator = (const DXC_Compiler&) = delete;
+		~DXC_Compiler() = default;
 	private:
-		CComPtr<IDxcCompiler3> m_DXC_Compiler;
-		CComPtr<IDxcUtils> m_DXC_Utils;
+		CComPtr<IDxcCompiler3> m_DXC_Compiler = nullptr;
+		CComPtr<IDxcUtils> m_DXC_Utils = nullptr;
 	};
 }
 

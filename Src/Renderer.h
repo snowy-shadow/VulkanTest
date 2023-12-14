@@ -22,7 +22,7 @@ namespace VT
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
-		void addShader(const std::vector<DXC_ShaderFileInfo>&);
+		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
 
 		void update();
 		void destroy();

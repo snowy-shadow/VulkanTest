@@ -36,13 +36,18 @@ namespace VT
 
 	void Renderer::bindWindow(Window& Window) { m_Window = &Window; }
 
-	void Renderer::addShader(const std::vector<DXC_ShaderFileInfo>& Files)
+	void Renderer::addShaderStage(const std::vector<DXC_ShaderFileInfo>& Files)
 	{
 		for (const auto& F : Files)
 		{
-			m_GraphicsPipeLine.loadFile(F);
+			m_GraphicsPipeLine.appendShaderStage(
+				{
+					.stage = vk::ShaderStageFlagBits::eFragment,
+					.module = m_GraphicsPipeLine.createShaderModule(F, m_Instance->m_LogicalDevice),
+					.pName = "main"
+				}
+			);
 		}
-		m_GraphicsPipeLine.compileFiles("../spv");
 	}
 
 	void Renderer::update()
@@ -53,6 +58,8 @@ namespace VT
 	{
 		for (auto& SC : m_SwapChain) { SC.destroySwapChain(); }
 	}
+
+
 
 	/*
 	 * ==================================================

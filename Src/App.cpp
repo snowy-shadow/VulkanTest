@@ -11,7 +11,7 @@ namespace VT
 		m_Renderer.bindInstance(m_VulkanInstance);
 		m_Renderer.bindWindow(m_Window);
 		m_Renderer.createSwapChain({"Main"});
-
+		// m_Renderer.addShaderStage({});
 	}
 
 	void VT::App::run()
