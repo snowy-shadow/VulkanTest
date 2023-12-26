@@ -1,6 +1,5 @@
 #include "Instance.h"
 
-
 namespace VT
 {
 	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)
@@ -14,15 +13,22 @@ namespace VT
 		std::vector<const char*> Extentions{ glfwExtensions, glfwExtensions + glfwExtensionCount };
 
 		#ifndef NDEBUG
-		Layers.push_back("VK_LAYER_KHRONOS_validation");
-		Extentions.push_back("VK_EXT_debug_utils");
-		#endif
+		Layers.emplace_back("VK_LAYER_KHRONOS_validation");
+		Extentions.emplace_back("VK_EXT_debug_utils");
+        #endif
+
+#ifdef __APPLE__
+        Layers.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
+#endif
 
 		if (!isSupported(Extentions, Layers)) throw std::runtime_error("Instance does not support required extensions and layers");
 
 		// Instance info
 		vk::InstanceCreateInfo InstanceCreateInfo
 		{
+#ifdef __APPLE__
+            .flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+#endif
 			.pApplicationInfo = &ApplicationInfo,
 			.enabledLayerCount = static_cast<uint32_t>(Layers.size()),
 			.ppEnabledLayerNames = Layers.data(),
@@ -85,10 +91,10 @@ namespace VT
 
 	bool Instance::isSupported(std::vector<const char*> RequiredExtensions, std::vector<const char*> RequiredLayers) const
 	{
-		// extention
-		auto InstanceExtentions{ vk::enumerateInstanceExtensionProperties()};
+		// extension
+		auto InstanceExtensions{ vk::enumerateInstanceExtensionProperties()};
 		std::unordered_set<std::string> ExtensionSupported{};
-		for(const auto& Ext : InstanceExtentions)
+		for(const auto& Ext : InstanceExtensions)
 		{
 			ExtensionSupported.insert(Ext.extensionName);
 		}

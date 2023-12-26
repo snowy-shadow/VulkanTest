@@ -21,12 +21,15 @@ namespace VT
 	CComPtr<IDxcBlob> DXC_Compiler::compile(DXC_ShaderFileInfo File) const
 	{
 		HRESULT HRes;
-		File.CL_Args += L" " + File.FileName;
-		const std::wstring Src = File.FileLocation + File.FileName;
+        const std::wstring FileName{std::wstring(File.FileName.cbegin(), File.FileName.cend())};
+        const std::wstring FileLocation{std::wstring(File.FileLocation.cbegin(), File.FileLocation.cend())};
+		File.CL_Args += L" " + FileName;
+
+		const std::wstring Src = FileLocation + FileName;
 
 		CComPtr<IDxcBlobEncoding> SourceBlob;
 		HRes = m_DXC_Utils->LoadFile(Src.c_str(), &File.Encoding, &SourceBlob);
-		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file" + std::string(Src.cbegin(), Src.cend())); }
+		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file" + File.FileLocation + " " + File.FileName); }
 
 		DxcBuffer SrcBuff
 		{

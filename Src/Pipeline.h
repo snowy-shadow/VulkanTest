@@ -13,14 +13,12 @@ namespace VT
 	public:
 		Pipeline() = default;
 
-		//void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
+		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 
 		[[nodiscard]]
 		vk::ShaderModule createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const;
 
 		void appendShaderStage(vk::PipelineShaderStageCreateInfo Info);
-
-
 
 	private:
 		// in development, do not use
@@ -30,10 +28,8 @@ namespace VT
 		[[nodiscard]]
 		std::vector<std::byte> fileToSpv(DXC_ShaderFileInfo FileInfo) const;
 
-		DXC_Compiler m_Compiler;
-
-	/*	std::string m_ShaderLog{nullptr};
-		std::filesystem::path m_WorkingDir{ "../spv" };*/
+		std::unordered_map<std::string, std::string> m_ShaderLog;
+		std::filesystem::path m_WorkingDir{};
 
 		// modify at your own risk
 		std::vector<vk::PipelineShaderStageCreateInfo> m_ShaderStages;

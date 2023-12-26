@@ -4,13 +4,14 @@
 #include <vector>
 #include <fstream>
 #include <filesystem>
+#include <unordered_map>
 
 namespace VT
 {
 	struct FileInfo
 	{
-		std::wstring FileLocation;
-		std::wstring FileName;
+		std::string FileLocation;
+		std::string FileName;
 		uint32_t Encoding;
 	};
 
@@ -30,6 +31,31 @@ namespace VT
 		File.close();
 		return Buffer;
 	}
+
+    // returns strings by delim(not included)
+    // if no delim, return vector with 1 string
+    [[nodiscard]]
+    std::unordered_map<std::string, std::string> inline readFileDelim(
+            const std::filesystem::path& FilePath,
+            char FileDelim,
+            char TimeDelim)
+    {
+        std::ifstream File(FilePath, std::ios::in);
+
+        if (!File.is_open()) throw std::runtime_error("Failed to open : " + FilePath.string());
+
+        std::unordered_map<std::string, std::string> Buffer{};
+
+        std::string S;
+        while(std::getline(File, S, FileDelim))
+        {
+            auto Index = S.find(TimeDelim);
+            Buffer[S.substr(0, Index)] = S.substr(Index + 1);
+        }
+
+        File.close();
+        return Buffer;
+    }
 
 	// creates and writes to file
 	void inline overwriteFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
@@ -86,28 +112,7 @@ namespace VT
 	//	std::stringstream ss{ std::string{ Begin, End } };
 	//	return std::chrono::from_stream(ss, "%F%T", FileTime);
 	//};
-
-	void inline replaceLine(const std::filesystem::path& FilePath, const std::string_view Find, const std::string_view Replacement)
-	{
-		std::fstream File(FilePath, std::ios::out | std::ios::in);
-		if (!File.is_open()) throw std::runtime_error("Failed to open : " + FilePath.string());
-
-		std::string Line;
-		while (std::getline(File, Line))
-		{
-			if (Line.find(Find) != std::string::npos)
-			{
-				if (Line.length() != Replacement.size()) { throw std::runtime_error("Mismatch length, Replacing " + Line + " with " + Replacement.data()); }
-
-				// check!
-				File.write(Replacement.data(), static_cast<std::streamsize>(Replacement.size()));
-			}
-		}
-
-		File.close();
-	}
 }
-
 
 namespace std
 {
@@ -116,7 +121,7 @@ namespace std
 	{
 		size_t operator()(const VT::FileInfo& F) const noexcept
 		{
-			return hash<std::wstring>()(F.FileName) ^ ((hash<std::wstring>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
+			return hash<std::string>()(F.FileName) ^ ((hash<std::string>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
 		}
 	};
 }

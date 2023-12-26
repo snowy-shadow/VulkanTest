@@ -10,7 +10,7 @@
 #include <atlcomcli.h>
 #endif
 
-// provides crossplatform CComPtr if not WIN32
+// provides cross platform CComPtr if not WIN32
 #include <dxc/dxcapi.h>
 
 namespace VT

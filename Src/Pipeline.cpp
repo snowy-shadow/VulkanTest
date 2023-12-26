@@ -2,18 +2,27 @@
 
 namespace VT
 {
-	//void Pipeline::setWorkingDir(std::filesystem::path DestFolderPath)
-	//{
-	//	namespace fs = std::filesystem;
+	void Pipeline::setWorkingDir(std::filesystem::path DestFolderPath)
+	{
+		namespace fs = std::filesystem;
+        m_WorkingDir = DestFolderPath;
+        if(fs::exists(DestFolderPath))
+        {
+            // file that contains edit time stamps
+            m_ShaderLog = readFileDelim(m_WorkingDir / "spv_log.txt", ';', ':');
+            return;
+        }
 
-	//	if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
-	//	m_WorkingDir = DestFolderPath;
-	//	
-	//	// file that contains edit time stamps
-	//	const auto CurrentShaderLog{ readFile(m_WorkingDir / "log.txt") };
+        // create it
+        if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
+    }
 
-	//	m_ShaderLog = { CurrentShaderLog.cbegin(), CurrentShaderLog.cend() };
-	//}
+    /*
+     * create a binary search tree, add file names as nodes <- using std::unordered set
+     * ...FilePathFileName:Timestamp;...
+     * multithreaded compilation where they share the binary tree, avoid data race with lock
+     * this avoids copying in case of vectors
+     */
 
 
 	vk::ShaderModule Pipeline::createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const
@@ -72,7 +81,8 @@ namespace VT
 
 	std::vector<std::byte> Pipeline::fileToSpv(DXC_ShaderFileInfo FileInfo) const
 	{
-		const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);
+        DXC_Compiler m_Compiler;
+        const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);
 
 		const auto pContent = static_cast<std::byte*>(ResPtr->GetBufferPointer());
 		const auto Size = ResPtr->GetBufferSize();
