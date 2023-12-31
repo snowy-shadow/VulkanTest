@@ -8,10 +8,10 @@
 
 namespace VT
 {
-	class Pipeline
+	class ShaderCompiler
 	{
 	public:
-		Pipeline() = default;
+		ShaderCompiler() = default;
 
 		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 

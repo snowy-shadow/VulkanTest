@@ -1,0 +1,5 @@
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/VulkanTest.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/rebuild_cache.dir

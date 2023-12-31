@@ -5,7 +5,7 @@
  * Must be included after all instances, of #include <vulkan/vulkan_hash.hpp>
  * <atlcomcli.h> breaks <vulkan/vulkan_hash.hpp>, they must come after
 */
-#include "Pipeline.h"
+//#include "ShaderCompiler.h"
 
 #include "Window.h"
 #include "Instance.h"
@@ -22,7 +22,9 @@ namespace VT
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
-		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
+//		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
+
+        vk::Pipeline createGraphicsPipeline();
 
 		void update();
 		void destroy();
@@ -32,10 +34,12 @@ namespace VT
 		Renderer& operator = (const Renderer&) = delete;
 	private:
 		Window* m_Window{nullptr};
-		Pipeline m_GraphicsPipeLine;
+//		ShaderCompiler m_ShaderCompiler;
 
 		std::list<SwapChain> m_SwapChain;
 		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;
+
+        vk::Pipeline m_Pipeline;
 
 		// Instance handle
 		Instance* m_Instance{ nullptr };

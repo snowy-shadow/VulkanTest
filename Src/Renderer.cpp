@@ -36,7 +36,7 @@ namespace VT
 
 	void Renderer::bindWindow(Window& Window) { m_Window = &Window; }
 
-	void Renderer::addShaderStage(const std::vector<DXC_ShaderFileInfo>& Files)
+	/*void Renderer::addShaderStage(const std::vector<DXC_ShaderFileInfo>& Files)
 	{
 		for (const auto& F : Files)
 		{
@@ -48,7 +48,22 @@ namespace VT
 				}
 			);
 		}
-	}
+	}*/
+
+    vk::Pipeline Renderer::createGraphicsPipeline()
+    {
+
+        vk::GraphicsPipelineCreateInfo GraphicsPipelineCreateInfo
+        {
+
+        };
+
+        auto[Result, GraphicsPipeline] { m_Instance->m_LogicalDevice.createGraphicsPipeline(nullptr, GraphicsPipelineCreateInfo) };
+
+        if(Result != vk::Result::eSuccess) { throw std::runtime_error("Failed to create graphics pipeline : " + to_string(Result)); }
+
+        m_Pipeline = GraphicsPipeline;
+    }
 
 	void Renderer::update()
 	{
@@ -58,6 +73,7 @@ namespace VT
 	{
 		for (auto& SC : m_SwapChain) { SC.destroySwapChain(); }
 	}
+
 
 
 

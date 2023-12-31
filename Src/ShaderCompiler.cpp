@@ -1,8 +1,8 @@
-#include "Pipeline.h"
+#include "ShaderCompiler.h"
 
 namespace VT
 {
-	void Pipeline::setWorkingDir(std::filesystem::path DestFolderPath)
+	void ShaderCompiler::setWorkingDir(std::filesystem::path DestFolderPath)
 	{
 		namespace fs = std::filesystem;
         m_WorkingDir = DestFolderPath;
@@ -25,7 +25,7 @@ namespace VT
      */
 
 
-	vk::ShaderModule Pipeline::createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const
+	vk::ShaderModule ShaderCompiler::createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const
 	{
 		auto Spv = fileToSpv(std::forward<const DXC_ShaderFileInfo>(FileInfo));
 
@@ -38,7 +38,7 @@ namespace VT
 		);
 	}
 
-	void Pipeline::appendShaderStage(vk::PipelineShaderStageCreateInfo Info)
+	void ShaderCompiler::appendShaderStage(vk::PipelineShaderStageCreateInfo Info)
 	{
 		m_ShaderStages.push_back(Info);
 	}
@@ -79,7 +79,7 @@ namespace VT
 
 	//}
 
-	std::vector<std::byte> Pipeline::fileToSpv(DXC_ShaderFileInfo FileInfo) const
+	std::vector<std::byte> ShaderCompiler::fileToSpv(DXC_ShaderFileInfo FileInfo) const
 	{
         DXC_Compiler m_Compiler;
         const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);

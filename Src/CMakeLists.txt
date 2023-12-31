@@ -8,7 +8,7 @@ add_executable (${PROJECT_NAME}
 "App.h" "App.cpp"
 "Window.h" "Window.cpp"
 "Renderer.h" "Renderer.cpp" 
-"Pipeline.h" "Pipeline.cpp"
+"ShaderCompiler.h" "ShaderCompiler.cpp"
 "Instance.h" "Instance.cpp"
 "PhysicalDevice.h" "PhysicalDevice.cpp" 
 "SwapChain.h" "SwapChain.cpp"

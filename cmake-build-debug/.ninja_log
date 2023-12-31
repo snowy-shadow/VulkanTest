@@ -1,0 +1,7 @@
+# ninja log v5
+1	53	1703577609697265225	build.ninja	c6647f602301e45d
+0	1210	1703487009203944809	Src/CMakeFiles/VulkanTest.dir/Image.cpp.o	5961ef11349e4ada
+0	1362	1703487009359437906	Src/CMakeFiles/VulkanTest.dir/PhysicalDevice.cpp.o	ac46a3eb5abc0b3f
+0	1736	1703487009733890627	Src/CMakeFiles/VulkanTest.dir/SwapChain.cpp.o	a934772cf618bc25
+0	1443	1703487009440236133	Src/CMakeFiles/VulkanTest.dir/Instance.cpp.o	7f199f77d442d047
+10	1790	1703628845861974076	Src/CMakeFiles/VulkanTest.dir/Window.cpp.o	2fe644f9b7334dee
