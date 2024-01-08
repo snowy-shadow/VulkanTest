@@ -17,6 +17,18 @@ namespace VT
         if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
     }
 
+	std::vector<std::vector<uint32_t>> ShaderCompiler::compileShaders(const std::vector<DXC_ShaderFileInfo>& ShaderInfos) const
+	{
+		std::vector<std::vector<uint32_t>> ShaderSpv;
+
+		for(auto& F : ShaderInfos)
+		{
+			ShaderSpv.emplace_back(compileShader(F));
+		}
+
+		return ShaderSpv;
+	}
+
     /*
      * create a binary search tree, add file names as nodes <- using std::unordered set
      * ...FilePathFileName:Timestamp;...
@@ -25,17 +37,14 @@ namespace VT
      */
 
 
-	vk::ShaderModule ShaderCompiler::createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const
+	std::vector<uint32_t> ShaderCompiler::compileShader(DXC_ShaderFileInfo FileInfo) const
 	{
-		auto Spv = fileToSpv(std::forward<const DXC_ShaderFileInfo>(FileInfo));
+		return fileToSpv(std::forward<const DXC_ShaderFileInfo>(FileInfo));
+	}
 
-		return Device.createShaderModule(
-			{
-				// in bytes
-				.codeSize = Spv.size(),
-				.pCode = reinterpret_cast<const uint32_t*>(Spv.data())
-			}
-		);
+	std::vector<uint32_t> ShaderCompiler::compileShader(ShadercFileInfo FileInfo) const
+	{
+		return {};
 	}
 
 	void ShaderCompiler::appendShaderStage(vk::PipelineShaderStageCreateInfo Info)
@@ -79,7 +88,7 @@ namespace VT
 
 	//}
 
-	std::vector<std::byte> ShaderCompiler::fileToSpv(DXC_ShaderFileInfo FileInfo) const
+	std::vector<uint32_t> ShaderCompiler::fileToSpv(DXC_ShaderFileInfo FileInfo) const
 	{
         DXC_Compiler m_Compiler;
         const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);

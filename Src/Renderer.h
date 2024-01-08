@@ -9,9 +9,12 @@
 
 #include "Window.h"
 #include "Instance.h"
+#include "GraphicPipeline.h"
+#include "ShaderCompiler.h"
 
 #include <list>
 #include <unordered_map>
+
 
 namespace VT
 {
@@ -24,7 +27,7 @@ namespace VT
 
 //		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
 
-        vk::Pipeline createGraphicsPipeline();
+		void createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles);
 
 		void update();
 		void destroy();
@@ -34,12 +37,12 @@ namespace VT
 		Renderer& operator = (const Renderer&) = delete;
 	private:
 		Window* m_Window{nullptr};
-//		ShaderCompiler m_ShaderCompiler;
+		ShaderCompiler m_ShaderCompiler;
 
 		std::list<SwapChain> m_SwapChain;
 		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;
 
-        vk::Pipeline m_Pipeline;
+		std::unordered_map<std::string, vk::Pipeline> m_Pipelines;
 
 		// Instance handle
 		Instance* m_Instance{ nullptr };

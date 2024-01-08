@@ -11,7 +11,20 @@ namespace VT
 		m_Renderer.bindInstance(m_VulkanInstance);
 		m_Renderer.bindWindow(m_Window);
 		m_Renderer.createSwapChain({"Main"});
-		// m_Renderer.addShaderStage({});
+
+		DXC_ShaderFileInfo VertexShaderFile{};
+		VertexShaderFile.FileLocation = "S:\Dev\Projects\VulkanTest\Src\Shader";
+		VertexShaderFile.FileName = "Vertex.hlsl";
+		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
+		VertexShaderFile.CL_Args = L"-spirv";
+
+		DXC_ShaderFileInfo FragmentShaderFile{};
+		FragmentShaderFile.FileLocation = "S:\Dev\Projects\VulkanTest\Src\Shader";
+		FragmentShaderFile.FileName = "Fragment.hlsl";
+		FragmentShaderFile.Stage = vk::ShaderStageFlagBits::eFragment;
+		FragmentShaderFile.CL_Args = VertexShaderFile.CL_Args;
+
+		m_Renderer.createGraphicsPipeline("GraphicPipeline", { VertexShaderFile, FragmentShaderFile });
 	}
 
 	void VT::App::run()

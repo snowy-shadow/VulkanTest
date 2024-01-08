@@ -13,6 +13,9 @@
 // provides cross platform CComPtr if not WIN32
 #include <dxc/dxcapi.h>
 
+// why doesn't vulkan_enums.hpp work?
+#include <vulkan/vulkan.hpp>
+
 namespace VT
 {
 	enum DXC_FileEncoding : uint32_t
@@ -26,6 +29,7 @@ namespace VT
 
 	struct DXC_ShaderFileInfo : public FileInfo
 	{
+		vk::ShaderStageFlagBits Stage;
 		std::wstring CL_Args;
 	};
 

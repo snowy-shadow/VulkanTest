@@ -14,7 +14,7 @@ add_executable (${PROJECT_NAME}
 "SwapChain.h" "SwapChain.cpp"
 "Image.h" "Image.cpp"
 "File.h"
-)
+ "GraphicPipeline.h" "GraphicPipeline.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ${PROJECT_NAME} 
@@ -72,7 +72,7 @@ ${GLFW_INCLUDE_DIRS}
 
 target_link_libraries(${PROJECT_NAME}
 ${Vulkan_dxc_LIBRARY}
-glfw
+${GLFW_LIBRARY}
 )
 
 if(APPLE)

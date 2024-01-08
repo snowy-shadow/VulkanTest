@@ -1,6 +1,7 @@
 #pragma once
 
 #include "DXC_Compiler.h"
+#include "GLSL_Compiler.h"
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
@@ -15,10 +16,13 @@ namespace VT
 
 		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 
-		[[nodiscard]]
-		vk::ShaderModule createShaderModule(DXC_ShaderFileInfo FileInfo, vk::Device& Device) const;
+		std::vector<std::vector<uint32_t>> compileShaders(const std::vector<DXC_ShaderFileInfo>& ShaderInfos) const;
 
-		void appendShaderStage(vk::PipelineShaderStageCreateInfo Info);
+		std::vector<std::vector<uint32_t>> compileShaders(std::vector<ShadercFileInfo> ShaderInfos) const;
+
+		std::vector<uint32_t> compileShader(DXC_ShaderFileInfo ShaderInfos) const;
+
+		std::vector<uint32_t> compileShader(ShadercFileInfo ShaderInfos) const;
 
 	private:
 		// in development, do not use
@@ -26,12 +30,9 @@ namespace VT
 		std::vector<std::byte> compileFile(DXC_ShaderFileInfo FileInfo);*/
 
 		[[nodiscard]]
-		std::vector<std::byte> fileToSpv(DXC_ShaderFileInfo FileInfo) const;
+		std::vector<uint32_t> fileToSpv(DXC_ShaderFileInfo FileInfo) const;
 
 		std::unordered_map<std::string, std::string> m_ShaderLog;
 		std::filesystem::path m_WorkingDir{};
-
-		// modify at your own risk
-		std::vector<vk::PipelineShaderStageCreateInfo> m_ShaderStages;
 	};
 }
