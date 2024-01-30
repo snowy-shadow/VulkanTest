@@ -12,8 +12,6 @@
 
 // provides cross platform CComPtr if not WIN32
 #include <dxc/dxcapi.h>
-
-// why doesn't vulkan_enums.hpp work?
 #include <vulkan/vulkan.hpp>
 
 namespace VT

@@ -16,7 +16,7 @@ namespace VT
 	};
 
 	[[nodiscard]]
-	std::vector<char> inline readFile(const std::filesystem::path& FilePath)
+	std::vector<char> static readFile(const std::filesystem::path& FilePath)
 	{
 		std::ifstream File(FilePath, std::ios::binary | std::ios::in | std::ios::ate);
 
@@ -35,7 +35,7 @@ namespace VT
     // returns strings by delim(not included)
     // if no delim, return vector with 1 string
     [[nodiscard]]
-    std::unordered_map<std::string, std::string> inline readFileDelim(
+    std::unordered_map<std::string, std::string> static readFileDelim(
             const std::filesystem::path& FilePath,
             char FileDelim,
             char TimeDelim)
@@ -58,7 +58,7 @@ namespace VT
     }
 
 	// creates and writes to file
-	void inline overwriteFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
+	void static overwriteFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
 	{
 		std::ofstream File(FilePath, std::ios::binary | std::ios::out | std::ios::trunc);
 
@@ -69,7 +69,7 @@ namespace VT
 	}
 
 	// creates and writes to file
-	void inline appendToFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
+	void static appendToFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
 	{
 		std::ofstream File(FilePath, std::ios::binary | std::ios::out | std::ios::app);
 

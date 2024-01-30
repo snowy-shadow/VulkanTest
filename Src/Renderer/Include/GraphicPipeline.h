@@ -11,7 +11,6 @@ namespace VT
 	{
 		GraphicPipeline();
 
-		std::vector<vk::PipelineShaderStageCreateInfo> m_ShaderStageInfos{};
 
 		vk::PipelineVertexInputStateCreateInfo m_VertexInputStateInfo{};
 		vk::PipelineInputAssemblyStateCreateInfo m_InputAssemblyInfo{};
@@ -24,6 +23,6 @@ namespace VT
 		vk::PipelineDynamicStateCreateInfo m_DynamicStateInfo{};
 
 		[[nodiscard]]
-		vk::GraphicsPipelineCreateInfo getGraphicPipelineInfo() const;
+		vk::GraphicsPipelineCreateInfo getGraphicPipelineInfo(const std::vector<vk::PipelineShaderStageCreateInfo>& m_ShaderStageInfos) const;
 	};
 }

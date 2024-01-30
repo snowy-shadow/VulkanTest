@@ -2,9 +2,12 @@
 # project specific logic here.
 
 # Add source to this project's executable.
-add_executable (${PROJECT_NAME}
-"VulkanTest.cpp"
-"App.cpp"
+cmake_minimum_required (VERSION 3.8)
+project ("Device" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan Device setup")
+
+add_library(${PROJECT_NAME}
+"Instance.cpp"
+"PhysicalDevice.cpp"
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -31,12 +34,9 @@ else()
 	)
 endif()
 
-# custom libs
-add_subdirectory(Util)
-add_subdirectory(Device)
-add_subdirectory(Renderer)
-
+# libs
 find_package(Vulkan REQUIRED)
+
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
 
@@ -52,12 +52,10 @@ ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )
 
-
+# Requires Util lib
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
 Util
-Renderer
-Device
 ${Vulkan_LIBRARIES}
 ${GLFW_LIBRARY}
 )

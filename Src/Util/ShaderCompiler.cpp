@@ -47,11 +47,6 @@ namespace VT
 		return {};
 	}
 
-	void ShaderCompiler::appendShaderStage(vk::PipelineShaderStageCreateInfo Info)
-	{
-		m_ShaderStages.push_back(Info);
-	}
-
 	/*
 	* ==================================================
 	*					    PRIVATE

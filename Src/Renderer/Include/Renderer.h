@@ -27,7 +27,7 @@ namespace VT
 
 //		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
 
-		void createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles);
+		void createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo);
 
 		void update();
 		void destroy();

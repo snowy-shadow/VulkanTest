@@ -15,7 +15,7 @@ namespace VT
 
 	}
 
-	vk::GraphicsPipelineCreateInfo GraphicPipeline::getGraphicPipelineInfo() const
+	vk::GraphicsPipelineCreateInfo GraphicPipeline::getGraphicPipelineInfo(const std::vector<vk::PipelineShaderStageCreateInfo>& m_ShaderStageInfos) const
 	{
 		return
 		{

@@ -14,7 +14,7 @@ namespace VT
 
 		void setImageCount(const uint32_t& Amount);
 
-		void bindDevice(const PhysicalDevice&, const vk::Device&, const vk::SurfaceKHR&);
+		void bindDevice(const PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface);
 
 		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
 
@@ -43,7 +43,7 @@ namespace VT
 		// Configs
 		uint32_t m_ImageCount;
 		uint32_t m_ArrayLayers;
-		std::array<uint32_t, 2> m_WidthHeight{ 1920, 1080 };
+		std::array<uint32_t, 2> m_WidthHeight{ { 1920, 1080 } };
 		vk::SharingMode m_SharingMode = vk::SharingMode::eExclusive;
 
 		vk::SurfaceCapabilitiesKHR m_SurfaceCapabilities;
@@ -54,8 +54,8 @@ namespace VT
 		vk::SwapchainKHR m_SwapChain;
 
 		// Instance
-		const vk::Device* m_LogicalDevice{};
-		const PhysicalDevice* m_PhysicalDevice{};
-		const vk::SurfaceKHR* m_Surface{};
+		 vk::Device m_LogicalDevice{};
+		 const PhysicalDevice* m_PhysicalDevice{};
+		 vk::SurfaceKHR m_Surface{};
 	};
 }

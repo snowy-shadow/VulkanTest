@@ -3,11 +3,13 @@
 #include "File.h"
 
 #include <shaderc/shaderc.hpp>
+#include <vulkan/vulkan.hpp>
 
 namespace VT
 {
     struct ShadercFileInfo : public FileInfo
     {
+        vk::ShaderStageFlagBits Stage;
         shaderc_shader_kind ShaderType;
         shaderc::CompileOptions CompileOptions;
     };

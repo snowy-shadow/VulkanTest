@@ -147,7 +147,7 @@ namespace  VT
 
 	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices() const
 	{
-		return { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue };
+		return { { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue } };
 	}
 
 	bool PhysicalDevice::GraphicsCanPresent() const

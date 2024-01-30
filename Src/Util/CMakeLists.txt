@@ -1,10 +1,12 @@
 ﻿# CMakeList.txt : CMake project for VulkanTest, include source and define
 # project specific logic here.
+cmake_minimum_required (VERSION 3.8)
+project ("Util" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Utils")
 
-# Add source to this project's executable.
-add_executable (${PROJECT_NAME}
-"VulkanTest.cpp"
-"App.cpp"
+add_library(${PROJECT_NAME}
+"DXC_Compiler.cpp"
+"GLSL_Compiler.cpp"
+"ShaderCompiler.cpp"
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -29,14 +31,17 @@ else()
 		# $<$<CONFIG:RELEASE>:-O2>
 		# $<$<CONFIG:DEBUG>:-O2>
 	)
+
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		add_compile_options(
+				-fms-extensions # dxc compiler
+		)
+	endif()
 endif()
 
-# custom libs
-add_subdirectory(Util)
-add_subdirectory(Device)
-add_subdirectory(Renderer)
+# libs
+find_package(Vulkan REQUIRED dxc)
 
-find_package(Vulkan REQUIRED)
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
 
@@ -51,13 +56,9 @@ PRIVATE
 ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )
-
-
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
-Util
-Renderer
-Device
 ${Vulkan_LIBRARIES}
+${Vulkan_dxc_LIBRARY}
 ${GLFW_LIBRARY}
 )

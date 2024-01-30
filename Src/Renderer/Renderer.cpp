@@ -50,38 +50,38 @@ namespace VT
 		}
 	}*/
 
-    void Renderer::createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles)
+	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo)
     {
 		// compile shaders
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
 
 		// Graphics pipline struct
-		GraphicPipeline PipelineInfo;
+		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
 
 		// load all shader spv
 		for(int i = 0; i < ShaderSpvs.size(); i++)
 		{
-			PipelineInfo.m_ShaderStageInfos.push_back
+			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,
 				.module = m_Instance->m_LogicalDevice.createShaderModule
 				({
 					.codeSize = ShaderSpvs[i].size(),
-					.pCode = dynamic_cast<uint32_t*>(&ShaderSpvs[i])
+					.pCode = reinterpret_cast<uint32_t*>(&ShaderSpvs[i])
 				}),
 
 				.pName = "main"
 			});
 		}
 
-		auto [Result, Pipeline] = m_Instance->m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineInfo());
+		auto [Result, Pipeline] = m_Instance->m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineInfo(ShaderStageInfos));
 
 		if (Result != vk::Result::eSuccess) { throw std::runtime_error("Failed to create Graphics Pipeline : " + Name); }
 
 		m_Pipelines.emplace(std::move(Name), Pipeline);
 
 		// delete shader modules
-		for(auto& SM : PipelineInfo.m_ShaderStageInfos)
+		for(auto& SM : ShaderStageInfos)
 		{
 			m_Instance->m_LogicalDevice.destroyShaderModule(SM.module);
 		}

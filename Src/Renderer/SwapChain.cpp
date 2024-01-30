@@ -14,7 +14,7 @@ namespace VT
 
 		vk::SwapchainCreateInfoKHR SC_Info
 		{
-			.surface = *m_Surface,
+			.surface = m_Surface,
 			.minImageCount = m_ImageCount,
 			.imageFormat = m_SurfaceFormat.format,
 			.imageColorSpace = m_SurfaceFormat.colorSpace,
@@ -32,7 +32,7 @@ namespace VT
 			SC_Info.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
 		}
 
-		m_SwapChain = m_LogicalDevice->createSwapchainKHR(SC_Info);
+		m_SwapChain = m_LogicalDevice.createSwapchainKHR(SC_Info);
 	}
 
 	void SwapChain::setProperties(
@@ -43,10 +43,10 @@ namespace VT
 	{
 		vk::PhysicalDevice PD = m_PhysicalDevice->cgetPhysicalDevice();
 
-		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(*m_Surface), PreferredFormats);
-		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(*m_Surface), PreferredPresentations);
+		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(m_Surface), PreferredFormats);
+		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(m_Surface), PreferredPresentations);
 
-		m_SurfaceCapabilities = findSurfaceCapabilities(PD.getSurfaceCapabilitiesKHR(*m_Surface), PreferredCompositeAlpha, PreferredSurfaceTransform);
+		m_SurfaceCapabilities = findSurfaceCapabilities(PD.getSurfaceCapabilitiesKHR(m_Surface), PreferredCompositeAlpha, PreferredSurfaceTransform);
 
 		// defined minImageCount == maxImageCount in m_SurfaceCapabilities
 		m_ImageCount = m_SurfaceCapabilities.minImageCount;
@@ -56,21 +56,21 @@ namespace VT
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
-	void SwapChain::bindDevice(const PhysicalDevice& PD, const vk::Device& LD, const vk::SurfaceKHR& Surface)
+	void SwapChain::bindDevice(const PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface)
 	{
-		m_Surface = &Surface;
-		m_LogicalDevice = &LD;
+		m_Surface = Surface;
+		m_LogicalDevice = LD;
 		m_PhysicalDevice = &PD;
 	}
 
 	std::vector<vk::Image> SwapChain::getSwapChainImages()
 	{
-		return m_LogicalDevice->getSwapchainImagesKHR(m_SwapChain);
+		return m_LogicalDevice.getSwapchainImagesKHR(m_SwapChain);
 	}
 
 	void SwapChain::destroySwapChain()
 	{
-		m_LogicalDevice->destroySwapchainKHR(m_SwapChain);
+		m_LogicalDevice.destroySwapchainKHR(m_SwapChain);
 	}
 
 	/* ====================================================================
