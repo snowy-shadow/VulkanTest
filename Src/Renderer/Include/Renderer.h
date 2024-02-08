@@ -5,7 +5,6 @@
  * Must be included after all instances, of #include <vulkan/vulkan_hash.hpp>
  * <atlcomcli.h> breaks <vulkan/vulkan_hash.hpp>, they must come after
 */
-//#include "ShaderCompiler.h"
 
 #include "Window.h"
 #include "Instance.h"
@@ -27,7 +26,7 @@ namespace VT
 
 //		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
 
-		void createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo);
+		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo);
 
 		void update();
 		void destroy();

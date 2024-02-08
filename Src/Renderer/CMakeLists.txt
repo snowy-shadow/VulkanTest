@@ -6,7 +6,7 @@
 cmake_minimum_required (VERSION 3.8)
 project ("Renderer" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan frontend")
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
 "GraphicPipeline.cpp"
 "Image.cpp"
 "Renderer.cpp"
@@ -21,14 +21,16 @@ endif()
 
 if (MSVC)
     # msvc is special like that
-    add_compile_options(
-		/Wall
+   target_compile_options(${PROJECT_NAME} 
+		PRIVATE
+		/W4
 		/WX
 		/permissive
 	)
 else()
     # additional warnings
-    add_compile_options(
+   target_compile_options(${PROJECT_NAME} 
+		PRIVATE
 		-Wall 
 		-Werror
 		-Wpedantic

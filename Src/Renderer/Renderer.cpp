@@ -50,7 +50,7 @@ namespace VT
 		}
 	}*/
 
-	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo)
+	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo)
     {
 		// compile shaders
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};

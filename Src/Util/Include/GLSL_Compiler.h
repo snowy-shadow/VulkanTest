@@ -7,12 +7,15 @@
 
 namespace VT
 {
-    struct ShadercFileInfo : public FileInfo
+    namespace File
     {
-        vk::ShaderStageFlagBits Stage;
-        shaderc_shader_kind ShaderType;
-        shaderc::CompileOptions CompileOptions;
-    };
+        struct ShadercFileInfo : public File::FileInfo
+        {
+            vk::ShaderStageFlagBits Stage;
+            shaderc_shader_kind ShaderType;
+            shaderc::CompileOptions CompileOptions;
+        };
+    }
 
 	class GLSL_Compiler
 	{
@@ -20,7 +23,7 @@ namespace VT
 		GLSL_Compiler() = default;
 
         [[nodiscard]]
-		std::vector<uint32_t> compile(ShadercFileInfo);
+		std::vector<uint32_t> compile(File::ShadercFileInfo);
 
 		GLSL_Compiler(const GLSL_Compiler&) = delete;
 		GLSL_Compiler& operator = (const GLSL_Compiler&) = delete;
@@ -33,12 +36,12 @@ namespace VT
 namespace std
 {
     template<>
-    struct hash<VT::ShadercFileInfo>
+    struct hash<VT::File::ShadercFileInfo>
     {
-        size_t operator()(const VT::ShadercFileInfo& F) const noexcept
+        size_t operator()(const VT::File::ShadercFileInfo& F) const noexcept
         {
             // can't hash shaderc::CompileOptions
-            return hash<shaderc_shader_kind>()(F.ShaderType) ^ (hash<VT::FileInfo>()(F) << 7);
+            return hash<shaderc_shader_kind>()(F.ShaderType) ^ (hash<VT::File::FileInfo>()(F) << 7);
         }
     };
 }

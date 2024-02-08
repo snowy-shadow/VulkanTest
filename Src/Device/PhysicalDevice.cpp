@@ -97,7 +97,7 @@ namespace  VT
 			return true;
 		}
 
-		m_GraphicsCanPresent = findGraphicsQueueWithPresent(Surface, 1.f, 1, 1.f, 1);
+		m_GraphicsCanPresent = findGraphicsQueueWithPresent(Surface, 1.f, 1, PresentQPriority, MinPresentQCount);
 
 		return m_GraphicsCanPresent;
 	}

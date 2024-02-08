@@ -1,4 +1,5 @@
 #include "ShaderCompiler.h"
+#include "ShaderCompiler.h"
 
 namespace VT
 {
@@ -9,7 +10,7 @@ namespace VT
         if(fs::exists(DestFolderPath))
         {
             // file that contains edit time stamps
-            m_ShaderLog = readFileDelim(m_WorkingDir / "spv_log.txt", ';', ':');
+            m_ShaderLog = File::readFileDelim(m_WorkingDir / "spv_log.txt", ';', ':');
             return;
         }
 
@@ -17,7 +18,7 @@ namespace VT
         if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
     }
 
-	std::vector<std::vector<uint32_t>> ShaderCompiler::compileShaders(const std::vector<DXC_ShaderFileInfo>& ShaderInfos) const
+	std::vector<std::vector<uint32_t>> ShaderCompiler::compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const
 	{
 		std::vector<std::vector<uint32_t>> ShaderSpv;
 
@@ -37,15 +38,11 @@ namespace VT
      */
 
 
-	std::vector<uint32_t> ShaderCompiler::compileShader(DXC_ShaderFileInfo FileInfo) const
+	std::vector<uint32_t> ShaderCompiler::compileShader(File::DXC_ShaderFileInfo FileInfo) const
 	{
-		return fileToSpv(std::forward<const DXC_ShaderFileInfo>(FileInfo));
+		return fileToSpv(std::forward<const File::DXC_ShaderFileInfo>(FileInfo));
 	}
 
-	std::vector<uint32_t> ShaderCompiler::compileShader(ShadercFileInfo FileInfo) const
-	{
-		return {};
-	}
 
 	/*
 	* ==================================================
@@ -83,12 +80,12 @@ namespace VT
 
 	//}
 
-	std::vector<uint32_t> ShaderCompiler::fileToSpv(DXC_ShaderFileInfo FileInfo) const
+	std::vector<uint32_t> ShaderCompiler::fileToSpv(File::DXC_ShaderFileInfo FileInfo) const
 	{
         DXC_Compiler m_Compiler;
         const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);
 
-		const auto pContent = static_cast<std::byte*>(ResPtr->GetBufferPointer());
+		const auto pContent = static_cast<char*>(ResPtr->GetBufferPointer());
 		const auto Size = ResPtr->GetBufferSize();
 
 		return { pContent, pContent + Size };

@@ -39,13 +39,13 @@ namespace VT
 
 	void App::createMainGraphicPipeline()
 	{
-		DXC_ShaderFileInfo VertexShaderFile{};
+		File::DXC_ShaderFileInfo VertexShaderFile{};
 		VertexShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		VertexShaderFile.FileName = "Vertex.hlsl";
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
 		VertexShaderFile.CL_Args = L"-spirv";
 
-		DXC_ShaderFileInfo FragmentShaderFile{};
+		File::DXC_ShaderFileInfo FragmentShaderFile{};
 		FragmentShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		FragmentShaderFile.FileName = "Fragment.hlsl";
 		FragmentShaderFile.Stage = vk::ShaderStageFlagBits::eFragment;

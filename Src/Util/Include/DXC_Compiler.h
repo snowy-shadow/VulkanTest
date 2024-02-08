@@ -16,20 +16,23 @@
 
 namespace VT
 {
-	enum DXC_FileEncoding : uint32_t
+	namespace File
 	{
-		eACP = DXC_CP_ACP,
-		eUTF8 = DXC_CP_UTF8,
-		eUTF16 = DXC_CP_UTF16,
-		eUTF32 = DXC_CP_UTF32,
-		eWide = DXC_CP_WIDE,
-	};
+		enum DXC_FileEncoding : uint32_t
+		{
+			eACP = DXC_CP_ACP,
+			eUTF8 = DXC_CP_UTF8,
+			eUTF16 = DXC_CP_UTF16,
+			eUTF32 = DXC_CP_UTF32,
+			eWide = DXC_CP_WIDE,
+		};
 
-	struct DXC_ShaderFileInfo : public FileInfo
-	{
-		vk::ShaderStageFlagBits Stage;
-		std::wstring CL_Args;
-	};
+		struct DXC_ShaderFileInfo : public FileInfo
+		{
+			vk::ShaderStageFlagBits Stage;
+			std::wstring CL_Args;
+		};
+	}
 
 	class DXC_Compiler
 	{
@@ -37,7 +40,7 @@ namespace VT
 		DXC_Compiler();
 
 		[[nodiscard]]
-		CComPtr<IDxcBlob> compile(DXC_ShaderFileInfo) const;
+		CComPtr<IDxcBlob> compile(File::DXC_ShaderFileInfo) const;
 
 		DXC_Compiler(const DXC_Compiler&) = delete;
 		DXC_Compiler& operator = (const DXC_Compiler&) = delete;
@@ -51,11 +54,11 @@ namespace VT
 namespace std
 {
 	template<>
-	struct hash<VT::DXC_ShaderFileInfo>
+	struct hash<VT::File::DXC_ShaderFileInfo>
 	{
-		size_t operator()(const VT::DXC_ShaderFileInfo& F) const noexcept
+		size_t operator()(const VT::File::DXC_ShaderFileInfo& F) const noexcept
 		{
-			return hash<std::wstring>()(F.CL_Args) ^ (hash<VT::FileInfo>()(F) << 7);
+			return hash<std::wstring>()(F.CL_Args) ^ (hash<VT::File::FileInfo>()(F) << 7);
 		}
 	};
 }

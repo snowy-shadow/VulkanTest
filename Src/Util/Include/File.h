@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <unordered_map>
 
-namespace VT
+namespace VT::File
 {
 	struct FileInfo
 	{
@@ -16,7 +16,7 @@ namespace VT
 	};
 
 	[[nodiscard]]
-	std::vector<char> static readFile(const std::filesystem::path& FilePath)
+	std::vector<char> inline readFile(const std::filesystem::path& FilePath)
 	{
 		std::ifstream File(FilePath, std::ios::binary | std::ios::in | std::ios::ate);
 
@@ -35,7 +35,7 @@ namespace VT
     // returns strings by delim(not included)
     // if no delim, return vector with 1 string
     [[nodiscard]]
-    std::unordered_map<std::string, std::string> static readFileDelim(
+    std::unordered_map<std::string, std::string> inline readFileDelim(
             const std::filesystem::path& FilePath,
             char FileDelim,
             char TimeDelim)
@@ -58,7 +58,7 @@ namespace VT
     }
 
 	// creates and writes to file
-	void static overwriteFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
+	void inline overwriteFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
 	{
 		std::ofstream File(FilePath, std::ios::binary | std::ios::out | std::ios::trunc);
 
@@ -69,7 +69,7 @@ namespace VT
 	}
 
 	// creates and writes to file
-	void static appendToFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
+	void inline appendToFile(const std::filesystem::path& FilePath, const std::vector<std::byte>& Content)
 	{
 		std::ofstream File(FilePath, std::ios::binary | std::ios::out | std::ios::app);
 
@@ -77,6 +77,7 @@ namespace VT
 
 		File.write(reinterpret_cast<const char*>(Content.data()), static_cast<std::streamsize>(Content.size()));
 		File.close();
+
 	}
 
 	//std::filesystem::time_point inline getFileLastEditTime(const std::filesystem::path& FilePath)
@@ -117,9 +118,9 @@ namespace VT
 namespace std
 {
 	template<>
-	struct hash<VT::FileInfo>
+	struct hash<VT::File::FileInfo>
 	{
-		size_t operator()(const VT::FileInfo& F) const noexcept
+		size_t operator()(const VT::File::FileInfo& F) const noexcept
 		{
 			return hash<std::string>()(F.FileName) ^ ((hash<std::string>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
 		}

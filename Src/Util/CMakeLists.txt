@@ -5,7 +5,7 @@ project ("Util" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Utils")
 
 add_library(${PROJECT_NAME}
 "DXC_Compiler.cpp"
-"GLSL_Compiler.cpp"
+# "GLSL_Compiler.cpp"
 "ShaderCompiler.cpp"
 )
 
@@ -16,14 +16,16 @@ endif()
 
 if (MSVC)
     # msvc is special like that
-    add_compile_options(
-		/Wall
+    target_compile_options(${PROJECT_NAME}
+		PRIVATE
+		/W4
 		/WX
 		/permissive
 	)
 else()
     # additional warnings
-    add_compile_options(
+   target_compile_options(${PROJECT_NAME}
+		PRIVATE
 		-Wall 
 		-Werror
 		-Wpedantic
@@ -32,9 +34,10 @@ else()
 		# $<$<CONFIG:DEBUG>:-O2>
 	)
 
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-		add_compile_options(
-				-fms-extensions # dxc compiler
+if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	   target_compile_options(${PROJECT_NAME}
+			PRIVATE
+			-fms-extensions # dxc compiler
 		)
 	endif()
 endif()

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DXC_Compiler.h"
-#include "GLSL_Compiler.h"
+// #include "GLSL_Compiler.h"
 
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
@@ -16,13 +16,13 @@ namespace VT
 
 		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 
-		std::vector<std::vector<uint32_t>> compileShaders(const std::vector<DXC_ShaderFileInfo>& ShaderInfos) const;
+		std::vector<std::vector<uint32_t>> compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const;
 
-		std::vector<std::vector<uint32_t>> compileShaders(std::vector<ShadercFileInfo> ShaderInfos) const;
+		// std::vector<std::vector<uint32_t>> compileShaders(const std::vector<File::ShadercFileInfo>& ShaderInfos) const;
 
-		std::vector<uint32_t> compileShader(DXC_ShaderFileInfo ShaderInfos) const;
+		std::vector<uint32_t> compileShader(File::DXC_ShaderFileInfo ShaderInfos) const;
 
-		std::vector<uint32_t> compileShader(ShadercFileInfo ShaderInfos) const;
+		// std::vector<uint32_t> compileShader(File::ShadercFileInfo ShaderInfos) const;
 
 	private:
 		// in development, do not use
@@ -30,7 +30,7 @@ namespace VT
 		std::vector<std::byte> compileFile(DXC_ShaderFileInfo FileInfo);*/
 
 		[[nodiscard]]
-		std::vector<uint32_t> fileToSpv(DXC_ShaderFileInfo FileInfo) const;
+		std::vector<uint32_t> fileToSpv(File::DXC_ShaderFileInfo FileInfo) const;
 
 		std::unordered_map<std::string, std::string> m_ShaderLog;
 		std::filesystem::path m_WorkingDir{};

@@ -6,9 +6,9 @@
 
 namespace VT
 {
-    std::vector<uint32_t> GLSL_Compiler::compile(ShadercFileInfo FileInfo)
+    std::vector<uint32_t> GLSL_Compiler::compile(File::ShadercFileInfo FileInfo)
     {
-        auto File = readFile(FileInfo.FileLocation + FileInfo.FileName);
+        auto File = File::readFile(FileInfo.FileLocation + FileInfo.FileName);
         std::string Source { File.cbegin(), File.cend() };
 
         shaderc::SpvCompilationResult Module

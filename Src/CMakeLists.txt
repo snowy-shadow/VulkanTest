@@ -14,14 +14,16 @@ endif()
 
 if (MSVC)
     # msvc is special like that
-    add_compile_options(
-		/Wall
+   target_compile_options(${PROJECT_NAME}
+		PRIVATE
+		/W4
 		/WX
 		/permissive
 	)
 else()
     # additional warnings
-    add_compile_options(
+   target_compile_options(${PROJECT_NAME}
+		PRIVATE
 		-Wall 
 		-Werror
 		-Wpedantic

@@ -5,10 +5,10 @@
 cmake_minimum_required (VERSION 3.8)
 project ("Device" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan Device setup")
 
-add_library(${PROJECT_NAME}
+add_library(${PROJECT_NAME} SHARED
 "Instance.cpp"
 "PhysicalDevice.cpp"
-)
+"DebugMessenger.cpp")
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET ${PROJECT_NAME} 
@@ -17,14 +17,16 @@ endif()
 
 if (MSVC)
     # msvc is special like that
-    add_compile_options(
-		/Wall
+   target_compile_options(${PROJECT_NAME}
+		PRIVATE
+		/W4
 		/WX
 		/permissive
 	)
 else()
     # additional warnings
-    add_compile_options(
+   target_compile_options(${PROJECT_NAME}
+		PRIVATE
 		-Wall 
 		-Werror
 		-Wpedantic
@@ -46,8 +48,7 @@ PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM 
-PRIVATE
+SYSTEM PRIVATE
 ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )

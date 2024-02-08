@@ -18,7 +18,7 @@ namespace VT
 	}
 
 	// must receive a CComPtr<IDxcBlob>, or dangling pointer
-	CComPtr<IDxcBlob> DXC_Compiler::compile(DXC_ShaderFileInfo File) const
+	CComPtr<IDxcBlob> DXC_Compiler::compile(File::DXC_ShaderFileInfo File) const
 	{
 		HRESULT HRes;
         const std::wstring FileName{std::wstring(File.FileName.cbegin(), File.FileName.cend())};
@@ -29,7 +29,7 @@ namespace VT
 
 		CComPtr<IDxcBlobEncoding> SourceBlob;
 		HRes = m_DXC_Utils->LoadFile(Src.c_str(), &File.Encoding, &SourceBlob);
-		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file" + File.FileLocation + " " + File.FileName); }
+		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file : " + File.FileLocation + " " + File.FileName); }
 
 		DxcBuffer SrcBuff
 		{
