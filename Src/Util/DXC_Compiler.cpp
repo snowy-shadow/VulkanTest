@@ -18,18 +18,15 @@ namespace VT
 	}
 
 	// must receive a CComPtr<IDxcBlob>, or dangling pointer
-	CComPtr<IDxcBlob> DXC_Compiler::compile(File::DXC_ShaderFileInfo File) const
+	CComPtr<IDxcBlob> DXC_Compiler::compile(File::DXC_ShaderFileInfo& File) const
 	{
-		HRESULT HRes;
-        const std::wstring FileName{std::wstring(File.FileName.cbegin(), File.FileName.cend())};
-        const std::wstring FileLocation{std::wstring(File.FileLocation.cbegin(), File.FileLocation.cend())};
-		File.CL_Args += L" " + FileName;
+		const std::filesystem::path Src{ File.FileLocation / File.FileName };
 
-		const std::wstring Src = FileLocation + FileName;
+		File.CL_Args.emplace_back(Src.c_str());
 
 		CComPtr<IDxcBlobEncoding> SourceBlob;
-		HRes = m_DXC_Utils->LoadFile(Src.c_str(), &File.Encoding, &SourceBlob);
-		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file : " + File.FileLocation + " " + File.FileName); }
+		HRESULT HRes = m_DXC_Utils->LoadFile(Src.c_str(), static_cast<UINT32*>(&File.Encoding), & SourceBlob);
+		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file : " + Src.string()); }
 
 		DxcBuffer SrcBuff
 		{
@@ -38,9 +35,8 @@ namespace VT
 			.Encoding = File.Encoding
 		};
 
-		LPCWSTR Args = File.CL_Args.c_str();
 		CComPtr<IDxcResult> CompileResult{ nullptr };
-		HRes = m_DXC_Compiler->Compile(&SrcBuff, &Args, static_cast<uint32_t>(File.CL_Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
+		HRes = m_DXC_Compiler->Compile(&SrcBuff, static_cast<LPCWSTR*>(File.CL_Args.data()), static_cast<uint32_t>(File.CL_Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
 
 		// Output error if compilation failed
 		if (FAILED(HRes) && HRes)

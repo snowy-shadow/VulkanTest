@@ -43,13 +43,13 @@ namespace VT
 		VertexShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		VertexShaderFile.FileName = "Vertex.hlsl";
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
-		VertexShaderFile.CL_Args = L"-spirv";
+		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_1"};
 
 		File::DXC_ShaderFileInfo FragmentShaderFile{};
 		FragmentShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		FragmentShaderFile.FileName = "Fragment.hlsl";
 		FragmentShaderFile.Stage = vk::ShaderStageFlagBits::eFragment;
-		FragmentShaderFile.CL_Args = VertexShaderFile.CL_Args;
+		FragmentShaderFile.CL_Args = { L"-spirv", L"-E", L"main", L"-T", L"ps_6_1"};
 
 		GraphicPipeline MainGraphicPipelineInfo;
 

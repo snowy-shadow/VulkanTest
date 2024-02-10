@@ -48,8 +48,7 @@ PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM 
-PRIVATE
+SYSTEM PRIVATE
 ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )

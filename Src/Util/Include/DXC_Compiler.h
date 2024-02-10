@@ -30,7 +30,7 @@ namespace VT
 		struct DXC_ShaderFileInfo : public FileInfo
 		{
 			vk::ShaderStageFlagBits Stage;
-			std::wstring CL_Args;
+			std::vector<LPCWSTR> CL_Args;
 		};
 	}
 
@@ -40,7 +40,7 @@ namespace VT
 		DXC_Compiler();
 
 		[[nodiscard]]
-		CComPtr<IDxcBlob> compile(File::DXC_ShaderFileInfo) const;
+		CComPtr<IDxcBlob> compile(File::DXC_ShaderFileInfo&) const;
 
 		DXC_Compiler(const DXC_Compiler&) = delete;
 		DXC_Compiler& operator = (const DXC_Compiler&) = delete;
@@ -58,7 +58,7 @@ namespace std
 	{
 		size_t operator()(const VT::File::DXC_ShaderFileInfo& F) const noexcept
 		{
-			return hash<std::wstring>()(F.CL_Args) ^ (hash<VT::File::FileInfo>()(F) << 7);
+			return hash<LPCWSTR const*>()(F.CL_Args.data()) ^ (hash<VT::File::FileInfo>()(F) << 7);
 		}
 	};
 }

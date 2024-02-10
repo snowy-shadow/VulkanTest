@@ -1,5 +1,4 @@
 #include "ShaderCompiler.h"
-#include "ShaderCompiler.h"
 
 namespace VT
 {
@@ -22,7 +21,7 @@ namespace VT
 	{
 		std::vector<std::vector<uint32_t>> ShaderSpv;
 
-		for(auto& F : ShaderInfos)
+		for(const auto& F : ShaderInfos)
 		{
 			ShaderSpv.emplace_back(compileShader(F));
 		}
@@ -37,10 +36,12 @@ namespace VT
      * this avoids copying in case of vectors
      */
 
-
-	std::vector<uint32_t> ShaderCompiler::compileShader(File::DXC_ShaderFileInfo FileInfo) const
+	/*
+	 * Shader to Spv
+	 */
+	std::vector<uint32_t> ShaderCompiler::compileShader(const File::DXC_ShaderFileInfo& ShaderInfo) const
 	{
-		return fileToSpv(std::forward<const File::DXC_ShaderFileInfo>(FileInfo));
+		return fileToSpv(ShaderInfo);
 	}
 
 
@@ -82,7 +83,7 @@ namespace VT
 
 	std::vector<uint32_t> ShaderCompiler::fileToSpv(File::DXC_ShaderFileInfo FileInfo) const
 	{
-        DXC_Compiler m_Compiler;
+        const DXC_Compiler m_Compiler;
         const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);
 
 		const auto pContent = static_cast<char*>(ResPtr->GetBufferPointer());

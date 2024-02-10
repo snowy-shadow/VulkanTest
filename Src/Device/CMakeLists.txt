@@ -5,7 +5,7 @@
 cmake_minimum_required (VERSION 3.8)
 project ("Device" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan Device setup")
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME}
 "Instance.cpp"
 "PhysicalDevice.cpp"
 "DebugMessenger.cpp")

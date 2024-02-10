@@ -10,7 +10,7 @@ namespace VT::File
 {
 	struct FileInfo
 	{
-		std::string FileLocation;
+		std::filesystem::path FileLocation;
 		std::string FileName;
 		uint32_t Encoding;
 	};
@@ -122,7 +122,7 @@ namespace std
 	{
 		size_t operator()(const VT::File::FileInfo& F) const noexcept
 		{
-			return hash<std::string>()(F.FileName) ^ ((hash<std::string>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
+			return hash<std::string>()(F.FileName) ^ ((hash<std::filesystem::path>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
 		}
 	};
 }

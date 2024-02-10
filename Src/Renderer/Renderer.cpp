@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include <iostream>
+
 
 namespace VT
 {
@@ -61,6 +63,13 @@ namespace VT
 		// load all shader spv
 		for(int i = 0; i < ShaderSpvs.size(); i++)
 		{
+			std::cout << "Begin\n";
+			for(auto& a : ShaderSpvs[i])
+			{
+				std::cout << a;
+			}
+
+			std::cout << "\n\n\n";
 			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,

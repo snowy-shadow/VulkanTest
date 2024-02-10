@@ -5,7 +5,7 @@ project ("Util" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Utils")
 
 add_library(${PROJECT_NAME}
 "DXC_Compiler.cpp"
-# "GLSL_Compiler.cpp"
+"GLSL_Compiler.cpp"
 "ShaderCompiler.cpp"
 )
 
@@ -33,8 +33,7 @@ else()
 		# $<$<CONFIG:RELEASE>:-O2>
 		# $<$<CONFIG:DEBUG>:-O2>
 	)
-
-if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 	   target_compile_options(${PROJECT_NAME}
 			PRIVATE
 			-fms-extensions # dxc compiler
@@ -43,7 +42,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif()
 
 # libs
-find_package(Vulkan REQUIRED dxc)
+find_package(Vulkan REQUIRED dxc shaderc_combined)
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
@@ -54,14 +53,14 @@ PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM 
-PRIVATE
+SYSTEM PRIVATE
 ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )
 target_link_libraries(${PROJECT_NAME}
 PRIVATE
 ${Vulkan_LIBRARIES}
+${Vulkan_shaderc_combined_LIBRARY}
 ${Vulkan_dxc_LIBRARY}
 ${GLFW_LIBRARY}
 )

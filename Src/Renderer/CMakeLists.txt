@@ -6,7 +6,7 @@
 cmake_minimum_required (VERSION 3.8)
 project ("Renderer" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan frontend")
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME}
 "GraphicPipeline.cpp"
 "Image.cpp"
 "Renderer.cpp"
@@ -52,8 +52,7 @@ PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM 
-PRIVATE
+SYSTEM PRIVATE
 ${Vulkan_INCLUDE_DIR}
 ${GLFW_INCLUDE_DIRS} 
 )

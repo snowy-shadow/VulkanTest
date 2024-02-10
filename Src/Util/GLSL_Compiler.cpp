@@ -8,10 +8,11 @@ namespace VT
 {
     std::vector<uint32_t> GLSL_Compiler::compile(File::ShadercFileInfo FileInfo)
     {
-        auto File = File::readFile(FileInfo.FileLocation + FileInfo.FileName);
+        const auto Src{ FileInfo.FileLocation / FileInfo.FileName };
+        const auto File = File::readFile(Src);
         std::string Source { File.cbegin(), File.cend() };
 
-        shaderc::SpvCompilationResult Module
+        const shaderc::SpvCompilationResult Module
         {
             m_Compiler.CompileGlslToSpv(
                 Source,
@@ -21,7 +22,7 @@ namespace VT
         };
 
         if(Module.GetCompilationStatus() != shaderc_compilation_status_success)
-        { throw std::runtime_error("Failed to compile " + FileInfo.FileLocation + "/" + FileInfo.FileName + " Message : \n" + Module.GetErrorMessage()); }
+        { throw std::runtime_error("Failed to compile " + Src.string() + " Message : \n" + Module.GetErrorMessage()); }
 
         return { Module.cbegin(), Module.cend() };
     }
