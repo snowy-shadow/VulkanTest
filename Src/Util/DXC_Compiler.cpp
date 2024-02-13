@@ -25,7 +25,7 @@ namespace VT
 		File.CL_Args.emplace_back(Src.c_str());
 
 		CComPtr<IDxcBlobEncoding> SourceBlob;
-		HRESULT HRes = m_DXC_Utils->LoadFile(Src.c_str(), static_cast<UINT32*>(&File.Encoding), & SourceBlob);
+		HRESULT HRes = m_DXC_Utils->LoadFile(Src.wstring().c_str(), static_cast<UINT32*>(&File.Encoding), & SourceBlob);
 		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file : " + Src.string()); }
 
 		DxcBuffer SrcBuff

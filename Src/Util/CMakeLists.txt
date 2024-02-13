@@ -27,22 +27,31 @@ else()
    target_compile_options(${PROJECT_NAME}
 		PRIVATE
 		-Wall 
-		-Werror
+        -Werror
 		-Wpedantic
 		-O2
 		# $<$<CONFIG:RELEASE>:-O2>
 		# $<$<CONFIG:DEBUG>:-O2>
-	)
-	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        )
+    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
 	   target_compile_options(${PROJECT_NAME}
-			PRIVATE
-			-fms-extensions # dxc compiler
+			PRIVATE 
+            # dxc compiler
+			-fms-extensions
 		)
 	endif()
 endif()
 
 # libs
-find_package(Vulkan REQUIRED dxc shaderc_combined)
+if(APPLE)
+    find_package(Vulkan REQUIRED MoltenVK)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        {Vulkan_MoltenVK_LIBRARY}
+    )
+else()
+    find_package(Vulkan REQUIRED dxc shaderc_combined)
+endif()
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)

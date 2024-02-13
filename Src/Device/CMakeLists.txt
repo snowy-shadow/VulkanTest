@@ -37,7 +37,15 @@ else()
 endif()
 
 # libs
-find_package(Vulkan REQUIRED)
+if(APPLE)
+    find_package(Vulkan REQUIRED MoltenVK)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        {Vulkan_MoltenVK_LIBRARY}
+    )
+else()
+    find_package(Vulkan REQUIRED)
+endif()
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)

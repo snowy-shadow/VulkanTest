@@ -122,7 +122,7 @@ namespace std
 	{
 		size_t operator()(const VT::File::FileInfo& F) const noexcept
 		{
-			return hash<std::string>()(F.FileName) ^ ((hash<std::filesystem::path>()(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7);
+			return hash<std::string>()(F.FileName) ^ (std::filesystem::hash_value(F.FileLocation) >> 2) ^ (hash<uint32_t>()(F.Encoding) << 5) << 7;
 		}
 	};
 }

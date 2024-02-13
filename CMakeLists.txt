@@ -12,7 +12,8 @@ endif()
 project ("VulkanTest" VERSION 0.1 LANGUAGES CXX)
 
 # Custom libraries
-set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw/glfw-3.3.9")
+# set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw/glfw-3.3.9")
+set(GLFW_PATH "/opt/homebrew")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
 # Include sub-projects.
