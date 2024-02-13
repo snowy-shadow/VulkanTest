@@ -1,4 +1,6 @@
 .vs/
+.idea/
 out/
+.DS_Store
 CMakeSettings.json
 Build/
