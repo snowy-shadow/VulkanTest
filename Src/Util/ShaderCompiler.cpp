@@ -17,9 +17,9 @@ namespace VT
         if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
     }
 
-	std::vector<std::vector<uint32_t>> ShaderCompiler::compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const
+	std::vector<std::vector<std::byte>> ShaderCompiler::compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const
 	{
-		std::vector<std::vector<uint32_t>> ShaderSpv;
+		std::vector<std::vector<std::byte>> ShaderSpv;
 
 		for(const auto& F : ShaderInfos)
 		{
@@ -39,7 +39,7 @@ namespace VT
 	/*
 	 * Shader to Spv
 	 */
-	std::vector<uint32_t> ShaderCompiler::compileShader(const File::DXC_ShaderFileInfo& ShaderInfo) const
+	std::vector<std::byte> ShaderCompiler::compileShader(const File::DXC_ShaderFileInfo& ShaderInfo) const
 	{
 		return fileToSpv(ShaderInfo);
 	}
@@ -81,15 +81,10 @@ namespace VT
 
 	//}
 
-	std::vector<uint32_t> ShaderCompiler::fileToSpv(File::DXC_ShaderFileInfo FileInfo) const
+	std::vector<std::byte> ShaderCompiler::fileToSpv(File::DXC_ShaderFileInfo FileInfo) const
 	{
         const DXC_Compiler m_Compiler;
-        const CComPtr<IDxcBlob> ResPtr = m_Compiler.compile(FileInfo);
-
-		const auto pContent = static_cast<char*>(ResPtr->GetBufferPointer());
-		const auto Size = ResPtr->GetBufferSize();
-
-		return { pContent, pContent + Size };
+        return m_Compiler.compile(FileInfo);
 	}
 
 }

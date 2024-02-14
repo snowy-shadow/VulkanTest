@@ -5,8 +5,6 @@
 #include <GLFW/glfw3.h>
 
 #include <array>
-#include <stdexcept>
-
 
 namespace VT
 {

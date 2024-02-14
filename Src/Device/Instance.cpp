@@ -1,5 +1,11 @@
 #include "Instance.h"
 
+#ifndef NDEBUG
+	#include "DebugMessenger.h"
+#endif
+
+#include <unordered_set>
+
 namespace VT
 {
 	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)

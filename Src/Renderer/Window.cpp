@@ -1,5 +1,7 @@
 #include "Window.h"
 
+#include <stdexcept>
+
 namespace VT
 {
 	Window::Window(const std::array<int, 2>& Dimension_XY, const char* WindowName)
@@ -11,7 +13,7 @@ namespace VT
 		// do not create opengl context
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
-		m_Window = glfwCreateWindow(Dimension_XY.at(0), Dimension_XY.at(1), WindowName, nullptr, nullptr);
+		m_Window = glfwCreateWindow(Dimension_XY[0], Dimension_XY[1], WindowName, nullptr, nullptr);
 
 		// associate window obj with current instance
 		glfwSetWindowUserPointer(m_Window, this);

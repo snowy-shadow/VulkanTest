@@ -1,5 +1,7 @@
 #include "SwapChain.h"
 
+#include <unordered_set>
+
 namespace VT
 {
 	SwapChain::SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount)

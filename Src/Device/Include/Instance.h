@@ -1,8 +1,5 @@
 #pragma once
 
-#ifndef NDEBUG
-#include "DebugMessenger.h"
-#endif
 
 #include "PhysicalDevice.h"
 

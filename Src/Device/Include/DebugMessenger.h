@@ -20,6 +20,7 @@ namespace VT
 		const vk::Instance& Instance, 
 		const vk::DispatchLoaderDynamic& DLD,
 		vk::DebugUtilsMessageSeverityFlagsEXT MessageSeverity,
-		vk::DebugUtilsMessageTypeFlagsEXT MessageType);
+		vk::DebugUtilsMessageTypeFlagsEXT MessageType
+	);
 
 }

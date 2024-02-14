@@ -2,7 +2,6 @@
 
 #include <iostream>
 
-
 namespace VT
 {
 
@@ -60,23 +59,21 @@ namespace VT
 		// Graphics pipline struct
 		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
 
+
 		// load all shader spv
 		for(int i = 0; i < ShaderSpvs.size(); i++)
 		{
-			std::cout << "Begin\n";
-			for(auto& a : ShaderSpvs[i])
-			{
-				std::cout << a;
-			}
+			std::cout << "here1\n code size : ";
+			std::cout << ShaderSpvs[i].size() << '\n';
+			std::cout << "here2\n";
 
-			std::cout << "\n\n\n";
 			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,
 				.module = m_Instance->m_LogicalDevice.createShaderModule
 				({
 					.codeSize = ShaderSpvs[i].size(),
-					.pCode = reinterpret_cast<uint32_t*>(&ShaderSpvs[i])
+					.pCode = reinterpret_cast<uint32_t*>(ShaderSpvs[i].data())
 				}),
 
 				.pName = "main"

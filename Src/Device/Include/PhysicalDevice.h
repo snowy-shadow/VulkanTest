@@ -3,8 +3,6 @@
 #define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan.hpp>
 
-#include <unordered_set>
-#include <array>
 #include <optional>
 
 namespace VT

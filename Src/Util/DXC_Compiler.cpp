@@ -18,12 +18,14 @@ namespace VT
 	}
 
 	// must receive a CComPtr<IDxcBlob>, or dangling pointer
-	CComPtr<IDxcBlob> DXC_Compiler::compile(File::DXC_ShaderFileInfo& File) const
+	std::vector<std::byte> DXC_Compiler::compile(File::DXC_ShaderFileInfo& File) const
 	{
+		// parse data
 		const std::filesystem::path Src{ File.FileLocation / File.FileName };
 
 		File.CL_Args.emplace_back(Src.c_str());
 
+		// load file
 		CComPtr<IDxcBlobEncoding> SourceBlob;
 		HRESULT HRes = m_DXC_Utils->LoadFile(Src.wstring().c_str(), static_cast<UINT32*>(&File.Encoding), & SourceBlob);
 		if (FAILED(HRes)) { throw std::runtime_error("Could not load shader file : " + Src.string()); }
@@ -35,25 +37,32 @@ namespace VT
 			.Encoding = File.Encoding
 		};
 
+		// compile
 		CComPtr<IDxcResult> CompileResult{ nullptr };
 		HRes = m_DXC_Compiler->Compile(&SrcBuff, static_cast<LPCWSTR*>(File.CL_Args.data()), static_cast<uint32_t>(File.CL_Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
 
+		// get compile result
+		if (SUCCEEDED(HRes)) { CompileResult->GetStatus(&HRes); }
+
 		// Output error if compilation failed
-		if (FAILED(HRes) && HRes)
+		if (FAILED(HRes) && CompileResult)
 		{
 			CComPtr<IDxcBlobEncoding> Error;
 			HRes = CompileResult->GetErrorBuffer(&Error);
 
 			if (SUCCEEDED(HRes) && Error)
 			{
-				throw std::runtime_error(std::string("Compilation failed") + static_cast<const char*>(Error->GetBufferPointer()));
+				throw std::runtime_error(std::string("Compilation failed : ") + static_cast<const char*>(Error->GetBufferPointer()));
 			}
 		}
-		else { CompileResult->GetStatus(&HRes); }
 
+		// get spirv
 		CComPtr<IDxcBlob> ShaderByteCode;
 		CompileResult->GetResult(&ShaderByteCode);
 
-		return ShaderByteCode;
+		const auto pContent = static_cast<std::byte*>(ShaderByteCode->GetBufferPointer());
+		const auto Size = ShaderByteCode->GetBufferSize();
+
+		return { pContent, pContent + Size };
 	}
 }

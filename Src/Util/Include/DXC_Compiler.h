@@ -40,7 +40,7 @@ namespace VT
 		DXC_Compiler();
 
 		[[nodiscard]]
-		CComPtr<IDxcBlob> compile(File::DXC_ShaderFileInfo&) const;
+		std::vector<std::byte> compile(File::DXC_ShaderFileInfo&) const;
 
 		DXC_Compiler(const DXC_Compiler&) = delete;
 		DXC_Compiler& operator = (const DXC_Compiler&) = delete;

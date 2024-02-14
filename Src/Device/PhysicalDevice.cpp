@@ -1,5 +1,8 @@
 #include "PhysicalDevice.h"
 
+#include <unordered_set>
+#include <array>
+
 namespace  VT
 {
 	vk::Device PhysicalDevice::createLogicalDevice(const std::vector<const char*>& DeviceExtensionName)
