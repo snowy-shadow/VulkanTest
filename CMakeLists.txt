@@ -14,7 +14,7 @@ project ("VulkanTest" VERSION 0.1 LANGUAGES CXX)
 # Custom libraries
 if(APPLE)
 	set(GLFW_PATH "/opt/homebrew")
-else()
+elseif(WIN32)
 	set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw/glfw-3.3.9")
 endif()
 
