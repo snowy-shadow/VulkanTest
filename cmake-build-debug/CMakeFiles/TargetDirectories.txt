@@ -1,0 +1,14 @@
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/VulkanTest.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/CMakeFiles/rebuild_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Util/CMakeFiles/Util.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Util/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Util/CMakeFiles/rebuild_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Device/CMakeFiles/Device.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Device/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Device/CMakeFiles/rebuild_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Renderer/CMakeFiles/Renderer.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Renderer/CMakeFiles/edit_cache.dir
+/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug/Src/Renderer/CMakeFiles/rebuild_cache.dir

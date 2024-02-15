@@ -23,7 +23,7 @@ namespace VT
 		// parse data
 		const std::filesystem::path Src{ File.FileLocation / File.FileName };
 
-		File.CL_Args.emplace_back(Src.c_str());
+		File.CL_Args.emplace_back(Src.wstring().c_str());
 
 		// load file
 		CComPtr<IDxcBlobEncoding> SourceBlob;

@@ -1,0 +1,190 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "Src",
+					"childIndexes" : 
+					[
+						2,
+						3,
+						4
+					],
+					"jsonFile" : "directory-Src-Debug-390034882170fb1d3f43.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Src",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "Src/Util",
+					"jsonFile" : "directory-Src.Util-Debug-08808e22ace46e885256.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "Src/Util",
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"build" : "Src/Device",
+					"jsonFile" : "directory-Src.Device-Debug-38259241c62b7e89260c.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 2,
+					"source" : "Src/Device",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "Src/Renderer",
+					"jsonFile" : "directory-Src.Renderer-Debug-c74300ae2e3843f96f7d.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.8"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 3,
+					"source" : "Src/Renderer",
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "VulkanTest",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "Util",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3
+					],
+					"name" : "Device",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						4
+					],
+					"name" : "Renderer",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 3,
+					"id" : "Device::@b5ca54d337f4170022cb",
+					"jsonFile" : "target-Device-Debug-3ee66e347d97a775090d.json",
+					"name" : "Device",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 4,
+					"id" : "Renderer::@3f5a8d70d7cdbb754171",
+					"jsonFile" : "target-Renderer-Debug-0c1c4a163617815ef6eb.json",
+					"name" : "Renderer",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "Util::@923db070a5a31843f4db",
+					"jsonFile" : "target-Util-Debug-61e280449803b3f10e80.json",
+					"name" : "Util",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "VulkanTest::@fffd7673bb2fd0d58c2a",
+					"jsonFile" : "target-VulkanTest-Debug-eb6740edb429e217c85b.json",
+					"name" : "VulkanTest",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug",
+		"source" : "/Users/kuang/Developer/Projects/VulkanTest"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

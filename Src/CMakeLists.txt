@@ -28,6 +28,9 @@ else()
 		-Werror
 		-Wpedantic
 		-O2
+        # DXC 
+        -fms-extensions
+        -Wno-language-extension-token
 		# $<$<CONFIG:RELEASE>:-O2>
 		# $<$<CONFIG:DEBUG>:-O2>
 	)
@@ -42,33 +45,36 @@ if(APPLE)
     find_package(Vulkan REQUIRED MoltenVK)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-        {Vulkan_MoltenVK_LIBRARY}
+        ${Vulkan_MoltenVK_LIBRARY}
     )
 else()
     find_package(Vulkan REQUIRED)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        ${Vulkan_LIBRARIES}
+    )
 endif()
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
 
 target_include_directories(${PROJECT_NAME} 
-PUBLIC
-"Include"
+    PUBLIC
+    "Include"
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM PRIVATE
-${Vulkan_INCLUDE_DIR}
-${GLFW_INCLUDE_DIRS} 
+    SYSTEM PRIVATE
+    ${Vulkan_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIRS} 
 )
 
 
 target_link_libraries(${PROJECT_NAME}
-PRIVATE
-Util
-Renderer
-Device
-${Vulkan_LIBRARIES}
-${GLFW_LIBRARY}
+    PRIVATE
+    Util
+    Renderer
+    Device
+    ${GLFW_LIBRARY}
 )
 

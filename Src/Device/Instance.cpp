@@ -24,7 +24,7 @@ namespace VT
         #endif
 
 #ifdef __APPLE__
-        Layers.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
+        Extentions.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
 #endif
 
 		if (!isSupported(Extentions, Layers)) throw std::runtime_error("Instance does not support required extensions and layers");

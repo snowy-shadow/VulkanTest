@@ -1,0 +1,19 @@
+# ninja log v5
+7912	7951	1707940064677411000	Src/Renderer/libRenderer.a	cb4f67276a846162
+3123	6042	1707940062759497979	Src/Renderer/CMakeFiles/Renderer.dir/Image.cpp.o	677f680e731c5c36
+3	2412	1707940147829664574	Src/CMakeFiles/VulkanTest.dir/App.cpp.o	576ad947b62aac8c
+2262	5735	1707940062450554452	Src/Device/CMakeFiles/Device.dir/DebugMessenger.cpp.o	1d3212a3ee082915
+2253	2309	1708030014712190000	Src/Util/libUtil.a	3aa27e2aced3460b
+1	2466	1707940059180141210	Src/Util/CMakeFiles/Util.dir/ShaderCompiler.cpp.o	96cb46f8b3545ba3
+5523	6134	1707940062853536331	Src/Renderer/CMakeFiles/Renderer.dir/Window.cpp.o	67cd530e62a18aba
+2171	6367	1707940063084034657	Src/Device/CMakeFiles/Device.dir/PhysicalDevice.cpp.o	9a66feb9f1757fd0
+3	2310	1708030096829662036	Src/Device/CMakeFiles/Device.dir/Instance.cpp.o	4f911bccf1689f91
+4150	7912	1707940064629775856	Src/Renderer/CMakeFiles/Renderer.dir/SwapChain.cpp.o	91973536d784b17
+4	2253	1708030014644914346	Src/Util/CMakeFiles/Util.dir/DXC_Compiler.cpp.o	9db1efa26f279cf2
+2363	2534	1708030097059268817	Src/VulkanTest	a74900ecb4a5ac2b
+3460	7706	1707940064423153101	Src/Renderer/CMakeFiles/Renderer.dir/Renderer.cpp.o	39661c7d0ec068c6
+2310	2363	1708030096892825000	Src/Device/libDevice.a	994463261d5c9874
+3	2839	1708030015236344842	Src/CMakeFiles/VulkanTest.dir/VulkanTest.cpp.o	f765c642ff9cbfd0
+1	2168	1707940058884804622	Src/Util/CMakeFiles/Util.dir/GLSL_Compiler.cpp.o	778e45553d9a5405
+2522	5523	1707940062239595240	Src/Renderer/CMakeFiles/Renderer.dir/GraphicPipeline.cpp.o	6d15694f8e87f018
+0	232	1708030278340028568	build.ninja	c6647f602301e45d

@@ -30,46 +30,49 @@ else()
         -Werror
 		-Wpedantic
 		-O2
+        # DXC 
+        -fms-extensions
+        -Wno-language-extension-token
 		# $<$<CONFIG:RELEASE>:-O2>
 		# $<$<CONFIG:DEBUG>:-O2>
-        )
-    if (${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" OR ${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
-	   target_compile_options(${PROJECT_NAME}
-			PRIVATE 
-            # dxc compiler
-			-fms-extensions
-		)
-	endif()
+    )
 endif()
 
-# libs
+# ========================
+#           Find Libs
+# ========================
+
 if(APPLE)
-    find_package(Vulkan REQUIRED MoltenVK)
+    find_package(Vulkan REQUIRED MoltenVK dxc shaderc_combined)
     target_link_libraries(${PROJECT_NAME}
         PRIVATE
-        {Vulkan_MoltenVK_LIBRARY}
+        ${Vulkan_MoltenVK_LIBRARY}
     )
 else()
     find_package(Vulkan REQUIRED dxc shaderc_combined)
+    target_link_libraries(${PROJECT_NAME}
+        PRIVATE
+        ${Vulkan_LIBRARIES}
+    )
 endif()
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
 
 target_include_directories(${PROJECT_NAME} 
-PUBLIC
-"Include"
+    PUBLIC
+    "Include"
 )
 
 target_include_directories(${PROJECT_NAME} 
-SYSTEM PRIVATE
-${Vulkan_INCLUDE_DIR}
-${GLFW_INCLUDE_DIRS} 
+    SYSTEM PRIVATE
+    ${Vulkan_INCLUDE_DIR}
+    ${GLFW_INCLUDE_DIRS} 
 )
+
 target_link_libraries(${PROJECT_NAME}
-PRIVATE
-${Vulkan_LIBRARIES}
-${Vulkan_shaderc_combined_LIBRARY}
-${Vulkan_dxc_LIBRARY}
-${GLFW_LIBRARY}
+    PRIVATE
+    ${Vulkan_shaderc_combined_LIBRARY}
+    ${Vulkan_dxc_LIBRARY}
+    ${GLFW_LIBARY}
 )

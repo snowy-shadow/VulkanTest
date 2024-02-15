@@ -11,6 +11,7 @@
 #include "GraphicPipeline.h"
 #include "ShaderCompiler.h"
 
+#include <list>
 #include <unordered_set>
 
 namespace VT

@@ -1,0 +1,6 @@
+/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/Applications/CLion.app/Contents/bin/ninja/mac/ninja -G Ninja -S /Users/kuang/Developer/Projects/VulkanTest -B /Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug
+-- Found Vulkan: /Users/kuang/Developer/Dependencies/VulkanSDK-1.3.275.0/macOS/lib/libvulkan.dylib (found version "1.3.275") found components: MoltenVK dxc shaderc_combined glslc glslangValidator 
+-- Found Vulkan: /Users/kuang/Developer/Dependencies/VulkanSDK-1.3.275.0/macOS/lib/libvulkan.dylib (found version "1.3.275") found components: MoltenVK glslc glslangValidator 
+-- Configuring done (0.3s)
+-- Generating done (0.0s)
+-- Build files have been written to: /Users/kuang/Developer/Projects/VulkanTest/cmake-build-debug
