@@ -1,6 +1,7 @@
 .vs/
 .idea/
 out/
+Build/
+cmake-build-debug/
 .DS_Store
 CMakeSettings.json
-Build/
