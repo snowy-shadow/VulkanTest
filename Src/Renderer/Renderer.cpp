@@ -1,9 +1,13 @@
 #include "Renderer.h"
-
-#include <iostream>
+#include "Renderer.h"
 
 namespace VT
 {
+	Renderer::Renderer(Instance& Instance, Window& Window)
+	{
+		bindInstance(Instance);
+		bindWindow(Window);
+	}
 
 	void Renderer::createSwapChain(const std::unordered_set<std::string_view>& SwapChainName)
 	{
@@ -51,7 +55,7 @@ namespace VT
 		}
 	}*/
 
-	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo)
+	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const GraphicPipelineConfig& PipelineInfo)
     {
 		// compile shaders
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
@@ -59,14 +63,9 @@ namespace VT
 		// Graphics pipline struct
 		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
 
-
 		// load all shader spv
-		for(int i = 0; i < ShaderSpvs.size(); i++)
+		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
 		{
-			std::cout << "here1\n code size : ";
-			std::cout << ShaderSpvs[i].size() << '\n';
-			std::cout << "here2\n";
-
 			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,
@@ -80,7 +79,7 @@ namespace VT
 			});
 		}
 
-		auto [Result, Pipeline] = m_Instance->m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineInfo(ShaderStageInfos));
+		auto [Result, Pipeline] = m_Instance->m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineCreateInfo(ShaderStageInfos));
 
 		if (Result != vk::Result::eSuccess) { throw std::runtime_error("Failed to create Graphics Pipeline : " + Name); }
 
@@ -97,10 +96,10 @@ namespace VT
 	{
 
 	}
-	void Renderer::destroy()
+	Renderer::~Renderer()
 	{
-		for(auto& P : m_Pipelines) { m_Instance->m_LogicalDevice.destroyPipeline(P.second); }
-	
+		for (auto& P : m_Pipelines) { m_Instance->m_LogicalDevice.destroyPipeline(P.second); }
+
 		for (auto& SC : m_SwapChain) { SC.destroySwapChain(); }
 	}
 

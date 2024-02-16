@@ -1,21 +1,11 @@
-#include "GraphicPipeline.h"
+#include "GraphicPipelineConfig.h"
+
+#include <cstdint>
+#include <vector>
 
 namespace VT
 {
-	GraphicPipeline::GraphicPipeline()
-	{
-		m_VertexInputStateInfo =
-		{
-
-		};
-		m_InputAssemblyInfo =
-		{
-
-		};
-
-	}
-
-	vk::GraphicsPipelineCreateInfo GraphicPipeline::getGraphicPipelineInfo(const std::vector<vk::PipelineShaderStageCreateInfo>& m_ShaderStageInfos) const
+	vk::GraphicsPipelineCreateInfo GraphicPipelineConfig::getGraphicPipelineCreateInfo(const std::vector<vk::PipelineShaderStageCreateInfo>& m_ShaderStageInfos) const
 	{
 		return
 		{

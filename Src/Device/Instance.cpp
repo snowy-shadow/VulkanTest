@@ -1,4 +1,6 @@
 #include "Instance.h"
+#include "Instance.h"
+#include "Instance.h"
 
 #ifndef NDEBUG
 	#include "DebugMessenger.h"
@@ -8,6 +10,8 @@
 
 namespace VT
 {
+	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo) { initInstance(ApplicationInfo); }
+
 	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)
 	{
 		// Layers
@@ -18,10 +22,10 @@ namespace VT
 		const char** glfwExtensions{ glfwGetRequiredInstanceExtensions(&glfwExtensionCount) };
 		std::vector<const char*> Extentions{ glfwExtensions, glfwExtensions + glfwExtensionCount };
 
-		#ifndef NDEBUG
+#ifndef NDEBUG
 		Layers.emplace_back("VK_LAYER_KHRONOS_validation");
 		Extentions.emplace_back("VK_EXT_debug_utils");
-        #endif
+#endif
 
 #ifdef __APPLE__
         Extentions.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
@@ -82,7 +86,7 @@ namespace VT
 		return m_LogicalDevice;
 	}
 
-	void Instance::destroy()
+	Instance::~Instance()
 	{
 		m_LogicalDevice.destroy();
 

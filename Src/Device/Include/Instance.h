@@ -12,15 +12,16 @@ namespace VT
 	class Instance
 	{
 	public:
+		explicit Instance(const vk::ApplicationInfo& ApplicationInfo);
+
 		void initInstance(const vk::ApplicationInfo& ApplicationInfo);
 
 		void initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
 
 		vk::Device& getLogicalDevice();
 
-		void destroy();
-
-		Instance() {};
+		Instance() = default;
+		~Instance();
 		Instance(Instance&) = delete;
 		Instance& operator=(Instance&) = delete;
 
@@ -33,10 +34,10 @@ namespace VT
 		PhysicalDevice m_PhysicalDevice{};
 		vk::Device m_LogicalDevice;
 
-	#ifndef NDEBUG
+#ifndef NDEBUG
 		vk::DispatchLoaderDynamic m_DLD_Instance;
 		vk::DebugUtilsMessengerEXT m_DebugMessenger;
-	#endif
+#endif
 
 		friend class Renderer;
 	};

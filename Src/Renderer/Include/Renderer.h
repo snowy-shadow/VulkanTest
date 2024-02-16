@@ -8,7 +8,7 @@
 
 #include "Window.h"
 #include "Instance.h"
-#include "GraphicPipeline.h"
+#include "GraphicPipelineConfig.h"
 #include "ShaderCompiler.h"
 
 #include <list>
@@ -19,18 +19,20 @@ namespace VT
 	class Renderer
 	{
 	public:
+		explicit Renderer(Instance& Instance, Window& Window);
+
 		void createSwapChain(const std::unordered_set<std::string_view>& SwapChainName);
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
 //		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
 
-		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, GraphicPipeline& PipelineInfo);
+		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const GraphicPipelineConfig& PipelineInfo);
 
 		void update();
-		void destroy();
 
 		Renderer() = default;
+		~Renderer();
 		Renderer(const Renderer&) = delete;
 		Renderer& operator = (const Renderer&) = delete;
 	private:

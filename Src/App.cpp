@@ -23,14 +23,6 @@ namespace VT
 		}
 	}
 
-	App::~App()
-	{
-		m_Renderer.destroy();
-		m_VulkanInstance.destroy();
-	}
-
-
-
 	/*
 	 * ==================================================
 	 *					    PRIVATE
@@ -45,13 +37,13 @@ namespace VT
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
 		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_1" };
 
-		File::DXC_ShaderFileInfo FragmentShaderFile{};
+		/*File::DXC_ShaderFileInfo FragmentShaderFile{};
 		FragmentShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		FragmentShaderFile.FileName = "Fragment.hlsl";
 		FragmentShaderFile.Stage = vk::ShaderStageFlagBits::eFragment;
-		FragmentShaderFile.CL_Args = {L"-E main", L"-T ps_6_1", L"-spirv" };
+		FragmentShaderFile.CL_Args = {L"-E main", L"-T ps_6_1", L"-spirv" };*/
 
-		GraphicPipeline MainGraphicPipelineInfo;
+		GraphicPipelineConfig MainGraphicPipelineInfo;
 
 		std::vector<vk::VertexInputBindingDescription> VertexInputBindings
 		{
@@ -100,9 +92,90 @@ namespace VT
 
 		MainGraphicPipelineInfo.m_InputAssemblyInfo =
 		{
-
+			.topology = vk::PrimitiveTopology::eTriangleList,
+			.primitiveRestartEnable = vk::False,
 		};
 
-		m_Renderer.createGraphicsPipeline("GraphicPipeline", { VertexShaderFile, FragmentShaderFile }, MainGraphicPipelineInfo);
+		int WindowWidth, WindowHeight;
+		glfwGetFramebufferSize(m_Window.m_Window, &WindowWidth, &WindowHeight);
+		MainGraphicPipelineInfo.m_Viewports =
+		{
+			{
+				.x = 0.f,
+				.y = 0.f,
+				.width = static_cast<float>(WindowWidth),
+				.height = static_cast<float>(WindowHeight),
+				.minDepth = 0.f,
+				.maxDepth = 1.f
+			}
+		};
+
+		MainGraphicPipelineInfo.m_Scissors =
+		{
+			{
+				.offset =
+				{
+					.x = 0,
+					.y = 0
+				},
+
+				.extent =
+				{
+					.width = static_cast<uint32_t>(WindowWidth),
+					.height = static_cast<uint32_t>(WindowHeight)
+				}
+			}
+		};
+
+		MainGraphicPipelineInfo.m_ViewportStateInfo =
+		{
+			.viewportCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_Viewports.size()),
+			.pViewports = MainGraphicPipelineInfo.m_Viewports.data(),
+			.scissorCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_Scissors.size()),
+			.pScissors = MainGraphicPipelineInfo.m_Scissors.data()
+		};
+
+		MainGraphicPipelineInfo.m_RasterizationStateInfo =
+		{
+			.depthClampEnable = vk::False,
+			.rasterizerDiscardEnable = vk::False,
+			.polygonMode = vk::PolygonMode::eFill,
+			.cullMode = vk::CullModeFlagBits::eNone,
+			.frontFace = vk::FrontFace::eClockwise,
+			.depthBiasEnable = vk::False,
+			.lineWidth = 1.f
+		};
+
+		// Turned Off
+		MainGraphicPipelineInfo.m_MultisampleStateInfo =
+		{
+			.rasterizationSamples = vk::SampleCountFlagBits::e1,
+			.sampleShadingEnable = vk::False
+		};
+
+		MainGraphicPipelineInfo.m_ColorBlendAttachmentState =
+		{
+			{
+				.blendEnable = vk::False,
+			}
+		};
+
+		MainGraphicPipelineInfo.m_ColorBlendStateInfo = 
+		{
+			.logicOpEnable = vk::False,
+			.attachmentCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_ColorBlendAttachmentState.size()),
+			.pAttachments = MainGraphicPipelineInfo.m_ColorBlendAttachmentState.data()
+		};
+
+		MainGraphicPipelineInfo.m_DepthStencilStateInfo = 
+		{
+			.depthTestEnable = vk::True,
+			.depthWriteEnable = vk::True,
+			.depthCompareOp = vk::CompareOp::eLess,
+			.depthBoundsTestEnable = vk::False,
+			.stencilTestEnable = vk::False
+		};
+
+		m_Renderer.createGraphicsPipeline("GraphicPipeline", { VertexShaderFile }, MainGraphicPipelineInfo);
 	}
 }
