@@ -40,19 +40,7 @@ else()
 endif()
 
 # libs
-if(APPLE)
-    find_package(Vulkan REQUIRED MoltenVK)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        ${Vulkan_MoltenVK_LIBRARY}
-    )
-else()
-    find_package(Vulkan REQUIRED)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        ${Vulkan_LIBRARIES}
-    )
-endif()
+find_package(Vulkan REQUIRED)
 
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
@@ -72,5 +60,6 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
     Util
+    ${Vulkan_LIBRARIES}
     ${GLFW_LIBRARY}
 )

@@ -43,7 +43,7 @@ namespace VT
 		const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha, 
 		const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform)
 	{
-		vk::PhysicalDevice PD = m_PhysicalDevice->cgetPhysicalDevice();
+		vk::PhysicalDevice PD = m_PhysicalDevice->getPhysicalDevice();
 
 		m_SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(m_Surface), PreferredFormats);
 		m_PresentMode = findPresentMode(PD.getSurfacePresentModesKHR(m_Surface), PreferredPresentations);
@@ -58,7 +58,7 @@ namespace VT
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
-	void SwapChain::bindDevice(const PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface)
+	void SwapChain::bindDevice(PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface)
 	{
 		m_Surface = Surface;
 		m_LogicalDevice = LD;

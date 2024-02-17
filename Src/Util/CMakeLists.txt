@@ -4,9 +4,9 @@ cmake_minimum_required (VERSION 3.8)
 project ("Util" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Utils")
 
 add_library(${PROJECT_NAME}
-"DXC_Compiler.cpp"
-"GLSL_Compiler.cpp"
-"ShaderCompiler.cpp"
+    "DXC_Compiler.cpp"
+    "GLSL_Compiler.cpp"
+    "ShaderCompiler.cpp"
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
@@ -42,20 +42,8 @@ endif()
 #           Find Libs
 # ========================
 
-if(APPLE)
-    find_package(Vulkan REQUIRED MoltenVK dxc shaderc_combined)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        ${Vulkan_MoltenVK_LIBRARY}
-    )
-else()
-    find_package(Vulkan REQUIRED dxc shaderc_combined)
-    target_link_libraries(${PROJECT_NAME}
-        PRIVATE
-        ${Vulkan_LIBRARIES}
-    )
-endif()
-
+# libs
+find_package(Vulkan REQUIRED dxc shaderc_combined)
 # GLFW
 find_package(glfw3 3.3 REQUIRED)
 
@@ -72,6 +60,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
     PRIVATE
+    ${Vulkan_LIBRARIES}
     ${Vulkan_shaderc_combined_LIBRARY}
     ${Vulkan_dxc_LIBRARY}
     ${GLFW_LIBARY}

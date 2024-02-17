@@ -13,8 +13,7 @@ namespace VT
 
 		vk::Device createLogicalDevice(const std::vector<const char*>& DeviceExtensionName = {});
 
-		vk::PhysicalDevice& getPhysicalDevice();
-		vk::PhysicalDevice cgetPhysicalDevice() const;
+		vk::PhysicalDevice getPhysicalDevice();
 
 		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 

@@ -1,10 +1,10 @@
 #pragma once
 
-
 #include "PhysicalDevice.h"
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
+#include <unordered_map>
 #include <GLFW/glfw3.h>
 
 namespace VT
@@ -14,13 +14,8 @@ namespace VT
 	public:
 		explicit Instance(const vk::ApplicationInfo& ApplicationInfo);
 
-		void initInstance(const vk::ApplicationInfo& ApplicationInfo);
+		void createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
 
-		void initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
-
-		vk::Device& getLogicalDevice();
-
-		Instance() = default;
 		~Instance();
 		Instance(Instance&) = delete;
 		Instance& operator=(Instance&) = delete;
@@ -32,7 +27,7 @@ namespace VT
 		vk::SurfaceKHR m_Surface;
 
 		PhysicalDevice m_PhysicalDevice{};
-		vk::Device m_LogicalDevice;
+		std::unordered_map<std::string, vk::Device> m_LogicalDevices;
 
 #ifndef NDEBUG
 		vk::DispatchLoaderDynamic m_DLD_Instance;

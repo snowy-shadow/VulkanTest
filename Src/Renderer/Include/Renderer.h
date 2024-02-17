@@ -21,7 +21,7 @@ namespace VT
 	public:
 		explicit Renderer(Instance& Instance, Window& Window);
 
-		void createSwapChain(const std::unordered_set<std::string_view>& SwapChainName);
+		void createSwapChain(const std::unordered_set<std::string>& SwapChainName);
 		void bindInstance(Instance& Instance);
 		void bindWindow(Window& Window);
 
@@ -29,22 +29,27 @@ namespace VT
 
 		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const GraphicPipelineConfig& PipelineInfo);
 
+		void selectLogicalDevice(std::string Name);
 		void update();
 
 		Renderer() = default;
 		~Renderer();
 		Renderer(const Renderer&) = delete;
 		Renderer& operator = (const Renderer&) = delete;
+
+
 	private:
-		Window* m_Window{nullptr};
+
 		ShaderCompiler m_ShaderCompiler;
 
-		std::list<SwapChain> m_SwapChain;
-		std::unordered_map<std::string_view, uint32_t> m_SwapChainReference;
+		std::unordered_map<std::string, SwapChain> m_SwapChains;
 
 		std::unordered_map<std::string, vk::Pipeline> m_Pipelines;
 
+		std::string m_CurrentLogicDevice;
 		// Instance handle
 		Instance* m_Instance{ nullptr };
+		// Window handle
+		Window* m_Window{ nullptr };
 	};
 }

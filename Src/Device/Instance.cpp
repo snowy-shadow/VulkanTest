@@ -1,18 +1,15 @@
 #include "Instance.h"
-#include "Instance.h"
-#include "Instance.h"
 
 #ifndef NDEBUG
 	#include "DebugMessenger.h"
 #endif
 
 #include <unordered_set>
+#include <ranges>
 
 namespace VT
 {
-	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo) { initInstance(ApplicationInfo); }
-
-	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)
+	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo)
 	{
 		// Layers
 		std::vector<const char*> Layers{};
@@ -57,7 +54,7 @@ namespace VT
 #endif
 	}
 
-	void Instance::initDevice(GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues)
+	void Instance::createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues)
 	{
 		if (static_cast<vk::Result>(glfwCreateWindowSurface(m_VulkanInstance, Window, nullptr, reinterpret_cast<VkSurfaceKHR*>(&m_Surface))) != vk::Result::eSuccess)
 		{
@@ -77,18 +74,14 @@ namespace VT
 		if (!m_PhysicalDevice.findPresentQueue(m_Surface, 1.f, 1)) { throw std::runtime_error("Did not find present queue"); }
 
 		// create device;
-		m_LogicalDevice = m_PhysicalDevice.createLogicalDevice(RequiredExtensions);
-	}
+		const auto [_, Result] = m_LogicalDevices.try_emplace(Name, m_PhysicalDevice.createLogicalDevice(RequiredExtensions));
 
-	vk::Device& Instance::getLogicalDevice()
-	{
-		assert(m_LogicalDevice);
-		return m_LogicalDevice;
+		if (!Result) { throw std::runtime_error("Logical Device name collision! Attempt to create logical device with name : " + std::move(Name)); }
 	}
 
 	Instance::~Instance()
 	{
-		m_LogicalDevice.destroy();
+		for(auto& D : m_LogicalDevices | std::views::values) { D.destroy(); }
 
 #ifndef NDEBUG
 		m_VulkanInstance.destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, m_DLD_Instance);

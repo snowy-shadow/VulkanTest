@@ -10,11 +10,11 @@ namespace VT
 	class SwapChain
 	{
 	public:
-		SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount);
+		explicit SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount);
 
 		void setImageCount(const uint32_t& Amount);
 
-		void bindDevice(const PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface);
+		void bindDevice(PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface);
 
 		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
 
@@ -54,8 +54,8 @@ namespace VT
 		vk::SwapchainKHR m_SwapChain;
 
 		// Instance
-		 vk::Device m_LogicalDevice{};
-		 const PhysicalDevice* m_PhysicalDevice{};
-		 vk::SurfaceKHR m_Surface{};
+		vk::Device m_LogicalDevice{};
+		PhysicalDevice* m_PhysicalDevice{nullptr};
+		vk::SurfaceKHR m_Surface{};
 	};
 }

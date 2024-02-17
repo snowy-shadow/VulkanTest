@@ -7,6 +7,7 @@ namespace  VT
 {
 	vk::Device PhysicalDevice::createLogicalDevice(const std::vector<const char*>& DeviceExtensionName)
 	{
+		if (!m_GraphicsQueue.has_value()) { throw std::runtime_error("GraphicsQueue has no value"); }
 		// graphics queue
 		m_DeviceQueues.push_back(m_GraphicsQueue.value());
 
@@ -21,12 +22,7 @@ namespace  VT
 		return m_PhysicalDevice.createDevice(DeviceInfo);
 	}
 
-	vk::PhysicalDevice& PhysicalDevice::getPhysicalDevice()
-	{
-		return m_PhysicalDevice;
-	}
-
-	vk::PhysicalDevice PhysicalDevice::cgetPhysicalDevice() const
+	vk::PhysicalDevice PhysicalDevice::getPhysicalDevice()
 	{
 		return m_PhysicalDevice;
 	}

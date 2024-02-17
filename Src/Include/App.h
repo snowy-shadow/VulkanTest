@@ -16,10 +16,12 @@ namespace VT
 
 		void createMainGraphicPipeline();
 
-		// Renderer depends on Instance, Renderer must be destroyed first
-		Instance m_VulkanInstance;
-		Renderer m_Renderer;
-
 		Window m_Window{ {1280, 720}, "VulkanTest" };
+		// Renderer depends on Instance, Renderer must be destroyed first
+
+		Instance m_VulkanInstance{ {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) } };
+		Renderer m_Renderer;
+	
+
 	};
 }
