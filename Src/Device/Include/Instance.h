@@ -5,6 +5,7 @@
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
 #include <unordered_map>
+#include <tuple>
 #include <GLFW/glfw3.h>
 
 namespace VT
@@ -13,9 +14,13 @@ namespace VT
 	{
 	public:
 		explicit Instance(const vk::ApplicationInfo& ApplicationInfo);
+		void initInstance(const vk::ApplicationInfo& ApplicationInfo);
 
 		void createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
 
+		std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> getDeviceReferences();
+
+		Instance() = default;
 		~Instance();
 		Instance(Instance&) = delete;
 		Instance& operator=(Instance&) = delete;
@@ -33,7 +38,5 @@ namespace VT
 		vk::DispatchLoaderDynamic m_DLD_Instance;
 		vk::DebugUtilsMessengerEXT m_DebugMessenger;
 #endif
-
-		friend class Renderer;
 	};
 }

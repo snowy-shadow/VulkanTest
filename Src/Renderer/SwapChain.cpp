@@ -58,11 +58,11 @@ namespace VT
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
 
-	void SwapChain::bindDevice(PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface)
+	void SwapChain::bindDevice(PhysicalDevice const* PD, vk::Device LD, vk::SurfaceKHR Surface)
 	{
 		m_Surface = Surface;
 		m_LogicalDevice = LD;
-		m_PhysicalDevice = &PD;
+		m_PhysicalDevice = PD;
 	}
 
 	std::vector<vk::Image> SwapChain::getSwapChainImages()

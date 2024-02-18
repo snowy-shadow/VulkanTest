@@ -13,7 +13,7 @@ namespace VT
 
 		vk::Device createLogicalDevice(const std::vector<const char*>& DeviceExtensionName = {});
 
-		vk::PhysicalDevice getPhysicalDevice();
+		vk::PhysicalDevice getPhysicalDevice() const;
 
 		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 
@@ -37,11 +37,12 @@ namespace VT
 	private:
 		static bool extensionSupport(const vk::PhysicalDevice& PhysicalDevice, const std::vector<const char*>& RequiredExtensions);
 
+		uint32_t m_PresentQueue{};
 		bool m_GraphicsCanPresent = false;
 
 		vk::PhysicalDevice m_PhysicalDevice;
 		std::vector<vk::DeviceQueueCreateInfo> m_DeviceQueues;
 		std::optional<vk::DeviceQueueCreateInfo> m_GraphicsQueue;
-		uint32_t m_PresentQueue;
+
 	};
 }

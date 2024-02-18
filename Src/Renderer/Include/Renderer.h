@@ -19,10 +19,9 @@ namespace VT
 	class Renderer
 	{
 	public:
-		explicit Renderer(Instance& Instance, Window& Window);
-
 		void createSwapChain(const std::unordered_set<std::string>& SwapChainName);
-		void bindInstance(Instance& Instance);
+
+		void bindDevices(std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> Devices);
 		void bindWindow(Window& Window);
 
 //		void addShaderStage(const std::vector<DXC_ShaderFileInfo>&);
@@ -37,18 +36,19 @@ namespace VT
 		Renderer(const Renderer&) = delete;
 		Renderer& operator = (const Renderer&) = delete;
 
-
+		std::string m_CurrentLogicDevice;
 	private:
-
 		ShaderCompiler m_ShaderCompiler;
 
 		std::unordered_map<std::string, SwapChain> m_SwapChains;
 
 		std::unordered_map<std::string, vk::Pipeline> m_Pipelines;
 
-		std::string m_CurrentLogicDevice;
-		// Instance handle
-		Instance* m_Instance{ nullptr };
+		// Device handles
+		std::unordered_map<std::string, vk::Device> const* m_LogicalDevices {nullptr};
+		PhysicalDevice const* m_PhysicalDevice {nullptr};
+		vk::SurfaceKHR m_Surface;
+
 		// Window handle
 		Window* m_Window{ nullptr };
 	};

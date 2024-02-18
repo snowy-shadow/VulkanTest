@@ -9,8 +9,12 @@
 
 namespace VT
 {
-	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo)
+	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo) { initInstance(ApplicationInfo); }
+
+	void Instance::initInstance(const vk::ApplicationInfo& ApplicationInfo)
 	{
+		// check that glfwinit() is called
+		// assert();
 		// Layers
 		std::vector<const char*> Layers{};
 
@@ -25,16 +29,19 @@ namespace VT
 #endif
 
 #ifdef __APPLE__
-        Extentions.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
+		Extentions.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
 #endif
 
-		if (!isSupported(Extentions, Layers)) throw std::runtime_error("Instance does not support required extensions and layers");
+		if (!isSupported(Extentions, Layers))
+		{
+			throw std::runtime_error("Instance does not support required extensions and layers");
+		}
 
 		// Instance info
-		vk::InstanceCreateInfo InstanceCreateInfo
+		const vk::InstanceCreateInfo InstanceCreateInfo
 		{
 #ifdef __APPLE__
-            .flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
+			.flags = vk::InstanceCreateFlagBits::eEnumeratePortabilityKHR,
 #endif
 			.pApplicationInfo = &ApplicationInfo,
 			.enabledLayerCount = static_cast<uint32_t>(Layers.size()),
@@ -79,14 +86,19 @@ namespace VT
 		if (!Result) { throw std::runtime_error("Logical Device name collision! Attempt to create logical device with name : " + std::move(Name)); }
 	}
 
+	std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> Instance::getDeviceReferences()
+	{
+		return std::tuple{ &m_LogicalDevices, &m_PhysicalDevice, m_Surface };
+	}
+
 	Instance::~Instance()
 	{
-		for(auto& D : m_LogicalDevices | std::views::values) { D.destroy(); }
+		for (auto& D : m_LogicalDevices | std::views::values) { D.destroy(); }
 
 #ifndef NDEBUG
 		m_VulkanInstance.destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, m_DLD_Instance);
 #endif
-		
+
 		m_VulkanInstance.destroySurfaceKHR(m_Surface);
 		m_VulkanInstance.destroy();
 	}

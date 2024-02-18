@@ -5,9 +5,10 @@ namespace VT
 {
 	App::App()
 	{
+		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) });
 		m_VulkanInstance.createDevice("Main", m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
 
-		m_Renderer.bindInstance(m_VulkanInstance);
+		m_Renderer.bindDevices(m_VulkanInstance.getDeviceReferences());
 		m_Renderer.bindWindow(m_Window);
 		m_Renderer.selectLogicalDevice("Main");
 		m_Renderer.createSwapChain({"Main"});

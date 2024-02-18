@@ -1,17 +1,10 @@
 #include "Renderer.h"
-#include "Renderer.h"
 
 #include <iostream>
 #include <ranges>
 
 namespace VT
 {
-	Renderer::Renderer(Instance& Instance, Window& Window)
-	{
-		bindInstance(Instance);
-		bindWindow(Window);
-	}
-
 	void Renderer::createSwapChain(const std::unordered_set<std::string>& SwapChainNames)
 	{
 		int Width, Height;
@@ -24,7 +17,7 @@ namespace VT
 
 			if (!Result) { throw std::runtime_error("Swapchain Name conflict! Attempt to create swapchain with name " + Name); }
 
-			SC->second.bindDevice(m_Instance->m_PhysicalDevice, m_Instance->m_LogicalDevices[m_CurrentLogicDevice], m_Instance->m_Surface);
+			SC->second.bindDevice(m_PhysicalDevice, m_LogicalDevices->at(m_CurrentLogicDevice), m_Surface);
 			SC->second.setProperties
 			(
 				{ {vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
@@ -36,17 +29,25 @@ namespace VT
 		}
 	}
 
-	void Renderer::bindInstance(Instance& Instance){ m_Instance = &Instance; }
+	void Renderer::bindDevices(std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> Devices)
+	{
+		std::tie(m_LogicalDevices, m_PhysicalDevice, m_Surface) = Devices;
+	}
 
 	void Renderer::bindWindow(Window& Window) { m_Window = &Window; }
 
 	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const GraphicPipelineConfig& PipelineInfo)
     {
+		assert(!m_Pipelines.contains(Name));
+
 		// compile shaders
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
 
 		// Graphics pipline struct
 		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
+
+		// Current Logical Device
+		const vk::Device LogicalDevice = m_LogicalDevices->find(m_CurrentLogicDevice)->second;
 
 		// load all shader spv
 		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
@@ -54,7 +55,7 @@ namespace VT
 			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,
-				.module = m_Instance->m_LogicalDevices[m_CurrentLogicDevice].createShaderModule
+				.module = LogicalDevice.createShaderModule
 				(
 					{
 						.codeSize = ShaderSpvs[i].size(),
@@ -66,7 +67,7 @@ namespace VT
 			});
 		}
 
-		auto [Result, Pipeline] = m_Instance->m_LogicalDevices[m_CurrentLogicDevice].createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineCreateInfo(ShaderStageInfos));
+		auto [Result, Pipeline] = LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineCreateInfo(ShaderStageInfos));
 
 		if (Result != vk::Result::eSuccess) { throw std::runtime_error("Failed to create Graphics Pipeline : " + Name); }
 
@@ -76,14 +77,13 @@ namespace VT
 		for(auto& SM : ShaderStageInfos)
 		{
 			std::cout << "deleting : " << SM.module << "\n";
-			m_Instance->m_LogicalDevices[m_CurrentLogicDevice].destroyShaderModule(SM.module);
+			LogicalDevice.destroyShaderModule(SM.module);
 		}
     }
 
 	void Renderer::selectLogicalDevice(std::string Name)
 	{
-		assert(m_Instance);
-		if (!m_Instance->m_LogicalDevices.contains(Name)) { throw std::runtime_error("Logical Device : " + std::move(Name) + " does not exist"); }
+		if (!m_LogicalDevices->contains(Name)) { throw std::runtime_error("Logical Device : " + std::move(Name) + " does not exist"); }
 		m_CurrentLogicDevice = std::move(Name);
 	}
 
@@ -95,7 +95,7 @@ namespace VT
 	{
 		// ORDER MATTERS
 		// Pipeline
-		for (auto& P : m_Pipelines) { m_Instance->m_LogicalDevices[m_CurrentLogicDevice].destroyPipeline(P.second); }
+		for (auto& P : m_Pipelines) { m_LogicalDevices->find(m_CurrentLogicDevice)->second.destroyPipeline(P.second); }
 
 		// Swapchain
 		for (auto& SC : m_SwapChains | std::views::values) { SC.destroySwapChain(); }

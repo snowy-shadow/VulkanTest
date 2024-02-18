@@ -14,7 +14,7 @@ namespace VT
 
 		void setImageCount(const uint32_t& Amount);
 
-		void bindDevice(PhysicalDevice& PD, vk::Device LD, vk::SurfaceKHR Surface);
+		void bindDevice(PhysicalDevice const* PD, vk::Device LD, vk::SurfaceKHR Surface);
 
 		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
 
@@ -55,7 +55,7 @@ namespace VT
 
 		// Instance
 		vk::Device m_LogicalDevice{};
-		PhysicalDevice* m_PhysicalDevice{nullptr};
+		PhysicalDevice const* m_PhysicalDevice;
 		vk::SurfaceKHR m_Surface{};
 	};
 }

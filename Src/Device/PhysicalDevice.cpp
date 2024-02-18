@@ -22,7 +22,7 @@ namespace  VT
 		return m_PhysicalDevice.createDevice(DeviceInfo);
 	}
 
-	vk::PhysicalDevice PhysicalDevice::getPhysicalDevice()
+	vk::PhysicalDevice PhysicalDevice::getPhysicalDevice() const
 	{
 		return m_PhysicalDevice;
 	}
