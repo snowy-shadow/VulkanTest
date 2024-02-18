@@ -7,12 +7,12 @@
 */
 
 #include "Window.h"
-#include "Instance.h"
+#include "PhysicalDevice.h"
 #include "GraphicPipelineConfig.h"
 #include "ShaderCompiler.h"
 
-#include <list>
 #include <unordered_set>
+#include <unordered_map>
 
 namespace VT
 {
@@ -36,7 +36,7 @@ namespace VT
 		Renderer(const Renderer&) = delete;
 		Renderer& operator = (const Renderer&) = delete;
 
-		std::string m_CurrentLogicDevice;
+	
 	private:
 		ShaderCompiler m_ShaderCompiler;
 
@@ -46,6 +46,8 @@ namespace VT
 
 		// Device handles
 		std::unordered_map<std::string, vk::Device> const* m_LogicalDevices {nullptr};
+		std::unordered_map<std::string, vk::Device>::const_iterator m_CurrentLogicDevice{};
+
 		PhysicalDevice const* m_PhysicalDevice {nullptr};
 		vk::SurfaceKHR m_Surface;
 

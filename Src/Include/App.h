@@ -13,12 +13,10 @@ namespace VT
 		void run();
 
 	private:
-
 		void createMainGraphicPipeline();
-
-		Window m_Window{ {1280, 720}, "VulkanTest" };
 
 		Instance m_VulkanInstance;
 		Renderer m_Renderer;
+		Window m_Window{ {1280, 720}, "VulkanTest" };
 	};
 }

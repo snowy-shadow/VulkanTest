@@ -17,7 +17,7 @@ namespace VT
 
 			if (!Result) { throw std::runtime_error("Swapchain Name conflict! Attempt to create swapchain with name " + Name); }
 
-			SC->second.bindDevice(m_PhysicalDevice, m_LogicalDevices->at(m_CurrentLogicDevice), m_Surface);
+			SC->second.bindDevice(m_PhysicalDevice, m_CurrentLogicDevice->second, m_Surface);
 			SC->second.setProperties
 			(
 				{ {vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
@@ -47,7 +47,7 @@ namespace VT
 		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
 
 		// Current Logical Device
-		const vk::Device LogicalDevice = m_LogicalDevices->find(m_CurrentLogicDevice)->second;
+		const vk::Device LogicalDevice = m_CurrentLogicDevice->second;
 
 		// load all shader spv
 		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
@@ -83,8 +83,9 @@ namespace VT
 
 	void Renderer::selectLogicalDevice(std::string Name)
 	{
-		if (!m_LogicalDevices->contains(Name)) { throw std::runtime_error("Logical Device : " + std::move(Name) + " does not exist"); }
-		m_CurrentLogicDevice = std::move(Name);
+		auto Iter = m_LogicalDevices->find(Name);
+		if(Iter == m_LogicalDevices->end()) { throw std::runtime_error("Logical Device : " + std::move(Name) + " does not exist"); }
+		m_CurrentLogicDevice = Iter;
 	}
 
 	void Renderer::update()
@@ -95,7 +96,7 @@ namespace VT
 	{
 		// ORDER MATTERS
 		// Pipeline
-		for (auto& P : m_Pipelines) { m_LogicalDevices->find(m_CurrentLogicDevice)->second.destroyPipeline(P.second); }
+		for (auto& P : m_Pipelines) { m_CurrentLogicDevice->second.destroyPipeline(P.second); }
 
 		// Swapchain
 		for (auto& SC : m_SwapChains | std::views::values) { SC.destroySwapChain(); }
