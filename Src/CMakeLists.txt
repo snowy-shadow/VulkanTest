@@ -8,8 +8,11 @@ add_executable (${PROJECT_NAME}
 )
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET ${PROJECT_NAME} 
-  PROPERTY CXX_STANDARD 20)
+  set_target_properties(${PROJECT_NAME} 
+	  PROPERTIES 
+	  CXX_STANDARD 20
+	  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
+  )
 endif()
 
 if (MSVC)
