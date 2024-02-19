@@ -20,7 +20,7 @@ namespace VT
 			SC->second.bindDevice(m_PhysicalDevice, m_CurrentLogicDevice->second, m_Surface);
 			SC->second.setProperties
 			(
-				{ {vk::Format::eR8G8B8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
+				{ {vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
 				{ vk::PresentModeKHR::eFifo },
 				{ vk::CompositeAlphaFlagBitsKHR::eOpaque },
 				{ vk::SurfaceTransformFlagBitsKHR::eIdentity }

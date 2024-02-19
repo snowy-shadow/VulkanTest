@@ -6,7 +6,7 @@
 
 #include <unordered_set>
 #include <ranges>
-
+#include <iostream>
 namespace VT
 {
 	Instance::Instance(const vk::ApplicationInfo& ApplicationInfo) { initInstance(ApplicationInfo); }
@@ -29,7 +29,7 @@ namespace VT
 #endif
 
 #ifdef __APPLE__
-		Extentions.emplace_back("VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME");
+		Extentions.emplace_back("VK_KHR_portability_enumeration");
 #endif
 
 		if (!isSupported(Extentions, Layers))
@@ -80,8 +80,10 @@ namespace VT
 		// find present queue
 		if (!m_PhysicalDevice.findPresentQueue(m_Surface, 1.f, 1)) { throw std::runtime_error("Did not find present queue"); }
 
+        auto Extensions = RequiredExtensions;
+        if(m_PhysicalDevice.support_PortabilitySubset()) { Extensions.emplace_back("VK_KHR_portability_subset"); }
 		// create device;
-		const auto [_, Result] = m_LogicalDevices.try_emplace(Name, m_PhysicalDevice.createLogicalDevice(RequiredExtensions));
+		const auto [_, Result] = m_LogicalDevices.try_emplace(Name, m_PhysicalDevice.createLogicalDevice(Extensions));
 
 		if (!Result) { throw std::runtime_error("Logical Device name collision! Attempt to create logical device with name : " + std::move(Name)); }
 	}
@@ -114,7 +116,7 @@ namespace VT
 			ExtensionSupported.insert(Ext.extensionName);
 		}
 
-		// layerD
+		// layer
 		auto InstanceLayerProperties{ vk::enumerateInstanceLayerProperties() };
 		std::unordered_set<std::string>  LayerSupported;
 		for (const auto& Layer : InstanceLayerProperties)

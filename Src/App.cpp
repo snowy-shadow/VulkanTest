@@ -33,7 +33,7 @@ namespace VT
 	void App::createMainGraphicPipeline()
 	{
 		File::DXC_ShaderFileInfo VertexShaderFile{};
-		VertexShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
+		VertexShaderFile.FileLocation = "/Users/kuang/Developer/Projects/VulkanTest/Src/Shader";
 		VertexShaderFile.FileName = "Vertex.hlsl";
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
 		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_1" };

@@ -17,8 +17,17 @@ namespace VT
 
 		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 
-		bool findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& DeviceRequiredExtensions = {});
 
+		bool findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& DeviceRequiredExtensions);
+
+        /*
+          * Determines if extra device extensions will be required
+          * DeviceRequiredExtensions will be modified if VK_KHR_portability_subset is supported
+          *   The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of vkEnumerateDeviceExtensionProperties,
+          *   ppEnabledExtensionNames must include "VK_KHR_portability_subset"
+          *   (https://vulkan.lunarg.com/doc/view/1.3.275.0/mac/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
+        */
+        bool support_PortabilitySubset() const;
 		bool findPresentQueue(const vk::SurfaceKHR& Surface, const float& PresentQPriority, const uint32_t& MinPresentQCount);
 
 		bool findGraphicsQueueWithPresent(

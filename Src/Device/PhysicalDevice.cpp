@@ -85,6 +85,17 @@ namespace  VT
 		return false;
 	}
 
+    bool PhysicalDevice::support_PortabilitySubset() const
+    {
+        assert(m_PhysicalDevice);
+        auto Extensions { m_PhysicalDevice.enumerateDeviceLayerProperties() };
+        for(auto Iter{Extensions.cbegin()}; Iter != Extensions.cend(); std::next(Iter) )
+        {
+            if(strcmp(Iter->layerName, "VK_KHR_portability_subset") != 0){ return true; }
+        }
+
+        return false;
+    }
 
 	bool PhysicalDevice::findPresentQueue(const vk::SurfaceKHR& Surface, const float& PresentQPriority, const uint32_t& MinPresentQCount)
 	{
@@ -178,7 +189,6 @@ namespace  VT
 				return false;
 			}
 		}
-
-		return true;
+        return true;
 	}
 }

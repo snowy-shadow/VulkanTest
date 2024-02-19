@@ -1,6 +1,7 @@
 #include "SwapChain.h"
 
 #include <unordered_set>
+#include <algorithm>
 
 namespace VT
 {
@@ -22,6 +23,8 @@ namespace VT
 			.imageColorSpace = m_SurfaceFormat.colorSpace,
 			.imageExtent = m_SurfaceCapabilities.currentExtent,
 			.imageArrayLayers = m_ArrayLayers,
+            // TODO put all settings in a struct, expose to user, no need for this class probably
+            .imageUsage = vk::ImageUsageFlagBits::eColorAttachment,
 			.imageSharingMode = m_SharingMode,
 			.presentMode = m_PresentMode,
 			.oldSwapchain = Old
@@ -53,7 +56,6 @@ namespace VT
 		// defined minImageCount == maxImageCount in m_SurfaceCapabilities
 		m_ImageCount = m_SurfaceCapabilities.minImageCount;
 		m_ArrayLayers = m_SurfaceCapabilities.maxImageArrayLayers;
-
 	}
 
 	void SwapChain::setImageCount(const uint32_t& Amount) { m_ImageCount = Amount; }
