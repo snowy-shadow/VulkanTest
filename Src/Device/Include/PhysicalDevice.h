@@ -27,7 +27,7 @@ namespace VT
           *   ppEnabledExtensionNames must include "VK_KHR_portability_subset"
           *   (https://vulkan.lunarg.com/doc/view/1.3.275.0/mac/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
         */
-        bool support_PortabilitySubset() const;
+        bool supportsPortabilitySubset() const;
 		bool findPresentQueue(const vk::SurfaceKHR& Surface, const float& PresentQPriority, const uint32_t& MinPresentQCount);
 
 		bool findGraphicsQueueWithPresent(
@@ -37,7 +37,9 @@ namespace VT
 
 		std::array<uint32_t, 2> getGraphicsPresentQueueIndices() const;
 
-		bool GraphicsCanPresent() const;
+		bool graphicsQueueCanPresent() const;
+		
+		
 
 		PhysicalDevice() = default;
 		PhysicalDevice(PhysicalDevice&) = delete;

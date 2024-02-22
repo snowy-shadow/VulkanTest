@@ -85,7 +85,7 @@ namespace  VT
 		return false;
 	}
 
-    bool PhysicalDevice::support_PortabilitySubset() const
+    bool PhysicalDevice::supportsPortabilitySubset() const
     {
         assert(m_PhysicalDevice);
         auto Extensions { m_PhysicalDevice.enumerateDeviceLayerProperties() };
@@ -160,7 +160,7 @@ namespace  VT
 		return { { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue } };
 	}
 
-	bool PhysicalDevice::GraphicsCanPresent() const
+	bool PhysicalDevice::graphicsQueueCanPresent() const
 	{
 		return m_GraphicsCanPresent;
 	}

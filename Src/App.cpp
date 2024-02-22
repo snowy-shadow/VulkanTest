@@ -1,19 +1,24 @@
 #include "App.h"
+#include <vulkan/vulkan_structs.hpp>
 
 
 namespace VT
 {
 	App::App()
 	{
-		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) });
-		m_VulkanInstance.createDevice("Main", m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
+		uint32_t glfwExtensionCount;
+		const char** GLFW_Extensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		std::vector<const char*> Required_GLFW_Extensions { GLFW_Extensions, GLFW_Extensions + glfwExtensionCount };
+		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) }, Required_GLFW_Extensions);
+		m_VulkanInstance.createDevice({"Main Physical", "Main Logic"} ,m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
 
-		m_Renderer.bindDevices(m_VulkanInstance.getDeviceReferences());
+		auto Devices = m_VulkanInstance.getDeviceReferences({"Main Physical", "Main Logic"});
+		std::tie(m_LogicDevice, m_PhysicalDevice, std::ignore) = Devices;
+	
+		m_Renderer.bindDevices(std::move(Devices));
 		m_Renderer.bindWindow(m_Window);
-		m_Renderer.selectLogicalDevice("Main");
-		m_Renderer.createSwapChain({"Main"});
 
-		createMainGraphicPipeline();
+		// createMainGraphicPipeline();
 	}
 
 	void VT::App::run()
@@ -30,21 +35,63 @@ namespace VT
 	 * ==================================================
 	 */
 
+	void App::createMainSwapchain()
+	{
+	
+		int Width, Height;
+		glfwGetWindowSize(m_Window.m_Window, &Width, &Height);
+
+	
+		Swapchain MainSwapchain{};
+		Swapchain::SurfaceCapabilities SC =
+		{
+			.minImageCount = 2,
+			.imageExtent = {Width, Height},
+			.arrayLayers = 0,
+			.surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
+			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque},
+			.imageUsage = {vk::ImageUsageFlagBits::eColorAttachment}
+		};
+
+		SC = MainSwapchain.findSurfaceCapabilities(SC);
+		auto SurfaceFormat = MainSwapchain.findSurfaceFormat({{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}});
+	
+		MainSwapchain.m_SwapchainInfo = vk::SwapchainCreateInfoKHR
+		{
+			.minImageCount = SC.minImageCount,
+			.imageFormat = SurfaceFormat.format,
+			.imageColorSpace = SurfaceFormat.colorSpace,
+			.imageExtent = 	SC.imageExtent,
+			.imageArrayLayers = SC.arrayLayers,
+			.imageUsage = SC.imageUsage[0],
+			.preTransform = SC.surfaceTransform[0],
+			.compositeAlpha = SC.compositeAlpha[0],
+			.presentMode = MainSwapchain.findPresentMode({vk::PresentModeKHR::eFifo}),
+		};
+	
+		if(m_PhysicalDevice->graphicsQueueCanPresent())
+		{
+			MainSwapchain.m_SwapchainInfo.imageSharingMode = vk::SharingMode::eConcurrent;
+			MainSwapchain.m_SwapchainInfo.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());
+			MainSwapchain.m_SwapchainInfo.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
+		}
+	
+		m_Renderer.createSwapChain("Main", MainSwapchain);
+	}
+
 	void App::createMainGraphicPipeline()
 	{
 		File::DXC_ShaderFileInfo VertexShaderFile{};
 		VertexShaderFile.FileLocation = "/Users/kuang/Developer/Projects/VulkanTest/Src/Shader";
 		VertexShaderFile.FileName = "Vertex.hlsl";
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
-		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_1" };
+		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_3" };
 
 		/*File::DXC_ShaderFileInfo FragmentShaderFile{};
 		FragmentShaderFile.FileLocation = "S:/Dev/Projects/VulkanTest/Src/Shader";
 		FragmentShaderFile.FileName = "Fragment.hlsl";
 		FragmentShaderFile.Stage = vk::ShaderStageFlagBits::eFragment;
 		FragmentShaderFile.CL_Args = {L"-E main", L"-T ps_6_1", L"-spirv" };*/
-
-		GraphicPipelineConfig MainGraphicPipelineInfo;
 
 		std::vector<vk::VertexInputBindingDescription> VertexInputBindings
 		{
@@ -83,7 +130,8 @@ namespace VT
 			}
 		};
 
-		MainGraphicPipelineInfo.m_VertexInputStateInfo =
+
+		vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo
 		{
 			.vertexBindingDescriptionCount = static_cast<uint32_t>(VertexInputBindings.size()),
 			.pVertexBindingDescriptions = VertexInputBindings.data(),
@@ -91,15 +139,17 @@ namespace VT
 			.pVertexAttributeDescriptions = VertexAttributes.data()
 		};
 
-		MainGraphicPipelineInfo.m_InputAssemblyInfo =
+		vk::PipelineInputAssemblyStateCreateInfo InputAssemblyInfo
 		{
 			.topology = vk::PrimitiveTopology::eTriangleList,
 			.primitiveRestartEnable = vk::False,
 		};
+	
+		vk::PipelineTessellationStateCreateInfo TessellationStateInfo{};
 
 		int WindowWidth, WindowHeight;
 		glfwGetFramebufferSize(m_Window.m_Window, &WindowWidth, &WindowHeight);
-		MainGraphicPipelineInfo.m_Viewports =
+		std::vector<vk::Viewport> Viewports
 		{
 			{
 				.x = 0.f,
@@ -111,32 +161,32 @@ namespace VT
 			}
 		};
 
-		MainGraphicPipelineInfo.m_Scissors =
+		std::vector<vk::Rect2D> Scissors
 		{
 			{
 				.offset =
 				{
-					.x = 0,
-					.y = 0
+					.x = Viewports[0].x,
+					.y = Viewports[0].y
 				},
 
 				.extent =
 				{
-					.width = static_cast<uint32_t>(WindowWidth),
-					.height = static_cast<uint32_t>(WindowHeight)
+					.width = static_cast<uint32_t>(Viewports[0].width),
+					.height = static_cast<uint32_t>(Viewports[0].height)
 				}
 			}
 		};
 
-		MainGraphicPipelineInfo.m_ViewportStateInfo =
+		vk::PipelineViewportStateCreateInfo ViewportStateInfo
 		{
-			.viewportCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_Viewports.size()),
-			.pViewports = MainGraphicPipelineInfo.m_Viewports.data(),
-			.scissorCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_Scissors.size()),
-			.pScissors = MainGraphicPipelineInfo.m_Scissors.data()
+			.viewportCount = static_cast<uint32_t>(Viewports.size()),
+			.pViewports = Viewports.data(),
+			.scissorCount = static_cast<uint32_t>(Scissors.size()),
+			.pScissors = Scissors.data()
 		};
 
-		MainGraphicPipelineInfo.m_RasterizationStateInfo =
+		vk::PipelineRasterizationStateCreateInfo RasterizationStateInfo
 		{
 			.depthClampEnable = vk::False,
 			.rasterizerDiscardEnable = vk::False,
@@ -148,27 +198,27 @@ namespace VT
 		};
 
 		// Turned Off
-		MainGraphicPipelineInfo.m_MultisampleStateInfo =
+		vk::PipelineMultisampleStateCreateInfo MultisampleStateInfo
 		{
 			.rasterizationSamples = vk::SampleCountFlagBits::e1,
 			.sampleShadingEnable = vk::False
 		};
 
-		MainGraphicPipelineInfo.m_ColorBlendAttachmentState =
+		std::vector<vk::PipelineColorBlendAttachmentState> ColorBlendAttachmentState
 		{
 			{
 				.blendEnable = vk::False,
 			}
 		};
 
-		MainGraphicPipelineInfo.m_ColorBlendStateInfo = 
+		vk::PipelineColorBlendStateCreateInfo ColorBlendStateInfo
 		{
 			.logicOpEnable = vk::False,
-			.attachmentCount = static_cast<uint32_t>(MainGraphicPipelineInfo.m_ColorBlendAttachmentState.size()),
-			.pAttachments = MainGraphicPipelineInfo.m_ColorBlendAttachmentState.data()
+			.attachmentCount = static_cast<uint32_t>(ColorBlendAttachmentState.size()),
+			.pAttachments = ColorBlendAttachmentState.data()
 		};
 
-		MainGraphicPipelineInfo.m_DepthStencilStateInfo = 
+		vk::PipelineDepthStencilStateCreateInfo DepthStencilStateInfo
 		{
 			.depthTestEnable = vk::True,
 			.depthWriteEnable = vk::True,
@@ -177,6 +227,49 @@ namespace VT
 			.stencilTestEnable = vk::False
 		};
 
-		m_Renderer.createGraphicsPipeline("GraphicPipeline", { VertexShaderFile }, MainGraphicPipelineInfo);
+		vk::PipelineLayout PipelineLayout{};
+
+		std::vector<vk::SubpassDescription> Subpasses
+		{
+			{
+				
+			},
+		};
+
+		std::vector<vk::SubpassDependency> SubpassDependencies
+		{};
+		
+		std::vector<vk::AttachmentDescription> Attachements
+		{
+			
+		};
+	
+		vk::RenderPassCreateInfo RenderPassInfo
+		{
+			.attachmentCount = static_cast<uint32_t>(Attachements.size()),
+			.pAttachments = Attachements.data(),
+			.subpassCount = static_cast<uint32_t>(Subpasses.size()),
+			.pSubpasses = Subpasses.data(),
+			.dependencyCount = static_cast<uint32_t>(SubpassDependencies.size()),
+			.pDependencies = SubpassDependencies.data()
+		};
+
+		vk::RenderPass RenderPass = m_LogicDevice.createRenderPass(RenderPassInfo);
+		
+		vk::GraphicsPipelineCreateInfo MainGraphicPipelineInfo
+		{
+			.pVertexInputState = &VertexInputStateInfo,
+			.pInputAssemblyState = &InputAssemblyInfo,
+			.pTessellationState = &TessellationStateInfo,
+			.pViewportState = &ViewportStateInfo,
+			.pRasterizationState = &RasterizationStateInfo,
+			.pMultisampleState = &MultisampleStateInfo,
+			.pDepthStencilState = &DepthStencilStateInfo,
+			.pColorBlendState = &ColorBlendStateInfo,
+			.layout = PipelineLayout,
+			.renderPass = RenderPass
+		};
+
+		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, MainGraphicPipelineInfo);
 	}
 }

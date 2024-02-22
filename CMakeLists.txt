@@ -19,6 +19,8 @@ elseif(WIN32)
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+# clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Include sub-projects.
 add_subdirectory (Src)

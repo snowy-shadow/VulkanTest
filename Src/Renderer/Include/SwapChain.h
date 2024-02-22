@@ -1,61 +1,53 @@
 #pragma once
 
-#include "Instance.h"
+#include "PhysicalDevice.h"
 
 // must be included before all Windows API stuff
 #include <vulkan/vulkan_hash.hpp>
+#include <vulkan/vulkan_structs.hpp>
 
 namespace VT
 {
-	class SwapChain
+	class Swapchain
 	{
 	public:
-		explicit SwapChain(const std::array<uint32_t, 2>& WidthHeight, const uint32_t& ImageAmount);
+		struct SurfaceCapabilities
+		{
+			uint32_t minImageCount;
+			vk::Extent2D imageExtent;
+			uint32_t arrayLayers;
+			std::vector<vk::SurfaceTransformFlagBitsKHR> surfaceTransform;
+			std::vector<vk::CompositeAlphaFlagBitsKHR> compositeAlpha;
+			std::vector<vk::ImageUsageFlagBits> imageUsage;
+		};
+	
+		// bind devices before creation
+		void bindDevices(PhysicalDevice const* PD, vk::Device LD, vk::SurfaceKHR Surface);
+	
+		// fill this out
+		vk::SwapchainCreateInfoKHR m_SwapchainInfo{};
 
-		void setImageCount(const uint32_t& Amount);
-
-		void bindDevice(PhysicalDevice const* PD, vk::Device LD, vk::SurfaceKHR Surface);
-
-		void createSwapChain(const vk::SwapchainKHR& Old = nullptr);
-
-		void setProperties
-		(
-			const std::vector<vk::SurfaceFormatKHR>& PreferredFormats,
-			const std::vector<vk::PresentModeKHR>& PreferredPresentations,
-			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
-			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform
-		);
-
-		std::vector<vk::Image> getSwapChainImages();
+		void createSwapChain();
 		void destroySwapChain();
 
-		SwapChain(const SwapChain&) = delete;
-		SwapChain& operator = (const SwapChain&) = delete;
+		bool deviceGraphicsQueueCanPresent() const noexcept;
+		vk::SwapchainKHR getSwapchain() noexcept;
+		/*
+		 * Finds and returns the first supported format
+		 * throws runtime error if none found
+		*/
+		vk::SurfaceFormatKHR findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& PreferredSurfaceFormat) const;
+		vk::PresentModeKHR findPresentMode(const std::vector<vk::PresentModeKHR>& PreferredPresentModes) const;
+	
+		VT::Swapchain::SurfaceCapabilities findSurfaceCapabilities(SurfaceCapabilities SC) const;
 
 	private:
-		vk::SurfaceFormatKHR findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& SurfaceFormat) const;
-		vk::PresentModeKHR findPresentMode(const std::vector<vk::PresentModeKHR>& SupportedPresentation, const std::vector<vk::PresentModeKHR>& PresentModes) const;
-
-		vk::SurfaceCapabilitiesKHR findSurfaceCapabilities(const vk::SurfaceCapabilitiesKHR& SurfaceCapabilities,
-			const std::vector<vk::CompositeAlphaFlagBitsKHR>& PreferredCompositeAlpha,
-			const std::vector<vk::SurfaceTransformFlagBitsKHR>& PreferredSurfaceTransform) const;
-
-		// Configs
-		uint32_t m_ImageCount;
-		uint32_t m_ArrayLayers;
-		std::array<uint32_t, 2> m_WidthHeight{ { 1920, 1080 } };
-		vk::SharingMode m_SharingMode = vk::SharingMode::eExclusive;
-
-		vk::SurfaceCapabilitiesKHR m_SurfaceCapabilities;
-		vk::SurfaceFormatKHR m_SurfaceFormat;
-		vk::PresentModeKHR m_PresentMode;
-
 		// Obj
-		vk::SwapchainKHR m_SwapChain;
+		vk::SwapchainKHR m_Swapchain;
 
-		// Instance
+		// Handle to base, keep track of where swapchain is created
 		vk::Device m_LogicalDevice{};
-		PhysicalDevice const* m_PhysicalDevice;
+		PhysicalDevice const* m_PhysicalDevice{nullptr};
 		vk::SurfaceKHR m_Surface{};
 	};
 }

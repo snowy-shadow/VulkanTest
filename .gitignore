@@ -2,7 +2,9 @@
 .idea/
 out/
 Build/
+build/
 .cache/
 cmake-build-debug/
 .DS_Store
 CMakeSettings.json
+*.exe

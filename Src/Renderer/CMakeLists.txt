@@ -7,7 +7,6 @@ cmake_minimum_required (VERSION 3.8)
 project ("Renderer" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan frontend")
 
 add_library(${PROJECT_NAME}
-"GraphicPipelineConfig.cpp"
 "Image.cpp"
 "Renderer.cpp"
 "SwapChain.cpp"

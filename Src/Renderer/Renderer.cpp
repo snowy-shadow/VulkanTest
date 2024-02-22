@@ -1,61 +1,57 @@
 #include "Renderer.h"
+#include "SwapChain.h"
 
 #include <iostream>
 #include <ranges>
 
 namespace VT
 {
-	void Renderer::createSwapChain(const std::unordered_set<std::string>& SwapChainNames)
+	void Renderer::createSwapChain(std::string SwapchainName, VT::Swapchain Swapchain)
 	{
-		int Width, Height;
-		glfwGetFramebufferSize(m_Window->m_Window, &Width, &Height);
+		// insert swapchain
+		auto [SwapchainPtr, Result] = m_SwapChains.try_emplace(std::move(SwapchainName), std::move(Swapchain));
+	
+		// alias, less typing
+		auto& SC = SwapchainPtr->second;
+	
+		if (!Result) { throw std::runtime_error("Swapchain Name conflict! Attempt to create swapchain with name " + SwapchainPtr->first); }
 
-		for (const auto& Name : SwapChainNames)
-		{
-			// insert swapchain
-			auto [SC, Result] = m_SwapChains.try_emplace(Name, std::array{ static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) }, 2);
-
-			if (!Result) { throw std::runtime_error("Swapchain Name conflict! Attempt to create swapchain with name " + Name); }
-
-			SC->second.bindDevice(m_PhysicalDevice, m_CurrentLogicDevice->second, m_Surface);
-			SC->second.setProperties
-			(
-				{ {vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear} },
-				{ vk::PresentModeKHR::eFifo },
-				{ vk::CompositeAlphaFlagBitsKHR::eOpaque },
-				{ vk::SurfaceTransformFlagBitsKHR::eIdentity }
-			);
-			SC->second.createSwapChain();
-		}
+		// bind device
+		SC.bindDevices(m_PhysicalDevice, m_LogicalDevice, m_Surface);
+		
+		SC.createSwapChain();
 	}
 
-	void Renderer::bindDevices(std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> Devices)
+	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices)
 	{
-		std::tie(m_LogicalDevices, m_PhysicalDevice, m_Surface) = Devices;
+		destroy();
+		std::tie(m_LogicalDevice, m_PhysicalDevice, m_Surface) = Devices;
 	}
 
 	void Renderer::bindWindow(Window& Window) { m_Window = &Window; }
 
-	void Renderer::createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const GraphicPipelineConfig& PipelineInfo)
+	void Renderer::createGraphicsPipeline
+	(
+		std::string Name,
+		const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles,
+		vk::GraphicsPipelineCreateInfo PipelineInfo
+	)
     {
-		assert(!m_Pipelines.contains(Name));
+		assert(m_LogicalDevice && !m_Pipelines.contains(Name));
 
 		// compile shaders
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
 
 		// Graphics pipline struct
 		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
-
-		// Current Logical Device
-		const vk::Device LogicalDevice = m_CurrentLogicDevice->second;
-
+	
 		// load all shader spv
 		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
 		{
 			ShaderStageInfos.push_back
 			({
 				.stage = ShaderFiles[i].Stage,
-				.module = LogicalDevice.createShaderModule
+				.module = m_LogicalDevice.createShaderModule
 				(
 					{
 						.codeSize = ShaderSpvs[i].size(),
@@ -66,8 +62,12 @@ namespace VT
 				.pName = "main"
 			});
 		}
+	
 
-		auto [Result, Pipeline] = LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo.getGraphicPipelineCreateInfo(ShaderStageInfos));
+		PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStageInfos.size());
+		PipelineInfo.pStages = ShaderStageInfos.data();
+
+		auto [Result, Pipeline] = m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo);
 
 		if (Result != vk::Result::eSuccess) { throw std::runtime_error("Failed to create Graphics Pipeline : " + Name); }
 
@@ -77,16 +77,9 @@ namespace VT
 		for(auto& SM : ShaderStageInfos)
 		{
 			std::cout << "deleting : " << SM.module << "\n";
-			LogicalDevice.destroyShaderModule(SM.module);
+			m_LogicalDevice.destroyShaderModule(SM.module);
 		}
     }
-
-	void Renderer::selectLogicalDevice(std::string Name)
-	{
-		auto Iter = m_LogicalDevices->find(Name);
-		if(Iter == m_LogicalDevices->end()) { throw std::runtime_error("Logical Device : " + std::move(Name) + " does not exist"); }
-		m_CurrentLogicDevice = Iter;
-	}
 
 	void Renderer::update()
 	{
@@ -94,12 +87,7 @@ namespace VT
 	}
 	Renderer::~Renderer()
 	{
-		// ORDER MATTERS
-		// Pipeline
-		for (auto& P : m_Pipelines) { m_CurrentLogicDevice->second.destroyPipeline(P.second); }
-
-		// Swapchain
-		for (auto& SC : m_SwapChains | std::views::values) { SC.destroySwapChain(); }
+		destroy();
 	}
 
 
@@ -110,5 +98,15 @@ namespace VT
 	 *					    PRIVATE
 	 * ==================================================
 	 */
+
+	void Renderer::destroy() noexcept
+	{
+		// ORDER MATTERS
+		// Pipeline
+		for (auto& P : m_Pipelines | std::views::values) { m_LogicalDevice.destroyPipeline(P); }
+
+		// Swapchain
+		for (auto& SC : m_SwapChains | std::views::values) { SC.destroySwapChain(); }
+	}
 }
 

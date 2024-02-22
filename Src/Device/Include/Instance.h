@@ -13,12 +13,24 @@ namespace VT
 	class Instance
 	{
 	public:
-		explicit Instance(const vk::ApplicationInfo& ApplicationInfo);
-		void initInstance(const vk::ApplicationInfo& ApplicationInfo);
+		/*
+		 * Create vulkan instance
+		 */
+		void initInstance(const vk::ApplicationInfo& ApplicationInfo, std::vector<const char*> Required_GLFW_Extensions);
 
-		void createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
+		/*
+		 * Creates Physical and Logical device with given Name
+		 * Name - PhysicalDevice Name, LogicalDevice Name
+		 * Window - glfw window handle
+		 * RequiredExtensions - Physical device extensions
+		 * RequiredQueues - Physical device queues
+		 */
+		void createDevice(std::array<std::string, 2> Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
 
-		std::tuple<std::unordered_map<std::string, vk::Device> const*, PhysicalDevice const*, vk::SurfaceKHR> getDeviceReferences();
+		/*
+		 * Device - PhysicalDevice Name, LogicalDevice Name
+		*/
+		std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> getDeviceReferences(std::array<std::string, 2> Device);
 
 		Instance() = default;
 		~Instance();
@@ -31,8 +43,9 @@ namespace VT
 		vk::Instance m_VulkanInstance;
 		vk::SurfaceKHR m_Surface;
 
-		PhysicalDevice m_PhysicalDevice{};
+		std::unordered_map<std::string, PhysicalDevice> m_PhysicalDevices{};
 		std::unordered_map<std::string, vk::Device> m_LogicalDevices;
+		uint8_t m_ObjectConstructed{0};
 
 #ifndef NDEBUG
 		vk::DispatchLoaderDynamic m_DLD_Instance;
