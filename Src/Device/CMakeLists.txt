@@ -7,6 +7,7 @@ project ("Device" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan Device setup")
 
 add_library(${PROJECT_NAME}
 "Instance.cpp"
+"Device.cpp"
 "PhysicalDevice.cpp"
 "DebugMessenger.cpp")
 

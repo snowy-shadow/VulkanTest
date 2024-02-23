@@ -1,4 +1,7 @@
 #include "App.h"
+
+// enable aggregate initialization
+#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <vulkan/vulkan_structs.hpp>
 
 
@@ -9,19 +12,18 @@ namespace VT
 		uint32_t glfwExtensionCount;
 		const char** GLFW_Extensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 		std::vector<const char*> Required_GLFW_Extensions { GLFW_Extensions, GLFW_Extensions + glfwExtensionCount };
-		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) }, Required_GLFW_Extensions);
-		m_VulkanInstance.createDevice({"Main Physical", "Main Logic"} ,m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
+		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) }, Required_GLFW_Extensions, {});
 
-		auto Devices = m_VulkanInstance.getDeviceReferences({"Main Physical", "Main Logic"});
-		std::tie(m_LogicDevice, m_PhysicalDevice, std::ignore) = Devices;
-	
-		m_Renderer.bindDevices(std::move(Devices));
+		m_VulkanDevice.bindInstance(m_VulkanInstance.getInstance());
+		m_VulkanDevice.createDevice("Main", m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
+
+		m_Renderer.bindDevices(m_VulkanDevice.getDeviceReferences("Main"));
 		m_Renderer.bindWindow(m_Window);
 
 		// createMainGraphicPipeline();
 	}
 
-	void VT::App::run()
+	void App::run()
 	{
 		while (!glfwWindowShouldClose(m_Window.m_Window))
 		{
@@ -37,45 +39,22 @@ namespace VT
 
 	void App::createMainSwapchain()
 	{
-	
 		int Width, Height;
 		glfwGetWindowSize(m_Window.m_Window, &Width, &Height);
 
-	
 		Swapchain MainSwapchain{};
-		Swapchain::SurfaceCapabilities SC =
+		MainSwapchain.m_SwapchainRequests =
 		{
 			.minImageCount = 2,
 			.imageExtent = {Width, Height},
 			.arrayLayers = 0,
+			.surfaceFormat = {{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}},
+			.presentMode = {vk::PresentModeKHR::eFifo},
 			.surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
 			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque},
 			.imageUsage = {vk::ImageUsageFlagBits::eColorAttachment}
 		};
-
-		SC = MainSwapchain.findSurfaceCapabilities(SC);
-		auto SurfaceFormat = MainSwapchain.findSurfaceFormat({{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}});
-	
-		MainSwapchain.m_SwapchainInfo = vk::SwapchainCreateInfoKHR
-		{
-			.minImageCount = SC.minImageCount,
-			.imageFormat = SurfaceFormat.format,
-			.imageColorSpace = SurfaceFormat.colorSpace,
-			.imageExtent = 	SC.imageExtent,
-			.imageArrayLayers = SC.arrayLayers,
-			.imageUsage = SC.imageUsage[0],
-			.preTransform = SC.surfaceTransform[0],
-			.compositeAlpha = SC.compositeAlpha[0],
-			.presentMode = MainSwapchain.findPresentMode({vk::PresentModeKHR::eFifo}),
-		};
-	
-		if(m_PhysicalDevice->graphicsQueueCanPresent())
-		{
-			MainSwapchain.m_SwapchainInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-			MainSwapchain.m_SwapchainInfo.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());
-			MainSwapchain.m_SwapchainInfo.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
-		}
-	
+		
 		m_Renderer.createSwapChain("Main", MainSwapchain);
 	}
 
@@ -229,20 +208,42 @@ namespace VT
 
 		vk::PipelineLayout PipelineLayout{};
 
-		std::vector<vk::SubpassDescription> Subpasses
+		
+		std::vector<vk::AttachmentDescription> Attachements
 		{
 			{
+				.format = m_Renderer.getSwapchainInfo("Main").imageFormat,
+				.samples = vk::SampleCountFlagBits::e1,
+				.loadOp = vk::AttachmentLoadOp::eDontCare,
+				.storeOp = vk::AttachmentStoreOp::eStore,
+				.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
+				.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+				.initialLayout = vk::ImageLayout::eUndefined,
+				.finalLayout = vk::ImageLayout::ePresentSrcKHR
 				
+			}
+			
+		};
+	
+		std::vector<vk::AttachmentReference> ColorAttachmentReferences
+		{
+			{
+				.attachment = 0,
+				.layout = vk::ImageLayout::eColorAttachmentOptimal
+			}
+		};
+		std::vector<vk::SubpassDescription> Subpasses
+		{
+			vk::SubpassDescription
+			{
+				.pipelineBindPoint = vk::PipelineBindPoint::eGraphics,
+				.colorAttachmentCount = static_cast<uint32_t>(ColorAttachmentReferences.size()),
+				.pColorAttachments = ColorAttachmentReferences.data(),
 			},
 		};
 
 		std::vector<vk::SubpassDependency> SubpassDependencies
 		{};
-		
-		std::vector<vk::AttachmentDescription> Attachements
-		{
-			
-		};
 	
 		vk::RenderPassCreateInfo RenderPassInfo
 		{
@@ -254,8 +255,6 @@ namespace VT
 			.pDependencies = SubpassDependencies.data()
 		};
 
-		vk::RenderPass RenderPass = m_LogicDevice.createRenderPass(RenderPassInfo);
-		
 		vk::GraphicsPipelineCreateInfo MainGraphicPipelineInfo
 		{
 			.pVertexInputState = &VertexInputStateInfo,
@@ -267,9 +266,8 @@ namespace VT
 			.pDepthStencilState = &DepthStencilStateInfo,
 			.pColorBlendState = &ColorBlendStateInfo,
 			.layout = PipelineLayout,
-			.renderPass = RenderPass
 		};
 
-		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, MainGraphicPipelineInfo);
+		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, RenderPassInfo, MainGraphicPipelineInfo);
 	}
 }

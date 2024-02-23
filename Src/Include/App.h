@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Instance.h"
+#include "Device.h"
 #include "Renderer.h"
 #include "Window.h"
 
@@ -18,9 +19,9 @@ namespace VT
 
 		Instance m_VulkanInstance;
 		Renderer m_Renderer;
+		Device m_VulkanDevice;
+	
 		vk::CommandPool m_CmdPool;
-		vk::Device m_LogicDevice;
-		PhysicalDevice const* m_PhysicalDevice;
 	
 		Window m_Window{ {1280, 720}, "VulkanTest" };
 	};

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "SwapChain.h"
+#include "Swapchain.h"
 /*
  * Must be included after all instances, of #include <vulkan/vulkan_hash.hpp>
  * <atlcomcli.h> breaks <vulkan/vulkan_hash.hpp>, they must come after
@@ -22,14 +22,16 @@ namespace VT
 		void bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices);
 		void bindWindow(Window& Window);
 
+		vk::SwapchainCreateInfoKHR getSwapchainInfo(std::string Name) const;
+
 		/*
 		 * Creates graphics pipeline
 		 * Name - Name of pipeline
 		 * ShaderFiles - files to compile to shaders
-		 * PipelineInfo - GraphicsPipeline infos, shader stages will be compiled and inserted based on ShaderFiles
 		 * RenderPassInfo - RenderPassCreateInfo to create renderpass from
+		 * PipelineInfo - GraphicsPipeline infos, shader stages will be compiled and inserted based on ShaderFiles
 		*/
-		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, vk::GraphicsPipelineCreateInfo PipelineInfo);
+		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, vk::RenderPassCreateInfo RenderPassInfo, vk::GraphicsPipelineCreateInfo PipelineInfo);
 
 		void update();
 
@@ -40,15 +42,17 @@ namespace VT
 
 	
 	private:
+		bool m_Constructed{false};
 		void destroy() noexcept;
 	
 		ShaderCompiler m_ShaderCompiler;
 	
 		// Device handles
-		std::unordered_map<std::string, Swapchain> m_SwapChains;
+		std::unordered_map<std::string, Swapchain> m_Swapchains;
 		std::unordered_map<std::string, vk::Pipeline> m_Pipelines;
+		
+		// Handles
 		vk::Device m_LogicalDevice;
-
 		PhysicalDevice const* m_PhysicalDevice {nullptr};
 		vk::SurfaceKHR m_Surface;
 
