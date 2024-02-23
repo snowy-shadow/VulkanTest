@@ -9,48 +9,47 @@ namespace VT
 {
 	vk::SwapchainKHR Swapchain::getSwapchain() noexcept { return m_Swapchain; }
 
-
-	Swapchain::Capabilities Swapchain::queryCapabilities(PhysicalDevice const* PD, vk::SurfaceKHR Surface, Capabilities Capabilities) const
+	void Swapchain::queryCapabilities(PhysicalDevice const* PD, vk::SurfaceKHR Surface)
 	{
-		Capabilities.surfaceFormat = {findSurfaceFormat(PD->getPhysicalDevice().getSurfaceFormatsKHR(Surface), Capabilities.surfaceFormat)};
-		Capabilities.presentMode = {findPresentMode(PD->getPhysicalDevice().getSurfacePresentModesKHR(Surface), Capabilities.presentMode)};
+		m_SwapchainRequest.surfaceFormat = {findSurfaceFormat(PD->getPhysicalDevice().getSurfaceFormatsKHR(Surface), m_SwapchainRequest.surfaceFormat)};
+		m_SwapchainRequest.presentMode = {findPresentMode(PD->getPhysicalDevice().getSurfacePresentModesKHR(Surface), m_SwapchainRequest.presentMode)};
 
 		const auto DeviceSurfaceCapabilities = PD->getPhysicalDevice().getSurfaceCapabilitiesKHR(Surface);
 
-		Capabilities.arrayLayers = std::clamp(Capabilities.arrayLayers, Capabilities.arrayLayers, DeviceSurfaceCapabilities.maxImageArrayLayers);
+		m_SwapchainRequest.arrayLayers = std::clamp(m_SwapchainRequest.arrayLayers, m_SwapchainRequest.arrayLayers, DeviceSurfaceCapabilities.maxImageArrayLayers);
 		
 		// max Image count = 0 means no upper bound
-		if (DeviceSurfaceCapabilities.maxImageCount > 0) { Capabilities.minImageCount = std::clamp(Capabilities.minImageCount, DeviceSurfaceCapabilities.minImageCount, DeviceSurfaceCapabilities.maxImageCount); }
-		else { Capabilities.minImageCount = Capabilities.minImageCount < DeviceSurfaceCapabilities.minImageCount ? DeviceSurfaceCapabilities.minImageCount : Capabilities.minImageCount; }
+		if (DeviceSurfaceCapabilities.maxImageCount > 0) { m_SwapchainRequest.minImageCount = std::clamp(m_SwapchainRequest.minImageCount, DeviceSurfaceCapabilities.minImageCount, DeviceSurfaceCapabilities.maxImageCount); }
+		else { m_SwapchainRequest.minImageCount = m_SwapchainRequest.minImageCount < DeviceSurfaceCapabilities.minImageCount ? DeviceSurfaceCapabilities.minImageCount : m_SwapchainRequest.minImageCount; }
 
 		// undefined surface size, set it to image size requested
 		if (DeviceSurfaceCapabilities.currentExtent.width == std::numeric_limits<std::uint32_t>::max())
 		{
-			Capabilities.imageExtent = vk::Extent2D
+			m_SwapchainRequest.imageExtent = vk::Extent2D
 			{
-				std::clamp(Capabilities.imageExtent.width, DeviceSurfaceCapabilities.minImageExtent.width, DeviceSurfaceCapabilities.maxImageExtent.width),
-				std::clamp(Capabilities.imageExtent.height, DeviceSurfaceCapabilities.minImageExtent.height, DeviceSurfaceCapabilities.maxImageExtent.height)
+				std::clamp(m_SwapchainRequest.imageExtent.width, DeviceSurfaceCapabilities.minImageExtent.width, DeviceSurfaceCapabilities.maxImageExtent.width),
+				std::clamp(m_SwapchainRequest.imageExtent.height, DeviceSurfaceCapabilities.minImageExtent.height, DeviceSurfaceCapabilities.maxImageExtent.height)
 			};
 		}
-		else { Capabilities.imageExtent = DeviceSurfaceCapabilities.currentExtent; }
+		else { m_SwapchainRequest.imageExtent = DeviceSurfaceCapabilities.currentExtent; }
 
 		// Composite alpha
 		{
 			auto Iterator
 			{
-				std::find_if(Capabilities.compositeAlpha.cbegin(), Capabilities.compositeAlpha.cend(),
+				std::find_if(m_SwapchainRequest.compositeAlpha.cbegin(), m_SwapchainRequest.compositeAlpha.cend(),
 				[&DeviceSurfaceCapabilities](const vk::CompositeAlphaFlagBitsKHR& PCA)
 				{
 					return DeviceSurfaceCapabilities.supportedCompositeAlpha & PCA;
 				})
 			};
 
-			Capabilities.compositeAlpha =
+			m_SwapchainRequest.compositeAlpha =
 			{
-				Capabilities.compositeAlpha
+				m_SwapchainRequest.compositeAlpha
 				[
-					Iterator != Capabilities.compositeAlpha.cend() ?
-					static_cast<uint32_t>(std::distance(Capabilities.compositeAlpha.cbegin(), Iterator)) : throw std::runtime_error("Did not find required composite alpha")
+					Iterator != m_SwapchainRequest.compositeAlpha.cend() ?
+					static_cast<uint32_t>(std::distance(m_SwapchainRequest.compositeAlpha.cbegin(), Iterator)) : throw std::runtime_error("Did not find required composite alpha")
 				]
 			};
 
@@ -60,7 +59,7 @@ namespace VT
 		{
 			auto Iterator
 			{
-				std::find_if(Capabilities.surfaceTransform.cbegin(), Capabilities.surfaceTransform.cend(),
+				std::find_if(m_SwapchainRequest.surfaceTransform.cbegin(), m_SwapchainRequest.surfaceTransform.cend(),
 				[&DeviceSurfaceCapabilities](const vk::SurfaceTransformFlagBitsKHR& ST)
 				{
 					return DeviceSurfaceCapabilities.supportedTransforms & ST;
@@ -68,18 +67,16 @@ namespace VT
 			};
 
 
-			Capabilities.surfaceTransform = 
+			m_SwapchainRequest.surfaceTransform = 
 			{
-				Capabilities.surfaceTransform
+				m_SwapchainRequest.surfaceTransform
 				[
-					Iterator != Capabilities.surfaceTransform.cend() ?
-					static_cast<uint32_t>(std::distance(Capabilities.surfaceTransform.cbegin(), Iterator)) : throw std::runtime_error("Did not find required Surface Transform")
+					Iterator != m_SwapchainRequest.surfaceTransform.cend() ?
+					static_cast<uint32_t>(std::distance(m_SwapchainRequest.surfaceTransform.cbegin(), Iterator)) : throw std::runtime_error("Did not find required Surface Transform")
 				]
 			};
 			
 		}
-
-		return Capabilities;
 
 	}
 

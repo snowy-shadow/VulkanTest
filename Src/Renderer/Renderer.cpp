@@ -7,24 +7,27 @@ namespace VT
 	void Renderer::createSwapChain(std::string SwapchainName, VT::Swapchain Swapchain)
 	{
 		// insert swapchain
-		auto [SwapchainPtr, Result] = m_Swapchains.try_emplace(std::move(SwapchainName), std::move(Swapchain));
-
+		auto [SwapchainPtr, Result] = m_Swapchains.try_emplace(SwapchainName, std::move(Swapchain));
 	
-		if (!Result) { throw std::runtime_error("Swapchain Name conflict! Attempt to create swapchain with name " + SwapchainPtr->first); }
+		if (!Result) { throw std::runtime_error("Swapchain creation failed! Attempted to create swapchain with name " + std::move(SwapchainName)); }
 	
 		auto& SC = SwapchainPtr->second;
 	
-		SC.m_SwapchainRequests = SwapchainPtr->second.queryCapabilities(m_PhysicalDevice, m_Surface, Swapchain.m_SwapchainRequests);
+		SC.queryCapabilities(m_PhysicalDevice, m_Surface);
 	
-		SC.m_SwapchainInfo.minImageCount = SC.m_SwapchainRequests.minImageCount;
-		SC.m_SwapchainInfo.imageFormat = SC.m_SwapchainRequests.surfaceFormat[0].format;
-		SC.m_SwapchainInfo.imageColorSpace = SC.m_SwapchainRequests.surfaceFormat[0].colorSpace;
-		SC.m_SwapchainInfo.imageUsage = SC.m_SwapchainRequests.imageUsage[0];
-		SC.m_SwapchainInfo.preTransform = SC.m_SwapchainRequests.surfaceTransform[0];
-		SC.m_SwapchainInfo.compositeAlpha = SC.m_SwapchainRequests.compositeAlpha[0];
-		SC.m_SwapchainInfo.presentMode = SC.m_SwapchainRequests.presentMode[0];
+		SC.m_SwapchainInfo.minImageCount = SC.m_SwapchainRequest.minImageCount;
+		SC.m_SwapchainInfo.imageExtent = SC.m_SwapchainRequest.imageExtent;
+		SC.m_SwapchainInfo.imageFormat = SC.m_SwapchainRequest.surfaceFormat[0].format;
+		SC.m_SwapchainInfo.imageColorSpace = SC.m_SwapchainRequest.surfaceFormat[0].colorSpace;
+		SC.m_SwapchainInfo.imageUsage = SC.m_SwapchainRequest.imageUsage[0];
+		SC.m_SwapchainInfo.preTransform = SC.m_SwapchainRequest.surfaceTransform[0];
+		SC.m_SwapchainInfo.compositeAlpha = SC.m_SwapchainRequest.compositeAlpha[0];
+		SC.m_SwapchainInfo.presentMode = SC.m_SwapchainRequest.presentMode[0];
+		SC.m_SwapchainInfo.imageArrayLayers = SC.m_SwapchainRequest.arrayLayers;
+		SC.m_SwapchainInfo.surface = m_Surface;
 		
-		if(m_PhysicalDevice->graphicsQueueCanPresent())
+		
+		if(!m_PhysicalDevice->graphicsQueueCanPresent())
 		{
 			SC.m_SwapchainInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 			SC.m_SwapchainInfo.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());

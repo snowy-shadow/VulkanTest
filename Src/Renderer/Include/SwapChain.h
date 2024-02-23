@@ -20,7 +20,7 @@ namespace VT
 			std::vector<vk::SurfaceTransformFlagBitsKHR> surfaceTransform;
 			std::vector<vk::CompositeAlphaFlagBitsKHR> compositeAlpha;
 			std::vector<vk::ImageUsageFlagBits> imageUsage;
-		} m_SwapchainRequests;
+		} m_SwapchainRequest{};
 	
 		// fill this out
 		vk::SwapchainCreateInfoKHR m_SwapchainInfo{};
@@ -28,7 +28,7 @@ namespace VT
 		 * Finds and returns the first supported format for each. All vectors will have exactly 1 element when returned
 		 * throws runtime error if none found
 		*/
-		VT::Swapchain::Capabilities queryCapabilities(PhysicalDevice const* PD, vk::SurfaceKHR Surface, Capabilities Capabilities) const;
+		void queryCapabilities(PhysicalDevice const* PD, vk::SurfaceKHR Surface);
 
 		vk::SwapchainKHR getSwapchain() noexcept;
 	

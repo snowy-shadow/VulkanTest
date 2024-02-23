@@ -5,6 +5,7 @@
 #include <vulkan/vulkan_structs.hpp>
 
 
+#include <iostream>
 namespace VT
 {
 	App::App()
@@ -20,7 +21,8 @@ namespace VT
 		m_Renderer.bindDevices(m_VulkanDevice.getDeviceReferences("Main"));
 		m_Renderer.bindWindow(m_Window);
 
-		// createMainGraphicPipeline();
+		createMainSwapchain();
+		createMainGraphicPipeline();
 	}
 
 	void App::run()
@@ -43,18 +45,18 @@ namespace VT
 		glfwGetWindowSize(m_Window.m_Window, &Width, &Height);
 
 		Swapchain MainSwapchain{};
-		MainSwapchain.m_SwapchainRequests =
+		MainSwapchain.m_SwapchainRequest = 	
 		{
 			.minImageCount = 2,
 			.imageExtent = {Width, Height},
-			.arrayLayers = 0,
+			.arrayLayers = 1,
 			.surfaceFormat = {{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}},
 			.presentMode = {vk::PresentModeKHR::eFifo},
 			.surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
 			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque},
 			.imageUsage = {vk::ImageUsageFlagBits::eColorAttachment}
 		};
-		
+
 		m_Renderer.createSwapChain("Main", MainSwapchain);
 	}
 
@@ -206,7 +208,9 @@ namespace VT
 			.stencilTestEnable = vk::False
 		};
 
-		vk::PipelineLayout PipelineLayout{};
+		// vk::PipelineLayout PipelineLayout
+		// {
+		// };
 
 		
 		std::vector<vk::AttachmentDescription> Attachements
@@ -243,7 +247,16 @@ namespace VT
 		};
 
 		std::vector<vk::SubpassDependency> SubpassDependencies
-		{};
+		{
+			{
+				.srcSubpass = vk::SubpassExternal,
+				.dstSubpass = 0,
+				.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+				.srcAccessMask = vk::AccessFlagBits::eNone,
+				.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite
+			},
+		};
 	
 		vk::RenderPassCreateInfo RenderPassInfo
 		{
@@ -265,7 +278,7 @@ namespace VT
 			.pMultisampleState = &MultisampleStateInfo,
 			.pDepthStencilState = &DepthStencilStateInfo,
 			.pColorBlendState = &ColorBlendStateInfo,
-			.layout = PipelineLayout,
+			// .layout = PipelineLayout,
 		};
 
 		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, RenderPassInfo, MainGraphicPipelineInfo);

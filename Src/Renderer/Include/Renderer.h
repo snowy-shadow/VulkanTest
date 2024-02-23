@@ -17,11 +17,11 @@ namespace VT
 	class Renderer
 	{
 	public:
-		void createSwapChain(std::string SwapchainName, VT::Swapchain Swapchain);
 
 		void bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices);
 		void bindWindow(Window& Window);
 
+		void createSwapChain(std::string SwapchainName, VT::Swapchain Swapchain);
 		vk::SwapchainCreateInfoKHR getSwapchainInfo(std::string Name) const;
 
 		/*
