@@ -12,8 +12,7 @@ namespace VT
 	{
 		uint32_t glfwExtensionCount;
 		const char** GLFW_Extensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-		std::vector<const char*> Required_GLFW_Extensions { GLFW_Extensions, GLFW_Extensions + glfwExtensionCount };
-		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) }, Required_GLFW_Extensions, {});
+		m_VulkanInstance.initInstance( {.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0) }, { GLFW_Extensions, GLFW_Extensions + glfwExtensionCount }, {});
 
 		m_VulkanDevice.bindInstance(m_VulkanInstance.getInstance());
 		m_VulkanDevice.createDevice("Main", m_Window.m_Window, { "VK_KHR_swapchain" }, { {vk::QueueFlagBits::eGraphics, 1.f} });
@@ -41,14 +40,14 @@ namespace VT
 
 	void App::createMainSwapchain()
 	{
+		// get current window dimensions
 		int Width, Height;
 		glfwGetWindowSize(m_Window.m_Window, &Width, &Height);
 
-		Swapchain MainSwapchain{};
-		MainSwapchain.m_SwapchainRequest = 	
+		const Swapchain::Capabilities SwapchainQueries
 		{
 			.minImageCount = 2,
-			.imageExtent = {Width, Height},
+			.imageExtent = {static_cast<unsigned int>(Width), static_cast<unsigned int>(Height)},
 			.arrayLayers = 1,
 			.surfaceFormat = {{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}},
 			.presentMode = {vk::PresentModeKHR::eFifo},
@@ -57,13 +56,13 @@ namespace VT
 			.imageUsage = {vk::ImageUsageFlagBits::eColorAttachment}
 		};
 
-		m_Renderer.createSwapChain("Main", MainSwapchain);
+		m_Renderer.createSwapChain("Main", {}, std::move(SwapchainQueries));
 	}
 
 	void App::createMainGraphicPipeline()
 	{
 		File::DXC_ShaderFileInfo VertexShaderFile{};
-		VertexShaderFile.FileLocation = "/Users/kuang/Developer/Projects/VulkanTest/Src/Shader";
+		VertexShaderFile.FileLocation = "Shader";
 		VertexShaderFile.FileName = "Vertex.hlsl";
 		VertexShaderFile.Stage = vk::ShaderStageFlagBits::eVertex;
 		VertexShaderFile.CL_Args = { L"-spirv", L"-E main", L"-T vs_6_3" };
@@ -112,6 +111,8 @@ namespace VT
 		};
 
 
+		const auto& SwapchainInfo{ m_Renderer.getSwapchainInfo("Main").imageExtent };
+
 		vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo
 		{
 			.vertexBindingDescriptionCount = static_cast<uint32_t>(VertexInputBindings.size()),
@@ -128,15 +129,13 @@ namespace VT
 	
 		vk::PipelineTessellationStateCreateInfo TessellationStateInfo{};
 
-		int WindowWidth, WindowHeight;
-		glfwGetFramebufferSize(m_Window.m_Window, &WindowWidth, &WindowHeight);
 		std::vector<vk::Viewport> Viewports
 		{
 			{
 				.x = 0.f,
 				.y = 0.f,
-				.width = static_cast<float>(WindowWidth),
-				.height = static_cast<float>(WindowHeight),
+				.width = static_cast<float>(SwapchainInfo.width),
+				.height = static_cast<float>(SwapchainInfo.height),
 				.minDepth = 0.f,
 				.maxDepth = 1.f
 			}
@@ -147,24 +146,36 @@ namespace VT
 			{
 				.offset =
 				{
-					.x = Viewports[0].x,
-					.y = Viewports[0].y
+					.x = 0,
+					.y = 0
 				},
-
 				.extent =
 				{
-					.width = static_cast<uint32_t>(Viewports[0].width),
-					.height = static_cast<uint32_t>(Viewports[0].height)
+					.width = SwapchainInfo.width,
+					.height = SwapchainInfo.height,
 				}
 			}
 		};
 
 		vk::PipelineViewportStateCreateInfo ViewportStateInfo
 		{
+			// using dynamic states
 			.viewportCount = static_cast<uint32_t>(Viewports.size()),
-			.pViewports = Viewports.data(),
+			// .pViewports = Viewports.data(),
 			.scissorCount = static_cast<uint32_t>(Scissors.size()),
-			.pScissors = Scissors.data()
+			// .pScissors = Scissors.data()
+		};
+
+		std::vector<vk::DynamicState> DynamicStates
+		{
+			vk::DynamicState::eViewport,
+			vk::DynamicState::eScissor
+		};
+
+		vk::PipelineDynamicStateCreateInfo DynamicStateCreateInfo
+		{
+			.dynamicStateCount = static_cast<uint32_t>(DynamicStates.size()),
+			.pDynamicStates = DynamicStates.data()
 		};
 
 		vk::PipelineRasterizationStateCreateInfo RasterizationStateInfo
@@ -208,9 +219,7 @@ namespace VT
 			.stencilTestEnable = vk::False
 		};
 
-		// vk::PipelineLayout PipelineLayout
-		// {
-		// };
+		vk::PipelineLayout PipelineLayout{};
 
 		
 		std::vector<vk::AttachmentDescription> Attachements
@@ -224,7 +233,6 @@ namespace VT
 				.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
 				.initialLayout = vk::ImageLayout::eUndefined,
 				.finalLayout = vk::ImageLayout::ePresentSrcKHR
-				
 			}
 			
 		};
@@ -278,9 +286,9 @@ namespace VT
 			.pMultisampleState = &MultisampleStateInfo,
 			.pDepthStencilState = &DepthStencilStateInfo,
 			.pColorBlendState = &ColorBlendStateInfo,
-			// .layout = PipelineLayout,
+			.subpass = 0
 		};
 
-		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, RenderPassInfo, MainGraphicPipelineInfo);
+		m_Renderer.createGraphicsPipeline("Main Pipeline", { VertexShaderFile }, {}, RenderPassInfo, MainGraphicPipelineInfo);
 	}
 }

@@ -18,8 +18,9 @@ namespace VT
 		void createMainGraphicPipeline();
 
 		Instance m_VulkanInstance;
-		Renderer m_Renderer;
 		Device m_VulkanDevice;
+		Renderer m_Renderer;
+
 	
 		vk::CommandPool m_CmdPool;
 	

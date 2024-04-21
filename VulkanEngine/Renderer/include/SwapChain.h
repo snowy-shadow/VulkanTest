@@ -10,6 +10,7 @@ namespace VT
 	class Swapchain
 	{
 	public:
+		Swapchain() = default;
 		struct Capabilities
 		{
 			uint32_t minImageCount;
@@ -20,19 +21,19 @@ namespace VT
 			std::vector<vk::SurfaceTransformFlagBitsKHR> surfaceTransform;
 			std::vector<vk::CompositeAlphaFlagBitsKHR> compositeAlpha;
 			std::vector<vk::ImageUsageFlagBits> imageUsage;
-		} m_SwapchainRequest{};
-	
-		// fill this out
-		vk::SwapchainCreateInfoKHR m_SwapchainInfo{};
+		};
+
 		/*
 		 * Finds and returns the first supported format for each. All vectors will have exactly 1 element when returned
 		 * throws runtime error if none found
 		*/
-		void queryCapabilities(PhysicalDevice const* PD, vk::SurfaceKHR Surface);
+		Capabilities queryCapabilities(Capabilities preferredCapabilities, PhysicalDevice const* PD, vk::SurfaceKHR Surface) const;
 
-		vk::SwapchainKHR getSwapchain() noexcept;
+		vk::SwapchainKHR getSwapchain() const noexcept;
+
+		vk::SwapchainCreateInfoKHR getSwapchainCreateInfo() const noexcept;
 	
-		void createSwapchain(vk::Device LogicalDevice);
+		void createSwapchain(const vk::SwapchainCreateInfoKHR& SwapchainCreateInfo, vk::Device LogicalDevice);
 		void destroySwapchain(vk::Device LogicalDevice);
 
 	private:
@@ -41,5 +42,7 @@ namespace VT
 
 		// Obj
 		vk::SwapchainKHR m_Swapchain;
+
+		vk::SwapchainCreateInfoKHR m_SwapchinCreateInfo;
 	};
 }

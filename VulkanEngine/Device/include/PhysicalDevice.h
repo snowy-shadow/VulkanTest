@@ -17,7 +17,6 @@ namespace VT
 
 		bool addQueue(const vk::QueueFlagBits& RequiredQueue, const float& QueuePriority = 1.f, const uint32_t& QueueCount = 1);
 
-
 		bool findPhysicalDevice(const std::vector<vk::PhysicalDevice>& DeviceList, const std::vector<const char*>& DeviceRequiredExtensions);
 
         /*
@@ -38,8 +37,6 @@ namespace VT
 		std::array<uint32_t, 2> getGraphicsPresentQueueIndices() const;
 
 		bool graphicsQueueCanPresent() const;
-		
-		
 
 		PhysicalDevice() = default;
 		PhysicalDevice(PhysicalDevice&) = delete;
@@ -54,6 +51,5 @@ namespace VT
 		vk::PhysicalDevice m_PhysicalDevice;
 		std::vector<vk::DeviceQueueCreateInfo> m_DeviceQueues;
 		std::optional<vk::DeviceQueueCreateInfo> m_GraphicsQueue;
-
 	};
 }

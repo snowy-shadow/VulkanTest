@@ -47,9 +47,8 @@ namespace VT
 
 	Device::~Device()
 	{
+		if (m_ObjectConstructedMask & ObjectConstructed::eSurface) { m_VulkanInstance.destroySurfaceKHR(m_Surface); }
+
 		for(auto& D : m_LogicalDevices | std::views::values) { D.destroy(); }
-
-		if(m_ObjectConstructedMask & ObjectConstructed::eSurface)  { m_VulkanInstance.destroySurfaceKHR(m_Surface); }
-
 	}
 }

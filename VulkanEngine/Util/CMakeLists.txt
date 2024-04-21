@@ -9,10 +9,8 @@ add_library(${PROJECT_NAME}
     "ShaderCompiler.cpp"
 )
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET ${PROJECT_NAME} 
-  PROPERTY CXX_STANDARD 20)
-endif()
+set_property(TARGET ${PROJECT_NAME} 
+PROPERTY CXX_STANDARD 20)
 
 if (MSVC)
     # msvc is special like that
@@ -25,16 +23,18 @@ if (MSVC)
 else()
     # additional warnings
    target_compile_options(${PROJECT_NAME}
+		PUBLIC
+			# DXC 
+			-fms-extensions
+			-Wno-language-extension-token
 		PRIVATE
-		-Wall 
-        -Werror
-		-Wpedantic
-		-O2
-        # DXC 
-        -fms-extensions
-        -Wno-language-extension-token
-		# $<$<CONFIG:RELEASE>:-O2>
-		# $<$<CONFIG:DEBUG>:-O2>
+			-Wall 
+			-Wextra
+			-Werror
+			-Wpedantic
+			-O2
+			# $<$<CONFIG:RELEASE>:-O2>
+			# $<$<CONFIG:DEBUG>:-O2>
     )
 endif()
 
@@ -48,20 +48,19 @@ find_package(Vulkan REQUIRED dxc shaderc_combined)
 find_package(glfw3 3.3 REQUIRED)
 
 target_include_directories(${PROJECT_NAME} 
-    PUBLIC
-    "Include"
+	PUBLIC 
+		${PROJECT_SOURCE_DIR}/include
 )
 
 target_include_directories(${PROJECT_NAME} 
-    SYSTEM PRIVATE
-    ${Vulkan_INCLUDE_DIR}
-    ${GLFW_INCLUDE_DIRS} 
+	SYSTEM PUBLIC
+		${Vulkan_INCLUDE_DIR}
+		${GLFW_INCLUDE_DIRS} 
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-    ${Vulkan_LIBRARIES}
-    ${Vulkan_shaderc_combined_LIBRARY}
-    ${Vulkan_dxc_LIBRARY}
-    ${GLFW_LIBARY}
+	PUBLIC
+		${Vulkan_shaderc_combined_LIBRARY}
+		${Vulkan_dxc_LIBRARY}
+		${GLFW_LIBRARY}
 )

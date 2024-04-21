@@ -18,9 +18,10 @@ elseif(WIN32)
 	set(GLFW_PATH "S:/Dev/Dependencies/Libraries/glfw/glfw-3.3.9")
 endif()
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeFind")
+
 # clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Include sub-projects.
+add_subdirectory(VulkanEngine)
 add_subdirectory (Src)

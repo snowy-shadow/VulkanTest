@@ -21,17 +21,19 @@ namespace VT
 		void bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices);
 		void bindWindow(Window& Window);
 
-		void createSwapChain(std::string SwapchainName, VT::Swapchain Swapchain);
-		vk::SwapchainCreateInfoKHR getSwapchainInfo(std::string Name) const;
+		void createSwapChain(std::string SwapchainName, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
+
+		vk::SwapchainCreateInfoKHR getSwapchainInfo(std::string Name);
 
 		/*
 		 * Creates graphics pipeline
 		 * Name - Name of pipeline
 		 * ShaderFiles - files to compile to shaders
+		 * LayoutInfo - PipelineLayoutInfo to create layout from
 		 * RenderPassInfo - RenderPassCreateInfo to create renderpass from
 		 * PipelineInfo - GraphicsPipeline infos, shader stages will be compiled and inserted based on ShaderFiles
 		*/
-		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, vk::RenderPassCreateInfo RenderPassInfo, vk::GraphicsPipelineCreateInfo PipelineInfo);
+		void createGraphicsPipeline(std::string Name, const std::vector<File::DXC_ShaderFileInfo>& ShaderFiles, const vk::PipelineLayoutCreateInfo& LayoutInfo, const vk::RenderPassCreateInfo& RenderPassInfo, vk::GraphicsPipelineCreateInfo PipelineInfo);
 
 		void update();
 

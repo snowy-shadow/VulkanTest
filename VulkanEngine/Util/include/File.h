@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <fstream>
@@ -22,7 +23,7 @@ namespace VT::File
 
 		if (!File.is_open()) throw std::runtime_error("Failed to open : " + FilePath.string());
 
-		const auto FileSize = static_cast<std::streamsize>(File.tellg());
+		auto FileSize = static_cast<const unsigned int>(File.tellg());
 		std::vector<char> Buffer(FileSize);
 
 		File.seekg(0);

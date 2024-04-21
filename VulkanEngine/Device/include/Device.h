@@ -35,8 +35,6 @@ namespace VT
 		~Device();
 
 	private:
-		bool isSupported(std::vector<const char*> RequiredExtensions, std::vector<const char*> RequiredLayers) const;
-	
 		vk::SurfaceKHR m_Surface;
 
 		PhysicalDevice m_PhysicalDevice;

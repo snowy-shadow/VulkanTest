@@ -89,9 +89,9 @@ namespace  VT
     {
         assert(m_PhysicalDevice);
         auto Extensions { m_PhysicalDevice.enumerateDeviceLayerProperties() };
-        for(auto Iter{Extensions.cbegin()}; Iter != Extensions.cend(); std::next(Iter) )
+        for(auto Iter{Extensions.cbegin()}; Iter != Extensions.cend(); Iter++ )
         {
-            if(strcmp(Iter->layerName, "VK_KHR_portability_subset") != 0){ return true; }
+            if(strcmp(Iter->layerName, "VK_KHR_portability_subset") == 0){ return true; }
         }
 
         return false;
@@ -135,7 +135,7 @@ namespace  VT
 		// else
 		auto QueueFamilies{ m_PhysicalDevice.getQueueFamilyProperties() };
 
-		for (auto Index = 0; Index < QueueFamilies.size(); Index++)
+		for (std::uint32_t Index = 0; Index < QueueFamilies.size(); Index++)
 		{
 			if (m_PhysicalDevice.getSurfaceSupportKHR(Index, Surface))
 			{
@@ -157,6 +157,7 @@ namespace  VT
 
 	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices() const
 	{
+		assert(m_GraphicsQueue.has_value());
 		return { { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue } };
 	}
 
