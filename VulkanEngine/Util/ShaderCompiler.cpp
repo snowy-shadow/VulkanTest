@@ -17,13 +17,14 @@ namespace VT
         if (!fs::create_directory(DestFolderPath)) { throw std::runtime_error("Failed to create folder : " + DestFolderPath.string() + "!\n"); }
     }
 
-	std::vector<std::vector<std::byte>> ShaderCompiler::compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const
+	std::vector<std::vector<std::byte>> ShaderCompiler::compileShaders(std::span<const File::DXC_ShaderFileInfo> ShaderInfos) const
 	{
 		std::vector<std::vector<std::byte>> ShaderSpv;
+		ShaderSpv.reserve(ShaderInfos.size());
 
 		for(const auto& F : ShaderInfos)
 		{
-			ShaderSpv.emplace_back(compileShader(F));
+			ShaderSpv.emplace_back(std::move(compileShader(F)));
 		}
 
 		return ShaderSpv;

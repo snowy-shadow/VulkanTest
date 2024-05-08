@@ -7,7 +7,7 @@ add_library(${PROJECT_NAME}
     "DXC_Compiler.cpp"
     "GLSL_Compiler.cpp"
     "ShaderCompiler.cpp"
-)
+	)
 
 set_property(TARGET ${PROJECT_NAME} 
 PROPERTY CXX_STANDARD 20)

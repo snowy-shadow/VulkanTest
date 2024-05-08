@@ -63,16 +63,16 @@ namespace VT
 		if(m_ObjectConstructedMask & ObjectConstructed::eInstance) { m_VulkanInstance.destroy(); }
 	}
 
-
 	/* ==========================================
 	 *				  Private
 	 * ==========================================
 	*/
-	bool Instance::isSupported(std::vector<const char*> RequiredExtensions, std::vector<const char*> RequiredLayers) const
+	bool Instance::isSupported(std::span<const char*> RequiredExtensions, std::span<const char*> RequiredLayers)
 	{
 		// extension
 		auto InstanceExtensions{ vk::enumerateInstanceExtensionProperties()};
 		std::unordered_set<std::string> ExtensionSupported{};
+
 		for(const auto& Ext : InstanceExtensions)
 		{
 			ExtensionSupported.insert(Ext.extensionName);

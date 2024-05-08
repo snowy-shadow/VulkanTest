@@ -11,9 +11,10 @@ namespace VT
 	struct Window
 	{
 		Window(const std::array<int, 2>& Dimension_XY, const char* WindowName);
+
+		void draw();
+
 		~Window();
-
-
 		Window(const Window&) = delete;
 		Window& operator = (const Window&) = delete;
 

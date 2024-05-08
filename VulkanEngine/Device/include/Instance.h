@@ -27,7 +27,7 @@ namespace VT
 		Instance& operator=(Instance&) = delete;
 
 	private:
-		bool isSupported(std::vector<const char*> RequiredExtensions = {}, std::vector<const char*> RequiredLayers = {}) const;
+		bool static isSupported(std::span<const char*> RequiredExtensions = {}, std::span<const char*> RequiredLayers = {});
 
 		enum ObjectConstructed : uint8_t
 		{

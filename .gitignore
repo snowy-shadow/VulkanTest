@@ -1,10 +1,6 @@
-.vs/
-.idea/
+.*/
 out/
-Build/
-build/
-.cache/
+[Bb]uild/
 cmake-build-debug/
-.DS_Store
 CMakeSettings.json
 *.exe

@@ -16,7 +16,7 @@ namespace VT
 
 		void setWorkingDir(std::filesystem::path DestFolderPath = "../spv");
 
-		std::vector<std::vector<std::byte>> compileShaders(const std::vector<File::DXC_ShaderFileInfo>& ShaderInfos) const;
+		std::vector<std::vector<std::byte>> compileShaders(std::span<const File::DXC_ShaderFileInfo> ShaderInfos) const;
 
 		// std::vector<std::vector<uint32_t>> compileShaders(const std::vector<File::ShadercFileInfo>& ShaderInfos) const;
 

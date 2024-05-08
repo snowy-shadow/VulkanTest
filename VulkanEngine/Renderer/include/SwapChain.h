@@ -33,7 +33,7 @@ namespace VT
 
 		vk::SwapchainCreateInfoKHR getSwapchainCreateInfo() const noexcept;
 	
-		void createSwapchain(const vk::SwapchainCreateInfoKHR& SwapchainCreateInfo, vk::Device LogicalDevice);
+		void createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
 		void destroySwapchain(vk::Device LogicalDevice);
 
 	private:

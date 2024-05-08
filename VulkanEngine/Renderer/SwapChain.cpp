@@ -86,9 +86,10 @@ namespace VT
 
 	vk::SwapchainCreateInfoKHR Swapchain::getSwapchainCreateInfo() const noexcept { return m_SwapchinCreateInfo; }
 
-	void Swapchain::createSwapchain(const vk::SwapchainCreateInfoKHR& SwapchainCreateInfo, vk::Device LogicalDevice)
+	void Swapchain::createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 	{
 		m_Swapchain = LogicalDevice.createSwapchainKHR(SwapchainCreateInfo);
+		m_SwapchinCreateInfo = std::move(SwapchainCreateInfo);
 	}
 
 	void Swapchain::destroySwapchain(vk::Device LogicalDevice)

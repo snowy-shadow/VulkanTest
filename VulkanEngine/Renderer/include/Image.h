@@ -13,7 +13,7 @@ namespace VT
 		 * ViewCreateInfo - Image view info, .image field will be inserted after successful image creation
 		 * LogicalDevice - Device used to create
 		 */
-		Image(const vk::ImageCreateInfo& ImageInfo, vk::ImageViewCreateInfo ViewCreateInfo, vk::Device LogicalDevice);
+		void create(const vk::ImageCreateInfo& ImageInfo, vk::ImageViewCreateInfo ViewCreateInfo, vk::Device LogicalDevice);
 		~Image();
 
 		vk::ImageView getImageView() const noexcept;
@@ -22,11 +22,11 @@ namespace VT
 		vk::ImageView m_ImageView;
 		vk::Device m_LogicalDevice;
 
-		enum ConstructedObj
+		enum ConstructedObj : uint8_t
 		{
 			eImage = 0b1,
 			eImageView = 0b10
 		};
-		uint8_t m_Constructed;
+		uint8_t m_Constructed{};
 	};
 }
