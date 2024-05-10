@@ -33,11 +33,11 @@ namespace VT
 	private:
 		void createMainGraphicsPipeline();
 		void createMainSwapChain();
+		std::vector<vk::CommandBuffer>& createCommandBuffer();
+		void createImage();
 
-
-
-		void createSwapChain(std::string SwapchainName, bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
-
+		// General Helper
+		void createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
 		bool createPipelineLayout(std::string Name, const vk::PipelineLayoutCreateInfo& LayoutInfo);
 		bool createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo);
 
@@ -61,11 +61,13 @@ namespace VT
 
 		Swapchain m_Swapchain;
 
+		vk::Semaphore ImageAvailable, RenderFinished;
+
 		// Pipeline
 		DependencyGraph<vk::Pipeline, vk::PipelineLayout, vk::RenderPass> mDG_Pipeline;
 
 		// CommandPool
-		DependencyGraph<vk::CommandPool, vk::CommandBuffer> mDG_CommandPool;
+		DependencyGraph<vk::CommandPool, std::vector<vk::CommandBuffer>> mDG_CommandPool;
 		
 		// Handles
 		Window* m_Window{nullptr};

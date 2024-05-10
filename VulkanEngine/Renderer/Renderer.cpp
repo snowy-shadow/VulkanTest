@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+#include <iostream>
+
 namespace VT
 {
 	Renderer::Renderer(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
@@ -7,13 +9,18 @@ namespace VT
 		bindDevices(std::forward<std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR>>(Devices), W);
 	}
 
-
 	void Renderer::init()
 	{
 		createMainSwapChain();
 		createMainGraphicsPipeline();
 
-		
+		ImageAvailable = m_LogicalDevice.createSemaphore({});
+		RenderFinished = m_LogicalDevice.createSemaphore({});
+
+		auto& Buffer = createCommandBuffer();
+
+		createImage();
+
 	}
 
 	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
@@ -293,27 +300,76 @@ namespace VT
 			.presentMode = {vk::PresentModeKHR::eFifo},
 			.surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
 			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque},
-			.imageUsage = {vk::ImageUsageFlagBits::eColorAttachment}
 		};
 
-		createSwapChain("Main", true, {}, std::move(SwapchainQueries));
+		createSwapChain(true, {.imageUsage = vk::ImageUsageFlagBits::eColorAttachment }, std::move(SwapchainQueries));
+	}
+
+	std::vector<vk::CommandBuffer>& Renderer::createCommandBuffer()
+	{
+		const auto& CP = mDG_CommandPool.insert<vk::CommandPool>
+		(m_LogicalDevice.createCommandPool({ .queueFamilyIndex = m_PhysicalDevice->getGraphicsPresentQueueIndices()[0] }),
+			"CommandPool",
+			[&](vk::CommandPool& Pool) { m_LogicalDevice.destroyCommandPool(Pool); }
+		);
+
+		if (!CP.second) { throw std::runtime_error("Command Pool creation failed\n"); }
+
+		vk::CommandBufferAllocateInfo CommandBufferInfo
+		{
+			.commandPool = CP.first,
+			.level = vk::CommandBufferLevel::ePrimary,
+			.commandBufferCount = 2
+		};
+
+		auto& Buffers = mDG_CommandPool.insert<std::vector<vk::CommandBuffer>>
+		(m_LogicalDevice.allocateCommandBuffers(CommandBufferInfo),
+			"CB",
+			[&, &CP = CP.first](std::vector<vk::CommandBuffer>& CB)
+			{
+				m_LogicalDevice.freeCommandBuffers(CP, CB);
+			}
+		).first;
+
+		if(!mDG_CommandPool.addDependency<std::vector<vk::CommandBuffer>, vk::CommandPool>("CB", "CommandPool"))
+		{
+			throw std::runtime_error("Failed to add command pool dependency");
+		}
+
+		return Buffers;
+	}
+
+	void Renderer::createImage()
+	{
+		auto Images = m_LogicalDevice.getSwapchainImagesKHR(m_Swapchain.getSwapchain());
+		auto SC_Info = m_Swapchain.getSwapchainCreateInfo();
+		vk::ImageViewCreateInfo ImageViewInfo
+		{
+			.viewType = vk::ImageViewType::e2D,
+			.format = SC_Info.imageFormat,
+			.
+
+		};
+		for(auto i : Images)
+		{
+			
+		}
+
+
+		vk::FramebufferCreateInfo FB_Info
+		{
+			.renderPass = mDG_Pipeline.get<vk::RenderPass>("Main RenderPass"),
+			.attachmentCount = static_cast<uint32_t>(Images.size()),
+			.pAttachments = Images.data(),
+
+
+		}
 	}
 
 
-	void Renderer::createSwapChain(std::string SwapchainName, bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries)
+	void Renderer::createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries)
 	{
-		const auto& CB = m_Swapchain.queryCapabilities(std::move(Queries), m_PhysicalDevice, m_Surface);
-
-		SwapchainCreateInfo.minImageCount = CB.minImageCount;
-		SwapchainCreateInfo.imageExtent = CB.imageExtent;
-		SwapchainCreateInfo.imageFormat = CB.surfaceFormat[0].format;
-		SwapchainCreateInfo.imageColorSpace = CB.surfaceFormat[0].colorSpace;
-		SwapchainCreateInfo.imageUsage = CB.imageUsage[0];
-		SwapchainCreateInfo.preTransform = CB.surfaceTransform[0];
-		SwapchainCreateInfo.compositeAlpha = CB.compositeAlpha[0];
-		SwapchainCreateInfo.presentMode = CB.presentMode[0];
-		SwapchainCreateInfo.imageArrayLayers = CB.arrayLayers;
-		SwapchainCreateInfo.surface = m_Surface;
+		m_Swapchain.queryCapabilities(SwapchainCreateInfo, std::move(Queries), m_PhysicalDevice->getPhysicalDevice(), m_Surface);
 		
 		if(GraphicsPresent && !m_PhysicalDevice->graphicsQueueCanPresent())
 		{
@@ -329,14 +385,14 @@ namespace VT
 	{
 		return mDG_Pipeline.insert<vk::PipelineLayout>(m_LogicalDevice.createPipelineLayout(LayoutInfo),
 			std::move(Name), [&](auto& Layout) {m_LogicalDevice.destroyPipelineLayout(Layout); }
-		);
+		).second;
 	}
 
 	bool Renderer::createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo)
 	{
 		return mDG_Pipeline.insert<vk::RenderPass>(m_LogicalDevice.createRenderPass(RenderPassInfo),
 			std::move(Name), [&](auto& Renderpass) {m_LogicalDevice.destroyRenderPass(Renderpass); }
-		);
+		).second;
 	}
 
 	bool Renderer::createGraphicsPipeline(
@@ -394,7 +450,8 @@ namespace VT
 		// check Pipeline result
 		if (Result != vk::Result::eSuccess) { return false; }
 
-		return (mDG_Pipeline.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }) &&
+		return
+		(mDG_Pipeline.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
 			mDG_Pipeline.addDependency<vk::Pipeline, vk::PipelineLayout>(GraphicsPipelineName, PipelineLayoutName) &&
 			mDG_Pipeline.addDependency<vk::Pipeline, vk::RenderPass>(GraphicsPipelineName, RenderPassName));
     }
@@ -406,7 +463,8 @@ namespace VT
 
 	Renderer::~Renderer()
 	{
-		destroy();
+		m_LogicalDevice.destroySemaphore(ImageAvailable);
+		m_LogicalDevice.destroySemaphore(RenderFinished);
 	}
 
 
@@ -418,7 +476,6 @@ namespace VT
 
 	void Renderer::destroy() noexcept
 	{
-		m_LogicalDevice.destroySwapchainKHR(m_Swapchain.getSwapchain());
 	}
 }
 

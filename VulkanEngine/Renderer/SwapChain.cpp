@@ -1,5 +1,4 @@
 #include "SwapChain.h"
-#include "Swapchain.h"
 
 #include <unordered_set>
 #include <algorithm>
@@ -8,31 +7,45 @@
 
 namespace VT
 {
-	Swapchain::Capabilities Swapchain::queryCapabilities(Capabilities preferredCapabilities, PhysicalDevice const* PD,
+	void Swapchain::queryCapabilities(vk::SwapchainCreateInfoKHR& Info, Capabilities preferredCapabilities, vk::PhysicalDevice PD,
 		vk::SurfaceKHR Surface) const
 	{
-		preferredCapabilities.surfaceFormat = { findSurfaceFormat(PD->getPhysicalDevice().getSurfaceFormatsKHR(Surface), preferredCapabilities.surfaceFormat) };
-		preferredCapabilities.presentMode = { findPresentMode(PD->getPhysicalDevice().getSurfacePresentModesKHR(Surface), preferredCapabilities.presentMode) };
+		Info.surface = Surface;
 
-		const auto DeviceSurfaceCapabilities = PD->getPhysicalDevice().getSurfaceCapabilitiesKHR(Surface);
+		// Surface format
+		const auto SurfaceFormat = findSurfaceFormat(PD.getSurfaceFormatsKHR(Surface), preferredCapabilities.surfaceFormat);
+		Info.imageFormat = SurfaceFormat.format;
+		Info.imageColorSpace = SurfaceFormat.colorSpace;
 
-		preferredCapabilities.arrayLayers = std::clamp(preferredCapabilities.arrayLayers, preferredCapabilities.arrayLayers, DeviceSurfaceCapabilities.maxImageArrayLayers);
+		// present mode
+		Info.presentMode = findPresentMode(PD.getSurfacePresentModesKHR(Surface), preferredCapabilities.presentMode);;
 
+		// image count
+		const auto& DeviceSurfaceCapabilities = PD.getSurfaceCapabilitiesKHR(Surface);
 		// max Image count = 0 means no upper bound
-		if (DeviceSurfaceCapabilities.maxImageCount > 0) 
-		{ preferredCapabilities.minImageCount = std::clamp(preferredCapabilities.minImageCount, DeviceSurfaceCapabilities.minImageCount, DeviceSurfaceCapabilities.maxImageCount); }
-		else { preferredCapabilities.minImageCount = preferredCapabilities.minImageCount < DeviceSurfaceCapabilities.minImageCount ? DeviceSurfaceCapabilities.minImageCount : preferredCapabilities.minImageCount; }
+		if (DeviceSurfaceCapabilities.maxImageCount > 0)
+		{
+			Info.minImageCount = std::clamp(preferredCapabilities.minImageCount, DeviceSurfaceCapabilities.minImageCount, DeviceSurfaceCapabilities.maxImageCount);
+		}
+		else if (preferredCapabilities.minImageCount < DeviceSurfaceCapabilities.minImageCount)
+		{
+			Info.minImageCount = DeviceSurfaceCapabilities.minImageCount;
+		}
 
+		// Image extent
 		// undefined surface size, set it to image size requested
 		if (DeviceSurfaceCapabilities.currentExtent.width == std::numeric_limits<std::uint32_t>::max())
 		{
-			preferredCapabilities.imageExtent =
+			Info.imageExtent =
 			{
 				std::clamp(preferredCapabilities.imageExtent.width, DeviceSurfaceCapabilities.minImageExtent.width, DeviceSurfaceCapabilities.maxImageExtent.width),
 				std::clamp(preferredCapabilities.imageExtent.height, DeviceSurfaceCapabilities.minImageExtent.height, DeviceSurfaceCapabilities.maxImageExtent.height)
 			};
 		}
-		else { preferredCapabilities.imageExtent = DeviceSurfaceCapabilities.currentExtent; }
+		else { Info.imageExtent = DeviceSurfaceCapabilities.currentExtent; }
+
+		// Array layers
+		Info.imageArrayLayers = std::clamp(preferredCapabilities.arrayLayers, preferredCapabilities.arrayLayers, DeviceSurfaceCapabilities.maxImageArrayLayers);
 
 		// Composite alpha
 		{
@@ -45,7 +58,7 @@ namespace VT
 				})
 			};
 
-			preferredCapabilities.compositeAlpha =
+			Info.compositeAlpha =
 			{
 				preferredCapabilities.compositeAlpha
 				[
@@ -68,7 +81,7 @@ namespace VT
 			};
 
 
-			preferredCapabilities.surfaceTransform =
+			Info.preTransform =
 			{
 				preferredCapabilities.surfaceTransform
 				[
@@ -78,8 +91,6 @@ namespace VT
 			};
 
 		}
-
-		return preferredCapabilities;
 	}
 
 	vk::SwapchainKHR Swapchain::getSwapchain() const noexcept { return m_Swapchain; }
@@ -89,13 +100,16 @@ namespace VT
 	void Swapchain::createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 	{
 		m_Swapchain = LogicalDevice.createSwapchainKHR(SwapchainCreateInfo);
-		m_SwapchinCreateInfo = std::move(SwapchainCreateInfo);
+		Created = true;
+		m_SwapchinCreateInfo = SwapchainCreateInfo;
+		m_Device = LogicalDevice;
 	}
 
-	void Swapchain::destroySwapchain(vk::Device LogicalDevice)
+	Swapchain::~Swapchain()
 	{
-		LogicalDevice.destroySwapchainKHR(m_Swapchain);
+		if (Created) { m_Device.destroySwapchainKHR(m_Swapchain); }
 	}
+
 
 	/* ====================================================================
 	*							Private
@@ -104,6 +118,8 @@ namespace VT
 
 	vk::SurfaceFormatKHR Swapchain::findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& PreferredSurfaceFormat) const
 	{
+		if (SupportedSurfaceFormats[0] == PreferredSurfaceFormat[0]) { return SupportedSurfaceFormats[0]; }
+
 		std::unordered_set<vk::SurfaceFormatKHR> SSF{ SupportedSurfaceFormats.cbegin(), SupportedSurfaceFormats.cend() };
 
 		for (const auto& SF : PreferredSurfaceFormat)
@@ -119,6 +135,8 @@ namespace VT
 
 	vk::PresentModeKHR Swapchain::findPresentMode(const std::vector<vk::PresentModeKHR>& SupportedPresentMode, const std::vector<vk::PresentModeKHR>& PreferredPresentModes) const
 	{
+		if (SupportedPresentMode[0] == PreferredPresentModes[0]) { return SupportedPresentMode[0]; }
+
 		std::unordered_set<vk::PresentModeKHR> SPM{ SupportedPresentMode.cbegin(), SupportedPresentMode.cend() };
 
 		for (const auto& PM : PreferredPresentModes)

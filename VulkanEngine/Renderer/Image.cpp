@@ -4,7 +4,7 @@ namespace VT
 {
 	void Image::create(const vk::ImageCreateInfo& ImageInfo, vk::ImageViewCreateInfo ViewCreateInfo, vk::Device LogicalDevice)
 	{
-		m_LogicalDevice = std::move(LogicalDevice);
+		m_LogicalDevice = LogicalDevice;
 
 		m_Image = m_LogicalDevice.createImage(ImageInfo);
 		if (!m_Image) { throw std::runtime_error("Failed to create image"); }

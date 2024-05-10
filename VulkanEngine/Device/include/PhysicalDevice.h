@@ -34,6 +34,10 @@ namespace VT
 			const float& GraphicsQPriority, const uint32_t& MinGraphicsQCount, 
 			const float& PresentQPriority, const uint32_t& MinPresentQCount);
 
+		/**
+		 * 
+		 * @return { queueFamilyIndex, PresentQueue index }
+		 */
 		std::array<uint32_t, 2> getGraphicsPresentQueueIndices() const;
 
 		bool graphicsQueueCanPresent() const;

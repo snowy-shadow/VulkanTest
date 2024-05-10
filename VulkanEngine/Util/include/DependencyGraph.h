@@ -101,12 +101,12 @@ namespace VT::DependencyGraphImpl
 			return DependencyList.erase(Dependency) == 1;
 		}
 
-		const std::unordered_set<DependencyGraphNodeBase*>& getDependencyList() const
+		auto getDependencyList() const -> const std::unordered_set<DependencyGraphNodeBase*>&
 		{
 			return DependencyList;
 		}
 
-		const T& getItem() const
+		T& getItem()
 		{
 			return Item;
 		}
@@ -148,17 +148,19 @@ namespace VT
 		 * @tparam U : target node type
 		 * @param NodeName : name
 		 * @param Destructor : destructor
-		 * @return : true if successfully inserted
+		 * @return : pair{ unordered_map<std::string, Target>::const_iterator, bool }
 		 */
 		template<typename Target>
 			requires std::movable<Target>
-		bool insert(Target&& Obj, std::string NodeName, std::function<void(Target&)> Destructor = [](){})
+		std::pair<Target&, bool> insert(Target&& Obj, std::string NodeName, std::function<void(Target&)> Destructor = [](void(Target&)){})
 		{
 			using TargetType = DependencyGraphImpl::DependencyGraphNode_T_List<Target>;
 
 			auto& Head{ std::get<TargetType>(m_Nodes) };
 
-			return Head.T_Map.try_emplace(std::move(NodeName), std::forward<Target>(Obj), Head.MinRefCount, std::forward<std::function<void(Target&)>>(Destructor)).second;
+			auto Result = Head.T_Map.try_emplace(std::move(NodeName), std::forward<Target>(Obj), Head.MinRefCount, std::forward<std::function<void(Target&)>>(Destructor));
+
+			return { Result.first->second.getItem(), Result.second };
 		}
 
 		/**
@@ -259,7 +261,7 @@ namespace VT
 		 * @return : item
 		 */
 		template<typename Target>
-		const Target& get(const std::string& NodeName)
+		Target& get(const std::string& NodeName)
 		{
 			using TargetType = DependencyGraphImpl::DependencyGraphNode_T_List<Target>;
 

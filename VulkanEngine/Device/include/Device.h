@@ -4,7 +4,6 @@
 
 // enable aggregate initialization
 #define VULKAN_HPP_NO_CONSTRUCTORS
-#include <vulkan/vulkan_structs.hpp>
 #include <unordered_map>
 
 #define GLFW_INCLUDE_NONE
