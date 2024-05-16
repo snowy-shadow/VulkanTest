@@ -2,7 +2,7 @@
 project ("Renderer" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan front end")
 
 add_library(${PROJECT_NAME}
-"Image.cpp"
+"ImageGroup.cpp"
 "Renderer.cpp"
 "SwapChain.cpp"
 "Window.cpp"

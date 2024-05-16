@@ -13,14 +13,129 @@ namespace VT
 	{
 		createMainSwapChain();
 		createMainGraphicsPipeline();
-
 		ImageAvailable = m_LogicalDevice.createSemaphore({});
 		RenderFinished = m_LogicalDevice.createSemaphore({});
+		Fence = m_LogicalDevice.createFence({.flags = vk::FenceCreateFlagBits::eSignaled});
 
-		auto& Buffer = createCommandBuffer();
-
+		createCommandBuffer();
 		createImage();
 
+
+	}
+
+	void Renderer::update()
+	{
+		/* =============================================================================================================
+		 *									Setup
+		 * =============================================================================================================
+		 */
+		vk::resultCheck(m_LogicalDevice.waitForFences(Fence, true, std::numeric_limits<uint64_t>::max()), "Fence wait timed out\n");
+
+		auto [Result, CurrentFrameImage] = m_LogicalDevice.acquireNextImageKHR(
+			m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchain(),
+			std::numeric_limits<uint64_t>::max(),
+			ImageAvailable,
+			VK_NULL_HANDLE);
+		switch (Result)
+		{
+		case vk::Result::eSuccess:
+			break;
+		case vk::Result::eSuboptimalKHR:
+			break;
+		case vk::Result::eErrorOutOfDateKHR:
+			// change window size
+			break;
+
+		default:
+			throw std::runtime_error("Acquire Next Image error");
+			break;
+		}
+
+		// reset
+		auto& CommandBuffer = m_DependencyGraph.get<std::vector<vk::CommandBuffer>>("CB").at(m_CurrentFrame);
+		CommandBuffer.reset();
+		m_LogicalDevice.resetFences(Fence);
+
+		/* =============================================================================================================
+		 *									Render Prep
+		 * =============================================================================================================
+		 */
+		Swapchain SC = m_DependencyGraph.get<Swapchain>("SwapChain");
+
+		// CmdBuffer setup
+		CommandBuffer.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
+
+		recordRenderPass(CommandBuffer, CurrentFrameImage);
+		CommandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_DependencyGraph.get<vk::Pipeline>("Main Pipeline"));
+
+		// dynamic states
+		vk::Viewport ViewPort
+		{
+			.x = 0.f,
+			.y = 0.f,
+			.width = static_cast<float>(SC.getSwapchainCreateInfo().imageExtent.width),
+			.height = static_cast<float>(SC.getSwapchainCreateInfo().imageExtent.height),
+			.minDepth = 0.f,
+			.maxDepth = 1.f
+		};
+		vk::Rect2D Scissor
+		{
+			.offset = { 0,0 },
+			.extent = SC.getSwapchainCreateInfo().imageExtent
+		};
+		CommandBuffer.setViewport(0, ViewPort);
+		CommandBuffer.setScissor(0, Scissor);
+		// end dynamic states
+
+		CommandBuffer.draw(3, 1, 0, 0);
+
+		CommandBuffer.endRenderPass();
+		CommandBuffer.end();
+		// End CB recording
+
+		// Queue submit
+		vk::Queue& Queue = m_DependencyGraph.get<vk::Queue>("Graphics+PresentQueue");
+		vk::PipelineStageFlags RenderWaitMask[]{ vk::PipelineStageFlagBits::eColorAttachmentOutput };
+		vk::SubmitInfo RenderSubmit
+		{
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &ImageAvailable,
+			.pWaitDstStageMask = &RenderWaitMask[0],
+			.commandBufferCount = 1,
+			.pCommandBuffers = &CommandBuffer,
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = &RenderFinished
+		};
+		Queue.submit(RenderSubmit);
+		// end Queue submit
+
+		// Present Image
+		vk::SwapchainKHR Swapchain = SC.getSwapchain();
+		vk::PresentInfoKHR PresentInfo
+		{
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &RenderFinished,
+			.swapchainCount = 1,
+			.pSwapchains = &Swapchain,
+			.pImageIndices = &m_CurrentFrame
+		};
+
+		switch (Queue.presentKHR(PresentInfo))
+		{
+			case vk::Result::eSuccess:
+				break;
+			case vk::Result::eSuboptimalKHR:
+				break;
+			case vk::Result::eErrorOutOfDateKHR:
+				// change window size
+				break;
+
+			default:
+				throw std::runtime_error("Acquire Next Image error");
+				break;
+		}
+		// end present image
+		m_CurrentFrame = ++m_CurrentFrame % m_MaxFrameCount;
 	}
 
 	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
@@ -64,7 +179,7 @@ namespace VT
 				.stride = sizeof(float) * (3 + 3 + 2),
 				.inputRate = vk::VertexInputRate::eVertex
 			}
-	} };
+		} };
 
 		std::array<vk::VertexInputAttributeDescription, 3> VertexAttributes
 		{ {
@@ -90,10 +205,9 @@ namespace VT
 				.format = vk::Format::eR32G32Sfloat,
 				.offset = sizeof(float) * (3 + 3)
 			},
-	} };
+		} };
 
-
-		const auto& SwapchainInfo{ m_Swapchain.getSwapchainCreateInfo().imageExtent };
+		const auto& SwapchainInfo{ m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent};
 
 		vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo
 		{
@@ -207,11 +321,11 @@ namespace VT
 
 		// vk::PipelineLayout PipelineLayout{};
 
-
+		const auto& SC = m_DependencyGraph.get<Swapchain>("SwapChain");
 		std::array<vk::AttachmentDescription, 1> Attachements
 		{ {
 			{
-				.format = m_Swapchain.getSwapchainCreateInfo().imageFormat,
+				.format = SC.getSwapchainCreateInfo().imageFormat,
 				.samples = vk::SampleCountFlagBits::e1,
 				.loadOp = vk::AttachmentLoadOp::eDontCare,
 				.storeOp = vk::AttachmentStoreOp::eStore,
@@ -293,7 +407,7 @@ namespace VT
 
 		Swapchain::Capabilities SwapchainQueries
 		{
-			.minImageCount = 2,
+			.minImageCount = m_MaxFrameCount,
 			.imageExtent = {static_cast<unsigned int>(Width), static_cast<unsigned int>(Height)},
 			.arrayLayers = 1,
 			.surfaceFormat = {{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}},
@@ -302,13 +416,22 @@ namespace VT
 			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque},
 		};
 
-		createSwapChain(true, {.imageUsage = vk::ImageUsageFlagBits::eColorAttachment }, std::move(SwapchainQueries));
+		createSwapChain(true, { .imageUsage = vk::ImageUsageFlagBits::eColorAttachment }, std::move(SwapchainQueries));
+
+		auto [QueueFamilyIndex, QueueIndex] = m_PhysicalDevice->getGraphicsPresentQueueIndices();
+
+		m_DependencyGraph.insert<vk::Queue>(m_LogicalDevice.getQueue(QueueFamilyIndex, QueueIndex), "Graphics+PresentQueue");
 	}
 
 	std::vector<vk::CommandBuffer>& Renderer::createCommandBuffer()
 	{
-		const auto& CP = mDG_CommandPool.insert<vk::CommandPool>
-		(m_LogicalDevice.createCommandPool({ .queueFamilyIndex = m_PhysicalDevice->getGraphicsPresentQueueIndices()[0] }),
+		const auto& CP = m_DependencyGraph.insert<vk::CommandPool>
+		(
+			m_LogicalDevice.createCommandPool(
+			{
+				.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+				.queueFamilyIndex = m_PhysicalDevice->getGraphicsPresentQueueIndices().first
+			}),
 			"CommandPool",
 			[&](vk::CommandPool& Pool) { m_LogicalDevice.destroyCommandPool(Pool); }
 		);
@@ -322,7 +445,7 @@ namespace VT
 			.commandBufferCount = 2
 		};
 
-		auto& Buffers = mDG_CommandPool.insert<std::vector<vk::CommandBuffer>>
+		auto& Buffers = m_DependencyGraph.insert<std::vector<vk::CommandBuffer>>
 		(m_LogicalDevice.allocateCommandBuffers(CommandBufferInfo),
 			"CB",
 			[&, &CP = CP.first](std::vector<vk::CommandBuffer>& CB)
@@ -331,7 +454,7 @@ namespace VT
 			}
 		).first;
 
-		if(!mDG_CommandPool.addDependency<std::vector<vk::CommandBuffer>, vk::CommandPool>("CB", "CommandPool"))
+		if(!m_DependencyGraph.addDependency<std::vector<vk::CommandBuffer>, vk::CommandPool>("CB", "CommandPool"))
 		{
 			throw std::runtime_error("Failed to add command pool dependency");
 		}
@@ -341,56 +464,132 @@ namespace VT
 
 	void Renderer::createImage()
 	{
-		auto Images = m_LogicalDevice.getSwapchainImagesKHR(m_Swapchain.getSwapchain());
-		auto SC_Info = m_Swapchain.getSwapchainCreateInfo();
+		const auto& SC = m_DependencyGraph.get<Swapchain>("SwapChain");
+		const auto& SC_Info = SC.getSwapchainCreateInfo();
+
+		// Image group setup
+		auto SC_Images = m_LogicalDevice.getSwapchainImagesKHR(SC.getSwapchain());
+
 		vk::ImageViewCreateInfo ImageViewInfo
 		{
 			.viewType = vk::ImageViewType::e2D,
 			.format = SC_Info.imageFormat,
-			.
-
+			.components = {},
+			.subresourceRange =
+			{
+				.aspectMask = vk::ImageAspectFlagBits::eColor,
+				.baseMipLevel = 0,
+				.levelCount = 1,
+				.baseArrayLayer = 0,
+				.layerCount = 1
+			}
 		};
-		for(auto i : Images)
-		{
-			
-		}
 
-
+		// Framebuffer info
 		vk::FramebufferCreateInfo FB_Info
 		{
-			.renderPass = mDG_Pipeline.get<vk::RenderPass>("Main RenderPass"),
-			.attachmentCount = static_cast<uint32_t>(Images.size()),
-			.pAttachments = Images.data(),
+			.renderPass = m_DependencyGraph.get<vk::RenderPass>("Main RenderPass"),
+			.width = SC_Info.imageExtent.width,
+			.height = SC_Info.imageExtent.height,
+			.layers = 1
+		};
 
+		for(size_t i = 0; i < SC_Images.size(); i++)
+		{
+			ImageGroup& Img = m_Images.emplace_back();
+			Img.bindDevice(m_LogicalDevice);
 
+			// insert image
+			Img.Images.emplace_back(SC_Images[i]);
+
+			// create image view
+			std::array ViewInfo = { ImageViewInfo };
+			ViewInfo[0].image = Img.Images[0];
+			Img.createViews(ViewInfo);
+
+			// fill in framebuffer info
+			FB_Info.attachmentCount = static_cast<uint32_t>(Img.ImageViews.size());
+			FB_Info.pAttachments = Img.ImageViews.data();
+
+			// insert into graph
+			if(!m_DependencyGraph.insert<vk::Framebuffer>
+			(
+				m_LogicalDevice.createFramebuffer(FB_Info),
+				"SwapChain FrameBuffer" + std::to_string(i),
+				[&](vk::Framebuffer& FB) { m_LogicalDevice.destroyFramebuffer(FB); }
+			).second)
+			{
+				throw std::runtime_error("Failed insert framebuffer");
+			}
+
+			if(!m_DependencyGraph.addDependency<vk::Framebuffer, Swapchain>("SwapChain FrameBuffer" + std::to_string(i), "SwapChain"))
+			{
+				throw std::runtime_error("Failed to add Swapchain dependency to framebuffer");
+			}
 		}
+
+		
 	}
 
+	void Renderer::recordRenderPass(const vk::CommandBuffer& CB, uint32_t Frame)
+	{
+		std::array<vk::ClearValue, 1> ClearColor
+		{ {
+				{
+					.color =
+				{
+						.float32 = {{0.f, 0.f, 0.f, 1.f} }
+					}
+				}
+		} };
+
+		vk::RenderPassBeginInfo RenderPassBeginInfo
+		{
+			.renderPass = m_DependencyGraph.get<vk::RenderPass>("Main RenderPass"),
+
+			.renderArea =
+			{
+				.offset = {0, 0},
+				.extent = m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent
+			},
+
+			.clearValueCount = static_cast<uint32_t>(ClearColor.size()),
+			.pClearValues = ClearColor.data()
+		};
+
+		RenderPassBeginInfo.framebuffer = m_DependencyGraph.get<vk::Framebuffer>("SwapChain FrameBuffer" + std::to_string(Frame));
+		CB.beginRenderPass(RenderPassBeginInfo, {});
+	}
 
 	void Renderer::createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries)
 	{
-		m_Swapchain.queryCapabilities(SwapchainCreateInfo, std::move(Queries), m_PhysicalDevice->getPhysicalDevice(), m_Surface);
-		
+		auto& SwapChain = m_DependencyGraph.insert<Swapchain>({}, "SwapChain").first;
+
+		SwapChain.queryCapabilities(SwapchainCreateInfo, std::move(Queries), m_PhysicalDevice->getPhysicalDevice(), m_Surface);
+
+		uint32_t QueueFamilyIndices[]{ m_PhysicalDevice->getGraphicsPresentQueueIndices().first };
 		if(GraphicsPresent && !m_PhysicalDevice->graphicsQueueCanPresent())
 		{
+
 			SwapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-			SwapchainCreateInfo.queueFamilyIndexCount = static_cast<uint32_t>(m_PhysicalDevice->getGraphicsPresentQueueIndices().size());
-			SwapchainCreateInfo.pQueueFamilyIndices = m_PhysicalDevice->getGraphicsPresentQueueIndices().data();
+			SwapchainCreateInfo.queueFamilyIndexCount = 1;
+			SwapchainCreateInfo.pQueueFamilyIndices = QueueFamilyIndices;
 		}
 
-		m_Swapchain.createSwapchain(SwapchainCreateInfo, m_LogicalDevice);
+		SwapChain.createSwapchain(SwapchainCreateInfo, m_LogicalDevice);
+		m_MaxFrameCount = SwapchainCreateInfo.minImageCount;
 	}
 
 	bool Renderer::createPipelineLayout(std::string Name, const vk::PipelineLayoutCreateInfo& LayoutInfo)
 	{
-		return mDG_Pipeline.insert<vk::PipelineLayout>(m_LogicalDevice.createPipelineLayout(LayoutInfo),
+		return m_DependencyGraph.insert<vk::PipelineLayout>(m_LogicalDevice.createPipelineLayout(LayoutInfo),
 			std::move(Name), [&](auto& Layout) {m_LogicalDevice.destroyPipelineLayout(Layout); }
 		).second;
 	}
 
 	bool Renderer::createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo)
 	{
-		return mDG_Pipeline.insert<vk::RenderPass>(m_LogicalDevice.createRenderPass(RenderPassInfo),
+		return m_DependencyGraph.insert<vk::RenderPass>(m_LogicalDevice.createRenderPass(RenderPassInfo),
 			std::move(Name), [&](auto& Renderpass) {m_LogicalDevice.destroyRenderPass(Renderpass); }
 		).second;
 	}
@@ -404,9 +603,9 @@ namespace VT
     {
 		// cannot have name collision
 		if(!m_LogicalDevice
-			|| mDG_Pipeline.has<vk::Pipeline>(GraphicsPipelineName)			// if name collision
-			|| !mDG_Pipeline.has<vk::PipelineLayout>(PipelineLayoutName)	// dependent type not found
-			|| !mDG_Pipeline.has<vk::RenderPass>(RenderPassName))			// dependent type not found
+			|| m_DependencyGraph.has<vk::Pipeline>(GraphicsPipelineName)			// if name collision
+			|| !m_DependencyGraph.has<vk::PipelineLayout>(PipelineLayoutName)	// dependent type not found
+			|| !m_DependencyGraph.has<vk::RenderPass>(RenderPassName))			// dependent type not found
 		{
 			return false;
 		}
@@ -439,8 +638,8 @@ namespace VT
 		PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStageInfos.size());
 		PipelineInfo.pStages = ShaderStageInfos.data();
 
-		PipelineInfo.renderPass = mDG_Pipeline.get<vk::RenderPass>(RenderPassName);
-		PipelineInfo.layout = mDG_Pipeline.get<vk::PipelineLayout>(PipelineLayoutName);
+		PipelineInfo.renderPass = m_DependencyGraph.get<vk::RenderPass>(RenderPassName);
+		PipelineInfo.layout = m_DependencyGraph.get<vk::PipelineLayout>(PipelineLayoutName);
 
 		auto [Result, Pipeline] = m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo);
 
@@ -451,20 +650,17 @@ namespace VT
 		if (Result != vk::Result::eSuccess) { return false; }
 
 		return
-		(mDG_Pipeline.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
-			mDG_Pipeline.addDependency<vk::Pipeline, vk::PipelineLayout>(GraphicsPipelineName, PipelineLayoutName) &&
-			mDG_Pipeline.addDependency<vk::Pipeline, vk::RenderPass>(GraphicsPipelineName, RenderPassName));
+		(m_DependencyGraph.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
+			m_DependencyGraph.addDependency<vk::Pipeline, vk::PipelineLayout>(GraphicsPipelineName, PipelineLayoutName) &&
+			m_DependencyGraph.addDependency<vk::Pipeline, vk::RenderPass>(GraphicsPipelineName, RenderPassName));
     }
 
-	void Renderer::update()
-	{
-
-	}
 
 	Renderer::~Renderer()
 	{
 		m_LogicalDevice.destroySemaphore(ImageAvailable);
 		m_LogicalDevice.destroySemaphore(RenderFinished);
+		m_LogicalDevice.destroyFence(Fence);
 	}
 
 

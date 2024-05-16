@@ -155,15 +155,20 @@ namespace  VT
 		throw std::runtime_error("Cannot find present queue");
 	}
 
-	std::array<uint32_t, 2> PhysicalDevice::getGraphicsPresentQueueIndices() const
+	std::pair<uint32_t, uint32_t> PhysicalDevice::getGraphicsPresentQueueIndices() const
 	{
 		assert(m_GraphicsQueue.has_value());
-		return { { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue } };
+		return { m_GraphicsQueue->queueFamilyIndex, m_PresentQueue };
 	}
 
 	bool PhysicalDevice::graphicsQueueCanPresent() const
 	{
 		return m_GraphicsCanPresent;
+	}
+
+	std::vector<vk::DeviceQueueCreateInfo> PhysicalDevice::getDeviceQueues() const
+	{
+		return m_DeviceQueues;
 	}
 
 

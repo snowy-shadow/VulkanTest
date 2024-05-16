@@ -14,7 +14,7 @@ namespace VT
 		void run();
 
 	private:
-
+		
 		Instance m_VulkanInstance;
 		Device m_VulkanDevice;
 		Renderer m_Renderer;

@@ -144,15 +144,16 @@ namespace VT
 	{
 	public:
 		/**
-		 * insert a new node into graph
-		 * @tparam U : target node type
-		 * @param NodeName : name
-		 * @param Destructor : destructor
-		 * @return : pair{ unordered_map<std::string, Target>::const_iterator, bool }
+		 * 
+		 * @tparam Target : type of Obj
+		 * @param Obj : Obj of type Target to insert
+		 * @param NodeName : Name of obj
+		 * @param Destructor : called when obj is removed from graph
+		 * @return 
 		 */
 		template<typename Target>
 			requires std::movable<Target>
-		std::pair<Target&, bool> insert(Target&& Obj, std::string NodeName, std::function<void(Target&)> Destructor = [](void(Target&)){})
+		std::pair<Target&, bool> insert(Target&& Obj, std::string NodeName, std::function<void(Target&)> Destructor = [](Target&){})
 		{
 			using TargetType = DependencyGraphImpl::DependencyGraphNode_T_List<Target>;
 
@@ -268,6 +269,21 @@ namespace VT
 			return std::get<TargetType>(m_Nodes).T_Map.at(NodeName).getItem();
 		}
 
+		template<typename Target>
+		std::vector<std::pair<std::string, Target&>> getItemList()
+		{
+			using TargetType = DependencyGraphImpl::DependencyGraphNode_T_List<Target>;
+
+			std::vector<std::pair<std::string, Target&>> List;
+			for(auto& kv : std::get<TargetType>(m_Nodes).T_Map)
+			{
+				
+				List.emplace_back(kv.first, kv.second.getItem());
+			}
+
+			return List;
+		}
+
 		/**
 		 * check if item exists in graph
 		 * @tparam Target 
@@ -281,6 +297,14 @@ namespace VT
 
 			auto& Map{ std::get<TargetType>(m_Nodes).T_Map };
 			return Map.find(NodeName) != Map.end();
+		}
+
+		template<typename Target>
+		std::size_t size()
+		{
+			using TargetType = DependencyGraphImpl::DependencyGraphNode_T_List<Target>;
+
+			return std::get<TargetType>(m_Nodes).T_Map.size();
 		}
 
 		~DependencyGraph()

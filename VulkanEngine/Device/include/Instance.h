@@ -29,15 +29,6 @@ namespace VT
 	private:
 		bool static isSupported(std::span<const char*> RequiredExtensions = {}, std::span<const char*> RequiredLayers = {});
 
-		enum ObjectConstructed : uint8_t
-		{
-			eInstance = 0b1,
-#ifndef NDEBUG
-			eDebugMessenger = 0b10,
-#endif
-		};
-		uint8_t m_ObjectConstructedMask{0};
-	
 		vk::Instance m_VulkanInstance;
 
 #ifndef NDEBUG

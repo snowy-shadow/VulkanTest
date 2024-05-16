@@ -15,8 +15,6 @@ namespace VT
 			throw std::runtime_error("Failed to create window surface");
 		}
 
-		m_ObjectConstructedMask |= ObjectConstructed::eSurface;
-	
 		// find device
 		if (!m_PhysicalDevice.findPhysicalDevice(m_VulkanInstance.enumeratePhysicalDevices(), RequiredExtensions)) { throw std::runtime_error("Cannot find compatible physical device"); }
 
@@ -47,7 +45,7 @@ namespace VT
 
 	Device::~Device()
 	{
-		if (m_ObjectConstructedMask & ObjectConstructed::eSurface) { m_VulkanInstance.destroySurfaceKHR(m_Surface); }
+		if (m_Surface != VK_NULL_HANDLE) { m_VulkanInstance.destroySurfaceKHR(m_Surface); }
 
 		for(auto& D : m_LogicalDevices | std::views::values) { D.destroy(); }
 	}

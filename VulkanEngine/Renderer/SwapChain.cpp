@@ -100,9 +100,9 @@ namespace VT
 	void Swapchain::createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 	{
 		m_Swapchain = LogicalDevice.createSwapchainKHR(SwapchainCreateInfo);
-		Created = true;
-		m_SwapchinCreateInfo = SwapchainCreateInfo;
+		m_SwapchinCreateInfo = std::move(SwapchainCreateInfo);
 		m_Device = LogicalDevice;
+		Created = true;
 	}
 
 	Swapchain::~Swapchain()

@@ -38,9 +38,14 @@ namespace VT
 		 * 
 		 * @return { queueFamilyIndex, PresentQueue index }
 		 */
-		std::array<uint32_t, 2> getGraphicsPresentQueueIndices() const;
+		std::pair<uint32_t, uint32_t> getGraphicsPresentQueueIndices() const;
 
 		bool graphicsQueueCanPresent() const;
+
+		/**
+		 * get Device queues
+		 */
+		std::vector<vk::DeviceQueueCreateInfo> getDeviceQueues() const;
 
 		PhysicalDevice() = default;
 		PhysicalDevice(PhysicalDevice&) = delete;

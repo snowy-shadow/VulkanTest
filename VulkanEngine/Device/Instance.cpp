@@ -38,7 +38,6 @@ namespace VT
 		};
 
 		m_VulkanInstance = vk::createInstance(InstanceCreateInfo);
-		m_ObjectConstructedMask = ObjectConstructed::eInstance;
 
 #ifndef NDEBUG
 		m_DLD_Instance = vk::DispatchLoaderDynamic(m_VulkanInstance, vkGetInstanceProcAddr);
@@ -46,7 +45,6 @@ namespace VT
 		m_DebugMessenger = VT::createDebugMessenger(m_VulkanInstance, m_DLD_Instance,
 			vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
 			vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance);
-		m_ObjectConstructedMask = ObjectConstructed::eDebugMessenger;
 #endif
 	}
 	
@@ -56,11 +54,11 @@ namespace VT
 	{
 		
 #ifndef NDEBUG
-		if(m_ObjectConstructedMask & ObjectConstructed::eDebugMessenger) 
+		if(m_DebugMessenger != VK_NULL_HANDLE) 
 		{ m_VulkanInstance.destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, m_DLD_Instance); }
 #endif
 		
-		if(m_ObjectConstructedMask & ObjectConstructed::eInstance) { m_VulkanInstance.destroy(); }
+		if(m_VulkanInstance != VK_NULL_HANDLE) { m_VulkanInstance.destroy(); }
 	}
 
 	/* ==========================================

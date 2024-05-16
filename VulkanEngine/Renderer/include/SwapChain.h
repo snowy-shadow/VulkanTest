@@ -34,6 +34,8 @@ namespace VT
 	
 		void createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
 
+		void recreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
+
 		~Swapchain();
 
 	private:

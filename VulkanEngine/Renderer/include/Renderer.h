@@ -9,6 +9,7 @@
 #include "PhysicalDevice.h"
 #include "ShaderCompiler.h"
 #include "DependencyGraph.h"
+#include "ImageGroup.h"
 
 namespace VT
 {
@@ -35,6 +36,7 @@ namespace VT
 		void createMainSwapChain();
 		std::vector<vk::CommandBuffer>& createCommandBuffer();
 		void createImage();
+		void recordRenderPass(const vk::CommandBuffer& CB, uint32_t Frame);
 
 		// General Helper
 		void createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
@@ -57,17 +59,20 @@ namespace VT
 			const std::string& RenderPassName);
 
 		void destroy() noexcept;
-	
 
-		Swapchain m_Swapchain;
-
+		std::vector<ImageGroup> m_Images;
 		vk::Semaphore ImageAvailable, RenderFinished;
+		vk::Fence Fence;
 
-		// Pipeline
-		DependencyGraph<vk::Pipeline, vk::PipelineLayout, vk::RenderPass> mDG_Pipeline;
+		// SwapChain
+		DependencyGraph<
+			vk::Pipeline, vk::PipelineLayout, vk::RenderPass,
+			vk::CommandPool, std::vector<vk::CommandBuffer>, vk::Queue,
+			Swapchain, vk::Framebuffer>
+		m_DependencyGraph;
 
-		// CommandPool
-		DependencyGraph<vk::CommandPool, std::vector<vk::CommandBuffer>> mDG_CommandPool;
+		uint32_t m_MaxFrameCount{ 2 };
+		uint32_t m_CurrentFrame{ 0 };
 		
 		// Handles
 		Window* m_Window{nullptr};
