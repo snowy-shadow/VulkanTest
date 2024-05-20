@@ -40,6 +40,16 @@ namespace VT
 		Other.m_Constructed = 0;
 	}
 
+	ImageGroup& ImageGroup::operator=(ImageGroup&& Other) noexcept
+	{
+		Images = std::move(Other.Images);
+		ImageViews = std::move(Other.ImageViews);
+		m_LogicalDevice = Other.m_LogicalDevice;
+		m_Constructed = Other.m_Constructed;
+		Other.m_Constructed = 0;
+		return *this;
+	}
+
 	ImageGroup::~ImageGroup()
 	{
 		if(m_Constructed & eImageView)

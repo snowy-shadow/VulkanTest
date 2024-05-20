@@ -1,9 +1,4 @@
-struct VertexInput
+float4 main([[vk::location(0)]] float3 Color : COLOR0) : SV_TARGET
 {
-    float3 Color : COLOR;
-};
-
-float4 main(VertexInput In) : COLOR
-{
-    return float4(In.Color, 1.0);
-};
+    return float4(Color, 1.0);
+}

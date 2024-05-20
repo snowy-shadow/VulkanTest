@@ -34,18 +34,28 @@ namespace VT
 	
 		void createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
 
+		/**
+		 * replace current swapchain with new one. sets SwapchainCreateInfo.oldSwapchin = current swapchain
+		 * @param SwapchainCreateInfo : create info
+		 * @param LogicalDevice : Logical device used to create swapchain
+		 */
 		void recreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
 
-		~Swapchain();
-
-	private:
 		vk::SurfaceFormatKHR findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& PreferredSurfaceFormat) const;
 		vk::PresentModeKHR findPresentMode(const std::vector<vk::PresentModeKHR>& SupportedPresentMode, const std::vector<vk::PresentModeKHR>& PreferredPresentModes) const;
 
+		Swapchain(Swapchain&& Other) noexcept;
+		Swapchain& operator = (Swapchain&& Other) noexcept;
+		Swapchain operator = (Swapchain&) = delete;
+		Swapchain(const Swapchain&) = delete;
+		~Swapchain();
+
+	private:
+		
 		vk::SwapchainCreateInfoKHR m_SwapchinCreateInfo;
 		// Obj
-		bool Created{false};
 		vk::SwapchainKHR m_Swapchain;
 		vk::Device m_Device;
+		bool Created{ false };
 	};
 }

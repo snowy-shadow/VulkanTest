@@ -19,6 +19,10 @@ namespace VT
 
 		ImageGroup() = default;
 		ImageGroup(ImageGroup&&) noexcept;
+		ImageGroup& operator = (ImageGroup&&) noexcept;
+
+		ImageGroup (const ImageGroup&) = delete;
+		ImageGroup operator = (const ImageGroup&) = delete;
 		~ImageGroup();
 
 		std::vector<vk::Image> Images;

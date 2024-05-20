@@ -4,9 +4,9 @@ project ("Renderer" VERSION 0.1 LANGUAGES CXX DESCRIPTION "Vulkan front end")
 add_library(${PROJECT_NAME}
 "ImageGroup.cpp"
 "Renderer.cpp"
-"SwapChain.cpp"
+"Swapchain.cpp"
 "Window.cpp"
-)
+  )
 
 set_property(TARGET ${PROJECT_NAME} 
 PROPERTY CXX_STANDARD 20)

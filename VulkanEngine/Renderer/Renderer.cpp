@@ -19,7 +19,7 @@ namespace VT
 
 		createCommandBuffer();
 		createImage();
-
+		createVertexBuffer();
 
 	}
 
@@ -30,25 +30,42 @@ namespace VT
 		 * =============================================================================================================
 		 */
 		vk::resultCheck(m_LogicalDevice.waitForFences(Fence, true, std::numeric_limits<uint64_t>::max()), "Fence wait timed out\n");
+		Swapchain& SC = m_DependencyGraph.get<Swapchain>("SwapChain");
 
-		auto [Result, CurrentFrameImage] = m_LogicalDevice.acquireNextImageKHR(
-			m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchain(),
-			std::numeric_limits<uint64_t>::max(),
-			ImageAvailable,
-			VK_NULL_HANDLE);
-		switch (Result)
+		vk::Result Result;
+		uint32_t CurrentFrameImage;
+		bool SwapChainRecreate{ false };
 		{
-		case vk::Result::eSuccess:
-			break;
-		case vk::Result::eSuboptimalKHR:
-			break;
-		case vk::Result::eErrorOutOfDateKHR:
-			// change window size
-			break;
+			try
+			{
+				std::tie(Result, CurrentFrameImage) = m_LogicalDevice.acquireNextImageKHR(
+					SC.getSwapchain(),
+					std::numeric_limits<uint64_t>::max(),
+					ImageAvailable,
+					VK_NULL_HANDLE);
+			}
+			catch (const std::exception&)
+			{
+				recreateSwapchain("SwapChain");
+				m_LogicalDevice.destroySemaphore(ImageAvailable);
+				ImageAvailable = m_LogicalDevice.createSemaphore({});
+				return;
+			}
 
-		default:
-			throw std::runtime_error("Acquire Next Image error");
-			break;
+			switch (Result)
+			{
+			case vk::Result::eSuccess:
+				break;
+			case vk::Result::eSuboptimalKHR:
+				recreateSwapchain("SwapChain");
+				m_LogicalDevice.destroySemaphore(ImageAvailable);
+				ImageAvailable = m_LogicalDevice.createSemaphore({});
+				return;
+				break;
+
+			default:
+				throw std::runtime_error("Acquire Next Image error");
+			}
 		}
 
 		// reset
@@ -60,8 +77,6 @@ namespace VT
 		 *									Render Prep
 		 * =============================================================================================================
 		 */
-		Swapchain SC = m_DependencyGraph.get<Swapchain>("SwapChain");
-
 		// CmdBuffer setup
 		CommandBuffer.begin({ .flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit });
 
@@ -87,7 +102,16 @@ namespace VT
 		CommandBuffer.setScissor(0, Scissor);
 		// end dynamic states
 
-		CommandBuffer.draw(3, 1, 0, 0);
+		// bind Vertex Info
+		std::array VertexBuffers{ m_DependencyGraph.get<vk::Buffer>("VertexBuffer") };
+		vk::DeviceSize OffsetSize[]{ 0 };
+		CommandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(VertexBuffers.size()), VertexBuffers.data(), OffsetSize);
+	
+		CommandBuffer.draw(
+			static_cast<uint32_t>(m_DependencyGraph.get<std::vector<std::array<float, 5>>>("Vertices").size()),
+			1,
+			0,
+			0);
 
 		CommandBuffer.endRenderPass();
 		CommandBuffer.end();
@@ -106,7 +130,7 @@ namespace VT
 			.signalSemaphoreCount = 1,
 			.pSignalSemaphores = &RenderFinished
 		};
-		Queue.submit(RenderSubmit);
+		Queue.submit(RenderSubmit, Fence);
 		// end Queue submit
 
 		// Present Image
@@ -117,36 +141,44 @@ namespace VT
 			.pWaitSemaphores = &RenderFinished,
 			.swapchainCount = 1,
 			.pSwapchains = &Swapchain,
-			.pImageIndices = &m_CurrentFrame
+			.pImageIndices = &CurrentFrameImage
 		};
 
-		switch (Queue.presentKHR(PresentInfo))
+		try
 		{
-			case vk::Result::eSuccess:
-				break;
-			case vk::Result::eSuboptimalKHR:
-				break;
-			case vk::Result::eErrorOutOfDateKHR:
-				// change window size
-				break;
-
-			default:
-				throw std::runtime_error("Acquire Next Image error");
-				break;
+			Result = Queue.presentKHR(PresentInfo);
 		}
+		catch (const std::exception&) { recreateSwapchain("SwapChain"); return; }
+
+		switch (Result)
+		{
+		case vk::Result::eSuccess:
+			break;
+		case vk::Result::eSuboptimalKHR:
+			// change window size
+			SwapChainRecreate = true;
+			break;
+
+		default:
+			throw std::runtime_error("Present error");
+			break;
+		}
+		
 		// end present image
 		m_CurrentFrame = ++m_CurrentFrame % m_MaxFrameCount;
-	}
 
-	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
-	{
-		std::tie(m_LogicalDevice, m_PhysicalDevice, m_Surface) = Devices;
-		m_Window = W;
+		// Misc, things to do while waiting on gpu
+		if(SwapChainRecreate)
+		{
+			recreateSwapchain("SwapChain");
+			m_LogicalDevice.destroySemaphore(ImageAvailable);
+			ImageAvailable = m_LogicalDevice.createSemaphore({});
+		}
 	}
 
 	void Renderer::createMainGraphicsPipeline()
 	{
-		std::array<File::DXC_ShaderFileInfo, 1> ShaderFiles
+		std::array<File::DXC_ShaderFileInfo, 2> ShaderFiles
 		{ {
 			{
 				{
@@ -158,15 +190,15 @@ namespace VT
 				{ L"-spirv", L"-E main", L"-T vs_6_3" }
 			},
 
-			//{
-			//	{
-			//		.FileLocation = "Shader",
-			//		.FileName = "Fragment.hlsl",
-			//	},
+			{
+				{
+					.FileLocation = "Shader",
+					.FileName = "Fragment.hlsl",
+				},
 
-			//	vk::ShaderStageFlagBits::eFragment,
-			//	{L"-E main", L"-T ps_6_1", L"-spirv" }
-			//}
+				vk::ShaderStageFlagBits::eFragment,
+				{L"-spirv", L"-E main", L"-T ps_6_3" }
+			}
 		} };
 
 
@@ -176,38 +208,38 @@ namespace VT
 				// binding 0
 				.binding = 0,
 				// pos, norm, tex coord
-				.stride = sizeof(float) * (3 + 3 + 2),
+				.stride = sizeof(float) * (2 + 3),
 				.inputRate = vk::VertexInputRate::eVertex
 			}
 		} };
 
-		std::array<vk::VertexInputAttributeDescription, 3> VertexAttributes
+		std::array<vk::VertexInputAttributeDescription, 2> VertexAttributes
 		{ {
-				// pos, 3 floats
+				// pos, 2 floats
 				{
 					.location = 0,
 					.binding = VertexInputBindings[0].binding,
-					.format = vk::Format::eR32G32B32Sfloat,
+					.format = vk::Format::eR32G32Sfloat,
 					.offset = 0
 				},
 
-			// norm, 3 floats
+			// color, 3 floats
 			{
 				.location = 1,
 				.binding = VertexInputBindings[0].binding,
 				.format = vk::Format::eR32G32B32Sfloat,
-				.offset = sizeof(float) * 3
+				.offset = sizeof(float) * 2
 			},
-			// tex coord, 2 floats
-			{
-				.location = 2,
-				.binding = VertexInputBindings[0].binding,
-				.format = vk::Format::eR32G32Sfloat,
-				.offset = sizeof(float) * (3 + 3)
-			},
+			//// tex coord, 2 floats
+			//{
+			//	.location = 2,
+			//	.binding = VertexInputBindings[0].binding,
+			//	.format = vk::Format::eR32G32Sfloat,
+			//	.offset = sizeof(float) * (3 + 3)
+			//},
 		} };
 
-		const auto& SwapchainInfo{ m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent};
+		// const auto& SwapchainInfo{ m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent};
 
 		vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo
 		{
@@ -225,34 +257,34 @@ namespace VT
 
 		vk::PipelineTessellationStateCreateInfo TessellationStateInfo{};
 
-		std::array<vk::Viewport, 1> Viewports
-		{ {
-			{
-				.x = 0.f,
-				.y = 0.f,
-				.width = static_cast<float>(SwapchainInfo.width),
-				.height = static_cast<float>(SwapchainInfo.height),
-				.minDepth = 0.f,
-				.maxDepth = 1.f
-			}
-		} };
+		//std::array<vk::Viewport, 1> Viewports
+		//{ {
+		//	{
+		//		.x = 0.f,
+		//		.y = 0.f,
+		//		.width = static_cast<float>(SwapchainInfo.width),
+		//		.height = static_cast<float>(SwapchainInfo.height),
+		//		.minDepth = 0.f,
+		//		.maxDepth = 1.f
+		//	}
+		//} };
 
-		std::array<vk::Rect2D, 1> Scissors
-		{ {
+		//std::array<vk::Rect2D, 1> Scissors
+		//{ {
 
-			{
-				.offset =
-				{
-					.x = 0,
-					.y = 0
-				},
-				.extent =
-				{
-					.width = SwapchainInfo.width,
-					.height = SwapchainInfo.height,
-				}
-			}
-		} };
+		//	{
+		//		.offset =
+		//		{
+		//			.x = 0,
+		//			.y = 0
+		//		},
+		//		.extent =
+		//		{
+		//			.width = SwapchainInfo.width,
+		//			.height = SwapchainInfo.height,
+		//		}
+		//	}
+		//} };
 
 		vk::PipelineViewportStateCreateInfo ViewportStateInfo
 		{
@@ -283,7 +315,7 @@ namespace VT
 			.depthClampEnable = vk::False,
 			.rasterizerDiscardEnable = vk::False,
 			.polygonMode = vk::PolygonMode::eFill,
-			.cullMode = vk::CullModeFlagBits::eNone,
+			.cullMode = vk::CullModeFlagBits::eBack,
 			.frontFace = vk::FrontFace::eClockwise,
 			.depthBiasEnable = vk::False,
 			.lineWidth = 1.f
@@ -300,6 +332,13 @@ namespace VT
 		{ {
 			{
 				.blendEnable = vk::False,
+				.srcColorBlendFactor = vk::BlendFactor::eSrcAlpha,
+				.dstColorBlendFactor = vk::BlendFactor::eOneMinusSrcAlpha,
+				.colorBlendOp = vk::BlendOp::eAdd,
+				.srcAlphaBlendFactor = vk::BlendFactor::eOne,
+				.dstAlphaBlendFactor = vk::BlendFactor::eZero,
+				.alphaBlendOp = vk::BlendOp::eAdd,
+				.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA
 			}
 		} };
 
@@ -321,13 +360,12 @@ namespace VT
 
 		// vk::PipelineLayout PipelineLayout{};
 
-		const auto& SC = m_DependencyGraph.get<Swapchain>("SwapChain");
 		std::array<vk::AttachmentDescription, 1> Attachements
 		{ {
 			{
-				.format = SC.getSwapchainCreateInfo().imageFormat,
+				.format = m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageFormat,
 				.samples = vk::SampleCountFlagBits::e1,
-				.loadOp = vk::AttachmentLoadOp::eDontCare,
+				.loadOp = vk::AttachmentLoadOp::eClear,
 				.storeOp = vk::AttachmentStoreOp::eStore,
 				.stencilLoadOp = vk::AttachmentLoadOp::eDontCare,
 				.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
@@ -421,6 +459,30 @@ namespace VT
 		auto [QueueFamilyIndex, QueueIndex] = m_PhysicalDevice->getGraphicsPresentQueueIndices();
 
 		m_DependencyGraph.insert<vk::Queue>(m_LogicalDevice.getQueue(QueueFamilyIndex, QueueIndex), "Graphics+PresentQueue");
+	}
+
+	void Renderer::recreateSwapchain(std::string Name)
+	{
+		Swapchain& SC = m_DependencyGraph.get<Swapchain>(Name);
+
+		m_LogicalDevice.waitIdle();
+
+		m_DependencyGraph.remove<VT::Swapchain>(Name, true);
+
+		// recreate swapchain
+		int Width = 0, Height = 0;
+		glfwGetFramebufferSize(m_Window->m_Window, &Width, &Height);
+
+		auto Info = SC.getSwapchainCreateInfo();
+		Info.setImageExtent({ static_cast<uint32_t>(Width), static_cast<uint32_t>(Height) });
+
+		// update surface capabilities, else it will complain
+		// cast to void, ignore output - warn unused variable
+		(void) m_PhysicalDevice->getPhysicalDevice().getSurfaceCapabilitiesKHR(m_Surface);
+
+		SC.createSwapchain(Info, m_LogicalDevice);
+		// recreate
+		createImage();
 	}
 
 	std::vector<vk::CommandBuffer>& Renderer::createCommandBuffer()
@@ -531,6 +593,54 @@ namespace VT
 		
 	}
 
+	void Renderer::createVertexBuffer()
+	{
+		auto& Vertices = m_DependencyGraph.insert<std::vector<std::array<float, 5>>>(
+			{
+				{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
+				{0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
+				{-0.5f, 0.5f, 0.0f, 0.0f, 1.0f}
+			}, "Vertices").first;
+
+
+		// create buffer
+		vk::BufferCreateInfo VertexBufferInfo
+		{
+			.size = Vertices.size() * Vertices[0].size() * sizeof(float),
+			.usage = vk::BufferUsageFlagBits::eVertexBuffer,
+			.sharingMode = vk::SharingMode::eExclusive
+		};
+
+		vk::Buffer& VertexBuffer = m_DependencyGraph.insert<vk::Buffer>(m_LogicalDevice.createBuffer(VertexBufferInfo),
+			"VertexBuffer", 
+			[&](vk::Buffer B) {m_LogicalDevice.destroyBuffer(B); }
+		).first;
+
+		auto MemReq = m_LogicalDevice.getBufferMemoryRequirements(VertexBuffer);
+
+		vk::MemoryAllocateInfo MemAllocInfo
+		{
+			.allocationSize = MemReq.size,
+			.memoryTypeIndex = findMemoryTypeIndex(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
+		};
+
+		vk::DeviceMemory& VertexMem = m_DependencyGraph.insert<vk::DeviceMemory>(
+			m_LogicalDevice.allocateMemory(MemAllocInfo),
+			"VertexBuffer",
+			[&](vk::DeviceMemory& Mem) {m_LogicalDevice.freeMemory(Mem); }
+		).first;
+
+		m_DependencyGraph.addDependency<vk::DeviceMemory, vk::Buffer>("VertexBuffer", "VertexBuffer");
+		
+		m_LogicalDevice.bindBufferMemory(VertexBuffer, VertexMem, 0);
+
+		// Fill Buffer
+		auto pVertexMem = m_LogicalDevice.mapMemory(VertexMem, 0, VertexBufferInfo.size);
+		std::memcpy(pVertexMem, Vertices.data(), VertexBufferInfo.size);
+		m_LogicalDevice.unmapMemory(VertexMem);
+
+	}
+
 	void Renderer::recordRenderPass(const vk::CommandBuffer& CB, uint32_t Frame)
 	{
 		std::array<vk::ClearValue, 1> ClearColor
@@ -546,7 +656,7 @@ namespace VT
 		vk::RenderPassBeginInfo RenderPassBeginInfo
 		{
 			.renderPass = m_DependencyGraph.get<vk::RenderPass>("Main RenderPass"),
-
+			.framebuffer = m_DependencyGraph.get<vk::Framebuffer>("SwapChain FrameBuffer" + std::to_string(Frame)),
 			.renderArea =
 			{
 				.offset = {0, 0},
@@ -556,9 +666,7 @@ namespace VT
 			.clearValueCount = static_cast<uint32_t>(ClearColor.size()),
 			.pClearValues = ClearColor.data()
 		};
-
-		RenderPassBeginInfo.framebuffer = m_DependencyGraph.get<vk::Framebuffer>("SwapChain FrameBuffer" + std::to_string(Frame));
-		CB.beginRenderPass(RenderPassBeginInfo, {});
+		CB.beginRenderPass(RenderPassBeginInfo, vk::SubpassContents::eInline);
 	}
 
 	void Renderer::createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries)
@@ -575,7 +683,6 @@ namespace VT
 			SwapchainCreateInfo.queueFamilyIndexCount = 1;
 			SwapchainCreateInfo.pQueueFamilyIndices = QueueFamilyIndices;
 		}
-
 		SwapChain.createSwapchain(SwapchainCreateInfo, m_LogicalDevice);
 		m_MaxFrameCount = SwapchainCreateInfo.minImageCount;
 	}
@@ -583,15 +690,30 @@ namespace VT
 	bool Renderer::createPipelineLayout(std::string Name, const vk::PipelineLayoutCreateInfo& LayoutInfo)
 	{
 		return m_DependencyGraph.insert<vk::PipelineLayout>(m_LogicalDevice.createPipelineLayout(LayoutInfo),
-			std::move(Name), [&](auto& Layout) {m_LogicalDevice.destroyPipelineLayout(Layout); }
+			std::move(Name), [&](auto& Layout) { m_LogicalDevice.destroyPipelineLayout(Layout); }
 		).second;
 	}
 
 	bool Renderer::createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo)
 	{
 		return m_DependencyGraph.insert<vk::RenderPass>(m_LogicalDevice.createRenderPass(RenderPassInfo),
-			std::move(Name), [&](auto& Renderpass) {m_LogicalDevice.destroyRenderPass(Renderpass); }
+			std::move(Name), [&](auto& Renderpass) { m_LogicalDevice.destroyRenderPass(Renderpass); }
 		).second;
+	}
+
+	uint32_t Renderer::findMemoryTypeIndex(uint32_t TypeFilter, vk::MemoryPropertyFlags Usage) const
+	{
+		auto MemProperties = m_PhysicalDevice->getPhysicalDevice().getMemoryProperties();
+
+		for(uint32_t i = 0; i < MemProperties.memoryTypeCount; i++)
+		{
+			if((TypeFilter & 1 << i) && (Usage & MemProperties.memoryTypes[i].propertyFlags) == Usage)
+			{
+				return i;
+			}
+		}
+
+		throw std::runtime_error("Failed to find suitable memeory type index\n");
 	}
 
 	bool Renderer::createGraphicsPipeline(
@@ -615,8 +737,14 @@ namespace VT
 		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
 
 		// Graphics pipline struct
-		std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfos;
-	
+		std::vector<vk::PipelineShaderStageCreateInfo>& ShaderStageInfos = 
+			m_DependencyGraph.insert<std::vector<vk::PipelineShaderStageCreateInfo>>(
+				{},
+				"ShaderModules",
+				[&](auto& SSI) {for (const auto& SM : SSI) { m_LogicalDevice.destroyShaderModule(SM.module); }}
+		).first;
+
+
 		// load all shader spv
 		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
 		{
@@ -642,22 +770,25 @@ namespace VT
 		PipelineInfo.layout = m_DependencyGraph.get<vk::PipelineLayout>(PipelineLayoutName);
 
 		auto [Result, Pipeline] = m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo);
-
-		// delete shader modules
-		for(const auto& SM : ShaderStageInfos) { m_LogicalDevice.destroyShaderModule(SM.module); }
 	
 		// check Pipeline result
 		if (Result != vk::Result::eSuccess) { return false; }
 
 		return
-		(m_DependencyGraph.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
+		(m_DependencyGraph.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](const vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
 			m_DependencyGraph.addDependency<vk::Pipeline, vk::PipelineLayout>(GraphicsPipelineName, PipelineLayoutName) &&
 			m_DependencyGraph.addDependency<vk::Pipeline, vk::RenderPass>(GraphicsPipelineName, RenderPassName));
     }
 
+	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
+	{
+		std::tie(m_LogicalDevice, m_PhysicalDevice, m_Surface) = Devices;
+		m_Window = W;
+	}
 
 	Renderer::~Renderer()
 	{
+		m_LogicalDevice.waitIdle();
 		m_LogicalDevice.destroySemaphore(ImageAvailable);
 		m_LogicalDevice.destroySemaphore(RenderFinished);
 		m_LogicalDevice.destroyFence(Fence);

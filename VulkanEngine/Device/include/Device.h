@@ -2,8 +2,6 @@
 
 #include "PhysicalDevice.h"
 
-// enable aggregate initialization
-#define VULKAN_HPP_NO_CONSTRUCTORS
 #include <unordered_map>
 
 #define GLFW_INCLUDE_NONE

@@ -1,4 +1,4 @@
-#include "SwapChain.h"
+#include "Swapchain.h"
 
 #include <unordered_set>
 #include <algorithm>
@@ -18,7 +18,7 @@ namespace VT
 		Info.imageColorSpace = SurfaceFormat.colorSpace;
 
 		// present mode
-		Info.presentMode = findPresentMode(PD.getSurfacePresentModesKHR(Surface), preferredCapabilities.presentMode);;
+		Info.presentMode = findPresentMode(PD.getSurfacePresentModesKHR(Surface), preferredCapabilities.presentMode);
 
 		// image count
 		const auto& DeviceSurfaceCapabilities = PD.getSurfaceCapabilitiesKHR(Surface);
@@ -99,22 +99,50 @@ namespace VT
 
 	void Swapchain::createSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 	{
+		SwapchainCreateInfo.oldSwapchain = m_Swapchain;
 		m_Swapchain = LogicalDevice.createSwapchainKHR(SwapchainCreateInfo);
 		m_SwapchinCreateInfo = std::move(SwapchainCreateInfo);
+
+		if(Created)
+		{
+			m_Device.destroySwapchainKHR(m_SwapchinCreateInfo.oldSwapchain);
+		}
 		m_Device = LogicalDevice;
 		Created = true;
 	}
 
-	Swapchain::~Swapchain()
+	void Swapchain::recreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 	{
-		if (Created) { m_Device.destroySwapchainKHR(m_Swapchain); }
+		vk::SwapchainKHR OldSwapchain = m_Swapchain;
+		SwapchainCreateInfo.oldSwapchain = OldSwapchain;
+		createSwapchain(std::move(SwapchainCreateInfo), LogicalDevice);
+
+
 	}
 
+	Swapchain::Swapchain(Swapchain&& Other) noexcept :
+		m_SwapchinCreateInfo(std::move(Other.m_SwapchinCreateInfo)),
+		m_Swapchain(Other.m_Swapchain),
+		m_Device(Other.m_Device),
+		Created(Other.Created)
+	{
+		Other.Created = false;
+	}
 
-	/* ====================================================================
-	*							Private
-	* ====================================================================
-	*/
+	Swapchain& Swapchain::operator=(Swapchain&& Other) noexcept
+	{
+		m_SwapchinCreateInfo = std::move(Other.m_SwapchinCreateInfo);
+		m_Swapchain = Other.m_Swapchain;
+		m_Device = Other.m_Device;
+		Created = Other.Created;
+		Other.Created = false;
+
+		return *this;
+	}
+	Swapchain::~Swapchain()
+	{
+		if (Created) { m_Device.waitIdle(); m_Device.destroySwapchainKHR(m_Swapchain); }
+	}
 
 	vk::SurfaceFormatKHR Swapchain::findSurfaceFormat(const std::vector<vk::SurfaceFormatKHR>& SupportedSurfaceFormats, const std::vector<vk::SurfaceFormatKHR>& PreferredSurfaceFormat) const
 	{

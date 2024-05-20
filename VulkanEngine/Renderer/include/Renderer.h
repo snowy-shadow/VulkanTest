@@ -16,13 +16,12 @@ namespace VT
 	class Renderer
 	{
 	public:
-
 		explicit Renderer(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR>, Window*);
 
 		void bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W);
 
 		void init();
-
+		
 		void update();
 
 		Renderer() = default;
@@ -33,15 +32,18 @@ namespace VT
 	
 	private:
 		void createMainGraphicsPipeline();
+		void recreateSwapchain(std::string Name);
 		void createMainSwapChain();
 		std::vector<vk::CommandBuffer>& createCommandBuffer();
 		void createImage();
+		void createVertexBuffer();
 		void recordRenderPass(const vk::CommandBuffer& CB, uint32_t Frame);
 
 		// General Helper
 		void createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
 		bool createPipelineLayout(std::string Name, const vk::PipelineLayoutCreateInfo& LayoutInfo);
 		bool createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo);
+		uint32_t findMemoryTypeIndex(uint32_t, vk::MemoryPropertyFlags) const;
 
 		/*
 		 * Creates graphics pipeline
@@ -66,14 +68,16 @@ namespace VT
 
 		// SwapChain
 		DependencyGraph<
+			std::vector<vk::PipelineShaderStageCreateInfo>,
 			vk::Pipeline, vk::PipelineLayout, vk::RenderPass,
 			vk::CommandPool, std::vector<vk::CommandBuffer>, vk::Queue,
+			vk::Buffer, vk::DeviceMemory, std::vector<std::array<float, 5>>,
 			Swapchain, vk::Framebuffer>
 		m_DependencyGraph;
 
 		uint32_t m_MaxFrameCount{ 2 };
 		uint32_t m_CurrentFrame{ 0 };
-		
+
 		// Handles
 		Window* m_Window{nullptr};
 		vk::Device m_LogicalDevice;

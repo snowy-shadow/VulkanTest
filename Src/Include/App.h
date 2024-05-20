@@ -19,6 +19,6 @@ namespace VT
 		Device m_VulkanDevice;
 		Renderer m_Renderer;
 	
-		Window m_Window{ {1280, 720}, "VulkanTest" };
+		Window m_Window{ {1280, 700}, "VulkanTest" };
 	};
 }
