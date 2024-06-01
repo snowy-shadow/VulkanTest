@@ -24,18 +24,18 @@ namespace VT
 	class DependencyGraph
 	{
 		// Internal impl
-		template<typename T>
-			requires std::movable<T>
+		template<typename U>
+			requires std::movable<U>
 		class DependencyGraphNode;
 
 		/**
 		 * storage wrapper for DependencyGraph by type
 		 * @tparam T type of node
 		 */
-		template<typename T>
+		template<typename U>
 		struct DependencyGraphNode_T_List
 		{
-			std::unordered_map<std::string, DependencyGraphNode<T>> T_Map;
+			std::unordered_map<std::string, DependencyGraphNode<U>> T_Map;
 			uint32_t MinRefCount{ 0 };
 		};
 
@@ -79,12 +79,12 @@ namespace VT
 		 * DependencyGraphNode by type
 		 * @tparam T Type of data the Node is holding
 		 */
-		template<typename T>
-			requires std::movable<T>
+		template<typename U>
+			requires std::movable<U>
 		class DependencyGraphNode : public DependencyGraphNodeBase
 		{
 		public:
-			explicit DependencyGraphNode(T&& Obj, uint32_t& ContainerCounter, std::function<void(T&)> Destructor) :
+			explicit DependencyGraphNode(U&& Obj, uint32_t& ContainerCounter, std::function<void(U&)> Destructor) :
 				DependencyGraphNodeBase{ ContainerCounter },
 				Delete{ std::move(Destructor) },
 				Item{ std::move(Obj) } {}
@@ -119,7 +119,7 @@ namespace VT
 				return DependencyList;
 			}
 
-			T& getItem()
+			U& getItem()
 			{
 				return Item;
 			}
@@ -135,8 +135,8 @@ namespace VT
 
 		private:
 			std::unordered_set<DependencyGraphNodeBase*> DependencyList;
-			std::function<void(T&)> Delete;
-			T Item;
+			std::function<void(U&)> Delete;
+			U Item;
 		};
 
 
@@ -163,7 +163,7 @@ namespace VT
 		}
 
 		/**
-		 * add dependency between 2 nodes
+		 * add dependency Target -> Dependent
 		 * @tparam Target : base node type
 		 * @tparam Dependent : dependent node type
 		 * @param NodeName : base node

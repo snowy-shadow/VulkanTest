@@ -1,6 +1,12 @@
 #include "Renderer.h"
+#include "ShaderCompiler.h"
+#include <cstring>
+#include <glm/mat4x4.hpp>
+#include <glm/trigonometric.hpp>
+#include <vulkan/vulkan_handles.hpp>
+#undef max
 
-#include <iostream>
+// #include <iostream>
 
 namespace VT
 {
@@ -12,6 +18,7 @@ namespace VT
 	void Renderer::init()
 	{
 		createMainSwapChain();
+		createDescriptorSet();
 		createMainGraphicsPipeline();
 		ImageAvailable = m_LogicalDevice.createSemaphore({});
 		RenderFinished = m_LogicalDevice.createSemaphore({});
@@ -35,37 +42,21 @@ namespace VT
 		vk::Result Result;
 		uint32_t CurrentFrameImage;
 		bool SwapChainRecreate{ false };
+		try
 		{
-			try
-			{
-				std::tie(Result, CurrentFrameImage) = m_LogicalDevice.acquireNextImageKHR(
-					SC.getSwapchain(),
-					std::numeric_limits<uint64_t>::max(),
-					ImageAvailable,
-					VK_NULL_HANDLE);
-			}
-			catch (const std::exception&)
-			{
-				recreateSwapchain("SwapChain");
-				m_LogicalDevice.destroySemaphore(ImageAvailable);
-				ImageAvailable = m_LogicalDevice.createSemaphore({});
-				return;
-			}
+			std::tie(Result, CurrentFrameImage) = m_LogicalDevice.acquireNextImageKHR(
+				SC.getSwapchain(),
+				std::numeric_limits<uint64_t>::max(),
+				ImageAvailable,
+				VK_NULL_HANDLE);
 
-			switch (Result)
-			{
-			case vk::Result::eSuccess:
-				break;
-			case vk::Result::eSuboptimalKHR:
-				recreateSwapchain("SwapChain");
-				m_LogicalDevice.destroySemaphore(ImageAvailable);
-				ImageAvailable = m_LogicalDevice.createSemaphore({});
-				return;
-				break;
-
-			default:
-				throw std::runtime_error("Acquire Next Image error");
-			}
+			if (vk::Result::eSuboptimalKHR == Result) { throw std::exception{}; }
+		}
+		catch (const std::exception&)
+		{
+			recreateSwapchain("SwapChain");
+			resetSemaphore({ImageAvailable});
+			return;
 		}
 
 		// reset
@@ -103,9 +94,7 @@ namespace VT
 		// end dynamic states
 
 		// bind Vertex Info
-		std::array VertexBuffers{ m_DependencyGraph.get<vk::Buffer>("VertexBuffer") };
-		vk::DeviceSize OffsetSize[]{ 0 };
-		CommandBuffer.bindVertexBuffers(0, static_cast<uint32_t>(VertexBuffers.size()), VertexBuffers.data(), OffsetSize);
+		CommandBuffer.bindVertexBuffers(0, m_DependencyGraph.get<vk::Buffer>("VertexBuffer"), {0});
 	
 		CommandBuffer.draw(
 			static_cast<uint32_t>(m_DependencyGraph.get<std::vector<std::array<float, 5>>>("Vertices").size()),
@@ -161,7 +150,6 @@ namespace VT
 
 		default:
 			throw std::runtime_error("Present error");
-			break;
 		}
 		
 		// end present image
@@ -171,8 +159,7 @@ namespace VT
 		if(SwapChainRecreate)
 		{
 			recreateSwapchain("SwapChain");
-			m_LogicalDevice.destroySemaphore(ImageAvailable);
-			ImageAvailable = m_LogicalDevice.createSemaphore({});
+			resetSemaphore({ ImageAvailable });
 		}
 	}
 
@@ -194,6 +181,7 @@ namespace VT
 				{
 					.FileLocation = "Shader",
 					.FileName = "Fragment.hlsl",
+					.Encoding = File::eUTF8
 				},
 
 				vk::ShaderStageFlagBits::eFragment,
@@ -413,8 +401,14 @@ namespace VT
 			.pDependencies = SubpassDependencies.data()
 		};
 
+		vk::PipelineLayoutCreateInfo PipelineLayoutCreateInfo
+		{
+			.setLayoutCount = 1,
+			.pSetLayouts = &m_DependencyGraph.get<vk::DescriptorSetLayout>("MVP")
+		};
+
 		assert(createRenderPass("Main RenderPass", RenderPassInfo));
-		assert(createPipelineLayout("Main PipelineLayout", {}));
+		assert(createPipelineLayout("Main PipelineLayout", PipelineLayoutCreateInfo));
 
 		vk::GraphicsPipelineCreateInfo MainGraphicPipelineInfo
 		{
@@ -611,33 +605,15 @@ namespace VT
 			.sharingMode = vk::SharingMode::eExclusive
 		};
 
-		vk::Buffer& VertexBuffer = m_DependencyGraph.insert<vk::Buffer>(m_LogicalDevice.createBuffer(VertexBufferInfo),
-			"VertexBuffer", 
-			[&](vk::Buffer B) {m_LogicalDevice.destroyBuffer(B); }
-		).first;
-
-		auto MemReq = m_LogicalDevice.getBufferMemoryRequirements(VertexBuffer);
-
-		vk::MemoryAllocateInfo MemAllocInfo
-		{
-			.allocationSize = MemReq.size,
-			.memoryTypeIndex = findMemoryTypeIndex(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent)
-		};
-
-		vk::DeviceMemory& VertexMem = m_DependencyGraph.insert<vk::DeviceMemory>(
-			m_LogicalDevice.allocateMemory(MemAllocInfo),
-			"VertexBuffer",
-			[&](vk::DeviceMemory& Mem) {m_LogicalDevice.freeMemory(Mem); }
-		).first;
-
-		m_DependencyGraph.addDependency<vk::DeviceMemory, vk::Buffer>("VertexBuffer", "VertexBuffer");
-		
-		m_LogicalDevice.bindBufferMemory(VertexBuffer, VertexMem, 0);
+		auto& Buff = m_DependencyGraph.insert(Buffer{m_LogicalDevice}, "VertexBuffer").first;
+		Buff.createBuffer(VertexBufferInfo,
+					m_PhysicalDevice->getPhysicalDevice().getMemoryProperties(),
+					vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 
 		// Fill Buffer
-		auto pVertexMem = m_LogicalDevice.mapMemory(VertexMem, 0, VertexBufferInfo.size);
+		auto pVertexMem = Buff.map(0, VertexBufferInfo.size);
 		std::memcpy(pVertexMem, Vertices.data(), VertexBufferInfo.size);
-		m_LogicalDevice.unmapMemory(VertexMem);
+		Buff.unmap();
 
 	}
 
@@ -646,9 +622,9 @@ namespace VT
 		std::array<vk::ClearValue, 1> ClearColor
 		{ {
 				{
-					.color =
-				{
-						.float32 = {{0.f, 0.f, 0.f, 1.f} }
+					.color
+					{
+						.float32 {{0.f, 0.f, 0.f, 1.f} }
 					}
 				}
 		} };
@@ -657,7 +633,7 @@ namespace VT
 		{
 			.renderPass = m_DependencyGraph.get<vk::RenderPass>("Main RenderPass"),
 			.framebuffer = m_DependencyGraph.get<vk::Framebuffer>("SwapChain FrameBuffer" + std::to_string(Frame)),
-			.renderArea =
+			.renderArea
 			{
 				.offset = {0, 0},
 				.extent = m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent
@@ -669,6 +645,129 @@ namespace VT
 		CB.beginRenderPass(RenderPassBeginInfo, vk::SubpassContents::eInline);
 	}
 
+	void Renderer::createDescriptorSet()
+	{
+		std::array LayoutBinding
+		{
+			vk::DescriptorSetLayoutBinding
+			{
+				.binding = 0,
+				.descriptorType = vk::DescriptorType::eUniformBuffer,
+				.descriptorCount = 1,
+				.stageFlags = vk::ShaderStageFlagBits::eVertex,
+			}
+		};
+		vk::DescriptorSetLayoutCreateInfo LayoutInfo
+		{
+			.bindingCount = static_cast<uint32_t>(LayoutBinding.size()),
+			.pBindings = LayoutBinding.data()
+		};
+
+		auto& DescriptorLayout = m_DependencyGraph.insert<vk::DescriptorSetLayout>(
+			m_LogicalDevice.createDescriptorSetLayout(LayoutInfo),
+			"MVP",
+			[&](auto& DSL) {m_LogicalDevice.destroyDescriptorSetLayout(DSL); }
+		).first;
+	
+		vk::BufferCreateInfo UniformMVPInfo
+		{
+			.size = 3 * (4 * 4) * sizeof(float),
+			.usage = vk::BufferUsageFlagBits::eUniformBuffer,
+			.sharingMode = vk::SharingMode::eExclusive
+		};
+
+		for(uint32_t i = 0; i < m_MaxFrameCount; i++)
+		{
+			auto& Buff = m_DependencyGraph.insert(Buffer{m_LogicalDevice}, "MVP" + std::to_string(i)).first;
+			Buff.createBuffer(UniformMVPInfo, m_PhysicalDevice->getPhysicalDevice().getMemoryProperties(), vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+			
+			// Persistent mapping, writing to it every draw loop
+			Buff.map(0, UniformMVPInfo.size);
+		}
+
+		vk::DescriptorPoolSize DPoolSize
+		{
+			.descriptorCount = m_MaxFrameCount	
+		};
+
+		vk::DescriptorPoolCreateInfo PoolInfo
+		{
+			.maxSets = m_MaxFrameCount,
+			.poolSizeCount = 1,
+			.pPoolSizes = &DPoolSize
+		};
+
+		auto& DescriptorPool = m_DependencyGraph.insert<vk::DescriptorPool>
+		(
+			m_LogicalDevice.createDescriptorPool(PoolInfo),
+			"MVP Pool",
+			[&](auto& P){ m_LogicalDevice.destroyDescriptorPool(P); }
+		).first;
+
+		vk::DescriptorSetLayout SetLayouts[]{DescriptorLayout, DescriptorLayout};
+
+		vk::DescriptorSetAllocateInfo AllocInfo
+		{
+			.descriptorPool = DescriptorPool,
+			.descriptorSetCount = m_MaxFrameCount,
+			.pSetLayouts = SetLayouts
+		};
+
+		m_DependencyGraph.insert<std::vector<vk::DescriptorSet>>
+		(
+			m_LogicalDevice.allocateDescriptorSets(AllocInfo),
+			"MVP DescriptorSet",
+			[&](auto& DS){  m_LogicalDevice.freeDescriptorSets(DescriptorPool, DS); }
+		);
+
+		m_DependencyGraph.addDependency<std::vector<vk::DescriptorSet>, vk::DescriptorPool>("MVP DescriptorSet", "MVP Pool");
+	}
+
+	void Renderer::updateMVP(Buffer& Buff)
+	{
+		int Width = 0, Height = 0;
+		glfwGetFramebufferSize(m_Window->m_Window, &Width, &Height);
+		const int FOV = 90;
+		const float Near = 0.1f;
+		const float Far = 10.f;
+	
+		// hlsl default to column major
+		struct MVP
+		{
+			glm::mat4 Model;
+			glm::mat4 View;
+			glm::mat4 Projection;
+		};
+
+		MVP Matrix
+		{
+			.Model {1.f},
+			.View {1.f},
+			.Projection 
+			{
+				1 / (static_cast<float>(Width) / Height) * tan(FOV / 2), 0, 0, 0,
+				0, 1 / tan(FOV / 2), 0, 0,
+				0, 0, Far / (Far - Near), -Far * Near / (Far - Near),
+				0, 0, 1, 0
+			}
+		};
+		void* pData = Buff.getMappedPtr();
+		std::memcpy(pData, &Matrix, sizeof(Matrix));
+	}
+
+/* ==================================================
+ * 						Helper
+ * ==================================================
+ */
+	void Renderer::resetSemaphore(const std::vector<std::reference_wrapper<vk::Semaphore>>& Semaphores)
+	{
+		for(auto& S : Semaphores)
+		{
+			m_LogicalDevice.destroySemaphore(S.get());
+			S.get() = m_LogicalDevice.createSemaphore({});
+		}
+	}
+
 	void Renderer::createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries)
 	{
 		auto& SwapChain = m_DependencyGraph.insert<Swapchain>({}, "SwapChain").first;
@@ -678,7 +777,6 @@ namespace VT
 		uint32_t QueueFamilyIndices[]{ m_PhysicalDevice->getGraphicsPresentQueueIndices().first };
 		if(GraphicsPresent && !m_PhysicalDevice->graphicsQueueCanPresent())
 		{
-
 			SwapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
 			SwapchainCreateInfo.queueFamilyIndexCount = 1;
 			SwapchainCreateInfo.pQueueFamilyIndices = QueueFamilyIndices;
@@ -701,84 +799,6 @@ namespace VT
 		).second;
 	}
 
-	uint32_t Renderer::findMemoryTypeIndex(uint32_t TypeFilter, vk::MemoryPropertyFlags Usage) const
-	{
-		auto MemProperties = m_PhysicalDevice->getPhysicalDevice().getMemoryProperties();
-
-		for(uint32_t i = 0; i < MemProperties.memoryTypeCount; i++)
-		{
-			if((TypeFilter & 1 << i) && (Usage & MemProperties.memoryTypes[i].propertyFlags) == Usage)
-			{
-				return i;
-			}
-		}
-
-		throw std::runtime_error("Failed to find suitable memeory type index\n");
-	}
-
-	bool Renderer::createGraphicsPipeline(
-		std::span<const File::DXC_ShaderFileInfo> ShaderFiles,
-		const std::string& GraphicsPipelineName,
-		vk::GraphicsPipelineCreateInfo PipelineInfo,
-		const std::string& PipelineLayoutName,
-		const std::string& RenderPassName)
-    {
-		// cannot have name collision
-		if(!m_LogicalDevice
-			|| m_DependencyGraph.has<vk::Pipeline>(GraphicsPipelineName)			// if name collision
-			|| !m_DependencyGraph.has<vk::PipelineLayout>(PipelineLayoutName)	// dependent type not found
-			|| !m_DependencyGraph.has<vk::RenderPass>(RenderPassName))			// dependent type not found
-		{
-			return false;
-		}
-
-		ShaderCompiler m_ShaderCompiler;
-		// compile shaders
-		auto ShaderSpvs{ m_ShaderCompiler.compileShaders(ShaderFiles)};
-
-		// Graphics pipline struct
-		std::vector<vk::PipelineShaderStageCreateInfo>& ShaderStageInfos = 
-			m_DependencyGraph.insert<std::vector<vk::PipelineShaderStageCreateInfo>>(
-				{},
-				"ShaderModules",
-				[&](auto& SSI) {for (const auto& SM : SSI) { m_LogicalDevice.destroyShaderModule(SM.module); }}
-		).first;
-
-
-		// load all shader spv
-		for(std::size_t i = 0; i < ShaderSpvs.size(); i++)
-		{
-			ShaderStageInfos.push_back
-			({
-				.stage = ShaderFiles[i].Stage,
-				.module = m_LogicalDevice.createShaderModule
-				(
-					{
-						.codeSize = ShaderSpvs[i].size(),
-						.pCode = reinterpret_cast<uint32_t*>(ShaderSpvs[i].data())
-					}
-				),
-
-				.pName = "main"
-			});
-		}
-
-		PipelineInfo.stageCount = static_cast<uint32_t>(ShaderStageInfos.size());
-		PipelineInfo.pStages = ShaderStageInfos.data();
-
-		PipelineInfo.renderPass = m_DependencyGraph.get<vk::RenderPass>(RenderPassName);
-		PipelineInfo.layout = m_DependencyGraph.get<vk::PipelineLayout>(PipelineLayoutName);
-
-		auto [Result, Pipeline] = m_LogicalDevice.createGraphicsPipeline(nullptr, PipelineInfo);
-	
-		// check Pipeline result
-		if (Result != vk::Result::eSuccess) { return false; }
-
-		return
-		(m_DependencyGraph.insert<vk::Pipeline>(std::move(Pipeline), GraphicsPipelineName, [&](const vk::Pipeline& p) { m_LogicalDevice.destroyPipeline(p); }).second &&
-			m_DependencyGraph.addDependency<vk::Pipeline, vk::PipelineLayout>(GraphicsPipelineName, PipelineLayoutName) &&
-			m_DependencyGraph.addDependency<vk::Pipeline, vk::RenderPass>(GraphicsPipelineName, RenderPassName));
-    }
 
 	void Renderer::bindDevices(std::tuple<vk::Device, PhysicalDevice const*, vk::SurfaceKHR> Devices, Window* W)
 	{
@@ -792,17 +812,6 @@ namespace VT
 		m_LogicalDevice.destroySemaphore(ImageAvailable);
 		m_LogicalDevice.destroySemaphore(RenderFinished);
 		m_LogicalDevice.destroyFence(Fence);
-	}
-
-
-	/*
-	 * ==================================================
-	 *					    PRIVATE
-	 * ==================================================
-	 */
-
-	void Renderer::destroy() noexcept
-	{
 	}
 }
 

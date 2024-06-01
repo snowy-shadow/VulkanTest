@@ -171,6 +171,22 @@ namespace  VT
 		return m_DeviceQueues;
 	}
 
+	vk::DeviceQueueCreateInfo PhysicalDevice::getQueue(uint32_t index) const
+	{
+		// check if the present queue was inserted
+		if (!graphicsQueueCanPresent() && index >= m_PresentQueue)
+		{
+			return m_DeviceQueues[++index];
+		}
+
+		return m_DeviceQueues[index];
+	}
+
+	vk::DeviceQueueCreateInfo PhysicalDevice::getPresentQueue() const
+	{
+		return m_DeviceQueues[m_PresentQueue];
+	}
+
 
 	/*
 	 * ==================================================

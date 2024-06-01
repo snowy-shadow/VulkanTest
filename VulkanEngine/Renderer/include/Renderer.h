@@ -7,8 +7,8 @@
 */
 #include "Window.h"
 #include "PhysicalDevice.h"
-#include "ShaderCompiler.h"
 #include "DependencyGraph.h"
+#include "Buffer.h"
 #include "ImageGroup.h"
 
 namespace VT
@@ -38,27 +38,14 @@ namespace VT
 		void createImage();
 		void createVertexBuffer();
 		void recordRenderPass(const vk::CommandBuffer& CB, uint32_t Frame);
+		void createDescriptorSet();
+		void updateMVP(Buffer& Buff);
 
 		// General Helper
+		void resetSemaphore(const std::vector<std::reference_wrapper<vk::Semaphore>>& Semaphores);
 		void createSwapChain(bool GraphicsPresent, vk::SwapchainCreateInfoKHR SwapchainCreateInfo, Swapchain::Capabilities Queries);
-		bool createPipelineLayout(std::string Name, const vk::PipelineLayoutCreateInfo& LayoutInfo);
 		bool createRenderPass(std::string Name, const vk::RenderPassCreateInfo& RenderPassInfo);
-		uint32_t findMemoryTypeIndex(uint32_t, vk::MemoryPropertyFlags) const;
 
-		/*
-		 * Creates graphics pipeline
-		 * Name - Name of pipeline
-		 * ShaderFiles - files to compile to shaders
-		 * LayoutInfo - PipelineLayoutInfo to create layout from
-		 * RenderPassInfo - RenderPassCreateInfo to create renderpass from
-		 * PipelineInfo - GraphicsPipeline infos, shader stages will be compiled and inserted based on ShaderFiles
-		*/
-		bool createGraphicsPipeline(
-			std::span<const File::DXC_ShaderFileInfo> ShaderFiles,
-			const std::string& GraphicsPipelineName,
-			vk::GraphicsPipelineCreateInfo PipelineInfo,
-			const std::string& PipelineLayoutName,
-			const std::string& RenderPassName);
 
 		void destroy() noexcept;
 
@@ -69,9 +56,10 @@ namespace VT
 		// SwapChain
 		DependencyGraph<
 			std::vector<vk::PipelineShaderStageCreateInfo>,
-			vk::Pipeline, vk::PipelineLayout, vk::RenderPass,
+			vk::RenderPass,
 			vk::CommandPool, std::vector<vk::CommandBuffer>, vk::Queue,
-			vk::Buffer, vk::DeviceMemory, std::vector<std::array<float, 5>>,
+			Buffer, std::vector<std::array<float, 5>>,
+			vk::DescriptorSetLayout, vk::DescriptorPool, std::vector<vk::DescriptorSet>,
 			Swapchain, vk::Framebuffer>
 		m_DependencyGraph;
 

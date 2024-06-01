@@ -5,7 +5,7 @@ namespace VT
 {
 	void Device::bindInstance(vk::Instance VulkanInstance) { m_VulkanInstance = VulkanInstance; }
 
-	void Device::createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues)
+	void Device::createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::pair<vk::QueueFlagBits, float>>& RequiredQueues)
 	{
 		// m_VulkanInstance created
 		assert(m_VulkanInstance);
@@ -21,7 +21,7 @@ namespace VT
 		// add queue
 		for (const auto& Q : RequiredQueues)
 		{
-			m_PhysicalDevice.addQueue(std::get<vk::QueueFlagBits>(Q), std::get<float>(Q));
+			m_PhysicalDevice.addQueue(Q.first, Q.second);
 		}
 
 		// find present queue

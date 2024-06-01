@@ -22,7 +22,7 @@ namespace VT
 		 * RequiredExtensions - Physical device extensions
 		 * RequiredQueues - Physical device queues
 		 */
-		void createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::tuple<vk::QueueFlagBits, float>>& RequiredQueues);
+		void createDevice(std::string Name, GLFWwindow* Window, const std::vector<const char*>& RequiredExtensions, const std::vector<std::pair<vk::QueueFlagBits, float>>& RequiredQueues);
 
 		/*
 		 * Device - LogicalDevice Name

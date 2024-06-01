@@ -47,6 +47,9 @@ namespace VT
 		 */
 		std::vector<vk::DeviceQueueCreateInfo> getDeviceQueues() const;
 
+		vk::DeviceQueueCreateInfo getQueue(uint32_t index) const;
+		vk::DeviceQueueCreateInfo getPresentQueue() const;
+
 		PhysicalDevice() = default;
 		PhysicalDevice(PhysicalDevice&) = delete;
 		PhysicalDevice& operator = (PhysicalDevice) = delete;
