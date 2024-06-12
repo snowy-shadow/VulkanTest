@@ -1,0 +1,15 @@
+.cache/
+.vs/
+.idea/
+
+out/
+[Bb]uild/
+cmake-build-debug/
+CMakeSettings.json
+
+*.ilk
+*.pdb
+
+*.exe
+*.dll
+*.lib

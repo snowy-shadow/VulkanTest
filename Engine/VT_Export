@@ -1,0 +1,42 @@
+
+#ifndef VT_ENGINE_EXPORT_H
+#define VT_ENGINE_EXPORT_H
+
+#ifdef VT_ENGINE_STATIC_DEFINE
+#  define VT_ENGINE_EXPORT
+#  define VT_ENGINE_NO_EXPORT
+#else
+#  ifndef VT_ENGINE_EXPORT
+#    ifdef VT_Engine_EXPORTS
+        /* We are building this library */
+#      define VT_ENGINE_EXPORT __declspec(dllexport)
+#    else
+        /* We are using this library */
+#      define VT_ENGINE_EXPORT __declspec(dllimport)
+#    endif
+#  endif
+
+#  ifndef VT_ENGINE_NO_EXPORT
+#    define VT_ENGINE_NO_EXPORT 
+#  endif
+#endif
+
+#ifndef VT_ENGINE_DEPRECATED
+#  define VT_ENGINE_DEPRECATED __declspec(deprecated)
+#endif
+
+#ifndef VT_ENGINE_DEPRECATED_EXPORT
+#  define VT_ENGINE_DEPRECATED_EXPORT VT_ENGINE_EXPORT VT_ENGINE_DEPRECATED
+#endif
+
+#ifndef VT_ENGINE_DEPRECATED_NO_EXPORT
+#  define VT_ENGINE_DEPRECATED_NO_EXPORT VT_ENGINE_NO_EXPORT VT_ENGINE_DEPRECATED
+#endif
+
+#if 0 /* DEFINE_NO_DEPRECATED */
+#  ifndef VT_ENGINE_NO_DEPRECATED
+#    define VT_ENGINE_NO_DEPRECATED
+#  endif
+#endif
+
+#endif /* VT_ENGINE_EXPORT_H */
