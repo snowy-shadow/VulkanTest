@@ -1,38 +1,35 @@
+#include "EngineMacro.h"
 #include <GLFW/glfw3.h>
-#include <functional>
+module Platform.Windows.Window;
 
-import Window;
-
-namespace VT
+namespace VT::Windows
 {
-class WindowsWindow : public Window
+static bool Window::m_GLFW_Initialized = false;
+
+Window::Window(const WindowProperties& Properties) : m_Data({Properties, true, {}})
 {
-public:
-    Window(const WindowProperties& Properties = WindowProperties {});
-    void OnUpdate() override;
-
-    unsigned int GetWidth() const override;
-    unsigned int GetHeight() const override;
-
-    void SetEventCallBack(const std::function<void(Event&)> CallbackFN) override;
-
-    void SetVSync(bool Enabled) override;
-    bool IsVSync() const override;
-
-private:
-    virtual void Init(const WindowProperties& Properties);
-    virtual void Shutdown();
-
-private:
-    GLFWwindow* m_Window;
-
-    struct WindowInfo
+    if (!m_GLFW_Initialized)
     {
-        std::string Title;
-        unsigned int Width, Height;
-        bool VSync;
+        int Result = glfwInit();
 
-        std::function<void(Event&)> EventCallBack;
-    } m_Data;
+        VT_CORE_ASSERT(Result, "GLFW Init failed")
+
+        m_GLFW_Initialized = Result == GLFW_TRUE;
+    }
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    m_Window = glfwCreateWindow(m_Data.Width, m_Data.Height, m_Data.Title.c_str(), nullptr, nullptr);
+
+    glfwSetWindowUserPointer(m_Window, &m_Data);
 }
-} // namespace VT
+
+void Window::OnUpdate() { glfwPollEvents(); }
+
+unsigned int Window::GetWidth() const { return m_Data.Width; }
+unsigned int Window::GetHeight() const { return m_Data.Height; }
+
+void Window::SetVSync(bool Enable) { m_Data.VSync = Enable; }
+void Window::IsVSync(bool Enable) { return m_Data.VSync; }
+
+Window::~Window() { glfwDestroyWindow(m_Window); }
+
+} // namespace VT::Windows

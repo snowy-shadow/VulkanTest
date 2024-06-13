@@ -11,13 +11,13 @@ import Event;
 export namespace VT
 {
 
-struct WindowProperties
+struct VT_ENGINE_EXPORT WindowProperties
 {
-    std::string Title;
+    const char* Title;
     unsigned int Width;
     unsigned int Height;
 
-    WindowProperties(std::string_view Title = "Title", unsigned int Width = 1280, unsigned int Height = 720) :
+    WindowProperties(const char* Title = "Title", unsigned int Width = 1280, unsigned int Height = 720) :
         Title(Title), Width(Width), Height(Height)
     {
     }
@@ -37,5 +37,5 @@ public:
 
     virtual void SetVSync(bool Enabled) = 0;
     virtual bool IsVSync() const        = 0;
-}
+};
 } // namespace VT

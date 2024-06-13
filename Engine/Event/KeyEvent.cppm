@@ -4,7 +4,7 @@ module;
 #include "EngineMacro.h"
 
 export module Event.Key;
-import Event;
+import Event.Base;
 
 export namespace VT
 {

@@ -18,24 +18,25 @@ generate_export_header(${PROJECT_NAME}
 		${CMAKE_CURRENT_SOURCE_DIR}/VT_Export
 )
 
-# Header
+# Files
 target_sources(${PROJECT_NAME}
 	PUBLIC
 	FILE_SET CXX_MODULES
+	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
 	FILES
-		Event/Event.cppm
-		Event/KeyEvent.cppm
-		Event/MouseEvent.cppm
-		Event/ApplicationEvent.cppm
-
 		Engine.cppm
 		Log.cppm
 		VT_Engine.cppm
 
+		Window.cppm
 	PRIVATE
 		Engine.cpp
 
 )
+
+add_subdirectory(Event)
+# add_subdirectory(Platform)
+
 
 target_include_directories(${PROJECT_NAME}
 PUBLIC
@@ -66,10 +67,11 @@ set_target_properties(${PROJECT_NAME}
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
 
 )
-# target_compile_definitions(${PROJECT_NAME}
-# 	PRIVATE
-# 		VT_BUILD_DLL
-# )
+target_compile_definitions(${PROJECT_NAME}
+	PRIVATE
+		VT_ENABLE_MESSAGE
+		VT_ENABLE_ASSERT
+)
 
 # Compile flags
 if (MSVC)

@@ -5,7 +5,7 @@ module;
 #include "VT_Export"
 #include "EngineMacro.h"
 export module Event.Mouse;
-import Event;
+import Event.Base;
 
 namespace VT
 {
