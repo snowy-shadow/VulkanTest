@@ -4,7 +4,12 @@ add_executable(${PROJECT_NAME})
 
 target_sources(${PROJECT_NAME}
 	PRIVATE
+	FILE_SET CXX_MODULES
+	FILES
+		App.cppm
+	PRIVATE
 		App.cpp
+		main.cpp
 )
 
 # find_package(VT_Engine REQUIRED)

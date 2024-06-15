@@ -1,8 +1,8 @@
 module;
-#include <ostream>
 #include "VT_Export"
 #include <functional>
-#include <cstdint>
+#include "spdlog/pattern_formatter.h"
+#include <format>
 export module Event:Base;
 
 export namespace VT
@@ -19,11 +19,11 @@ enum class EventType
     eAppUpdate,
     eAppRender,
 
-    eKeyPressed,
-    eKeyReleased,
+    eKeyPress,
+    eKeyRelease,
 
-    eMouseButtonPressed,
-    eMouseButtonReleased,
+    eMouseButtonPress,
+    eMouseButtonRelease,
     eMouseMove,
     eMouseScroll
 };
@@ -44,9 +44,9 @@ class VT_ENGINE_EXPORT Event
     friend class EventDispatcher;
 
 public:
-    virtual constexpr EventType GetEventType() const   = 0;
-    virtual constexpr const char* GetName() const      = 0;
-    virtual constexpr uint32_t GetCategoryFlag() const = 0;
+    virtual constexpr EventType GetEventType() const       = 0;
+    virtual constexpr const char* GetName() const          = 0;
+    virtual constexpr unsigned int GetCategoryFlag() const = 0;
 
     constexpr bool IsInCategory(EventCategory Category) { return GetCategoryFlag() & Category; }
 
@@ -83,4 +83,13 @@ private:
 
 } // namespace VT
 
-export inline std::ostream& operator<<(std::ostream& OS, const VT::Event& E) { return OS << E.GetName(); }
+export template <>
+struct std::formatter<VT::Event>
+{
+    constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
+
+    auto format(const VT::Event& E, std::format_context& ctx) const
+    {
+        return std::format_to(ctx.out(), "{}", E.GetName());
+    }
+};

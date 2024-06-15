@@ -29,7 +29,7 @@ IndentPPDirectives: BeforeHash
 IndentRequires: true
 IndentWidth: 4
 IndentWrappedFunctionNames: true
-LambdaBodyIndentation: Signature
+LambdaBodyIndentation: OuterScope
 NamespaceIndentation: None
 PackConstructorInitializers: NextLine
 PointerAlignment: Left
@@ -44,6 +44,7 @@ TabWidth: 4
 UseTab: Never
 BraceWrapping:
   AfterCaseLabel: true
+  AfterClass: true
   AfterControlStatement: Always
   AfterFunction: true
   AfterNamespace: true

@@ -67,24 +67,6 @@
                 std::abort();                                      \
             }                                                      \
         }
-#elif VT_ASSERT_AS_MESSAGE
-    #define VT_ASSERT(x, ...)          \
-        {                              \
-            if (!(x))                  \
-            {                          \
-                VT_ERROR(__VA_ARGS__); \
-                std::abort();          \
-            }                          \
-        }
-
-    #define VT_CORE_ASSERT(x, ...)          \
-        {                                   \
-            if (!(x))                       \
-            {                               \
-                VT_CORE_ERROR(__VA_ARGS__); \
-                std::abort();               \
-            }                               \
-        }
 #else
     #define VT_ASSERT(x, ...)
     #define VT_CORE_ASSERT(x, ...)

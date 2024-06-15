@@ -20,24 +20,24 @@ protected:
     unsigned int m_KeyCode;
 };
 
-class VT_ENGINE_EXPORT KeyPressedEvent : public KeyEvent
+class VT_ENGINE_EXPORT KeyPressEvent : public KeyEvent
 {
 public:
-    KeyPressedEvent(unsigned int KeyCode, unsigned int RepeatCount) : KeyEvent(KeyCode), m_RepeatCount(RepeatCount) {}
+    KeyPressEvent(unsigned int KeyCode, unsigned int RepeatCount) : KeyEvent(KeyCode), m_RepeatCount(RepeatCount) {}
 
     constexpr unsigned int GetRepeatCount() const { return m_RepeatCount; }
 
-    EVENT_CLASS_TYPE(EventType::eKeyPressed)
+    EVENT_CLASS_TYPE(EventType::eKeyPress)
 
 private:
     unsigned int m_RepeatCount;
 };
 
-class VT_ENGINE_EXPORT KeyReleasedEvent : public KeyEvent
+class VT_ENGINE_EXPORT KeyReleaseEvent : public KeyEvent
 {
 public:
-    KeyReleasedEvent(unsigned int KeyCode) : KeyEvent(KeyCode) {}
+    KeyReleaseEvent(unsigned int KeyCode) : KeyEvent(KeyCode) {}
 
-    EVENT_CLASS_TYPE(EventType::eKeyReleased)
+    EVENT_CLASS_TYPE(EventType::eKeyRelease)
 };
 } // namespace VT

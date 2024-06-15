@@ -7,4 +7,4 @@ export import Log;
 export import Event;
 
 export import Window;
-// export import Platform;
+export import Platform;

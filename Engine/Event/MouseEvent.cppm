@@ -9,10 +9,10 @@ import :Base;
 
 export namespace VT
 {
-class VT_ENGINE_EXPORT MouseMovedEvent : public Event
+class VT_ENGINE_EXPORT MouseMoveEvent : public Event
 {
 public:
-    MouseMovedEvent(const std::array<float, 2>& XY) : m_XY(XY) {}
+    MouseMoveEvent(const std::array<float, 2>& XY) : m_XY(XY) {}
     constexpr std::array<float, 2> GetXY() { return m_XY; }
 
     EVENT_CLASS_TYPE(EventType::eMouseMove)
@@ -31,7 +31,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 private:
-    const std::array<float, 2> m_OffsetXY[2];
+    const std::array<float, 2> m_OffsetXY;
 };
 
 class VT_ENGINE_EXPORT MouseButtonEvent : public Event
@@ -47,21 +47,21 @@ protected:
     unsigned int m_Button;
 };
 
-class VT_ENGINE_EXPORT MouseButtonPressedEvent : public MouseButtonEvent
+class VT_ENGINE_EXPORT MouseButtonPressEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonPressedEvent(unsigned int Button) : MouseButtonEvent(Button) {}
+    MouseButtonPressEvent(unsigned int Button) : MouseButtonEvent(Button) {}
 
-    EVENT_CLASS_TYPE(EventType::eMouseButtonPressed)
+    EVENT_CLASS_TYPE(EventType::eMouseButtonPress)
 };
 
-class VT_ENGINE_EXPORT MouseButtonReleasedEvent : public MouseButtonEvent
+class VT_ENGINE_EXPORT MouseButtonReleaseEvent : public MouseButtonEvent
 {
 
 public:
-    MouseButtonReleasedEvent(unsigned int Button) : MouseButtonEvent(Button) {}
+    MouseButtonReleaseEvent(unsigned int Button) : MouseButtonEvent(Button) {}
 
-    EVENT_CLASS_TYPE(EventType::eMouseButtonReleased)
+    EVENT_CLASS_TYPE(EventType::eMouseButtonRelease)
 };
 
 } // namespace VT

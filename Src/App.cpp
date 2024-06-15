@@ -1,29 +1,38 @@
+module;
+#include <memory>
+#include <functional>
 #include "EngineMacro.h"
+
+// compiler bug, hack fix. remove when fixed
+#include <format>
+
+module Application;
+
 import VulkanTest;
 
-int main()
+Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Create()))
 {
-    VT::Engine Engine;
-    Engine.Init();
+    m_Window->SetEventCallBack(std::bind(&Application::OnEvent, this, std::placeholders::_1));
+}
 
-    VT::WindowResizeEvent E {{{1280, 720}}};
-    if (E.IsInCategory(VT::EventCategory::EventCategoryApplication))
+void Application::Run()
+{
+    while (m_Running)
     {
-        VT_TRACE(E.GetName());
+        m_Window->OnUpdate();
     }
+}
 
-    if (E.IsInCategory(VT::EventCategory::EventCategoryInput))
-    {
-        VT_ERROR("Window Resize is not category input");
-    }
+void Application::OnEvent(VT::Event& E)
+{
+    VT::EventDispatcher Dispatcher {E};
+    Dispatcher.Dispatch<VT::WindowCloseEvent>(std::bind(&Application::OnWindowClose, this, std::placeholders::_1));
 
-    VT::Window* Window = VT::Window::Create();
-    Window->OnUpdate();
+    VT_TRACE("{}", E);
+}
 
-    VT_INFO("End of program");
-
-    Engine.Terminate();
-
-    delete Window;
-    return 0;
+bool Application::OnWindowClose(VT::WindowCloseEvent&)
+{
+    m_Running = false;
+    return true;
 }
