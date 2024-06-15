@@ -1,19 +1,18 @@
 module;
-#include <cstdint>
 #include <array>
 
 #include "VT_Export"
 #include "EngineMacro.h"
-export module Event.Mouse;
-import Event.Base;
 
-namespace VT
+export module Event:Mouse;
+import :Base;
+
+export namespace VT
 {
 class VT_ENGINE_EXPORT MouseMovedEvent : public Event
 {
 public:
     MouseMovedEvent(const std::array<float, 2>& XY) : m_XY(XY) {}
-
     constexpr std::array<float, 2> GetXY() { return m_XY; }
 
     EVENT_CLASS_TYPE(EventType::eMouseMove)
@@ -38,20 +37,20 @@ private:
 class VT_ENGINE_EXPORT MouseButtonEvent : public Event
 {
 public:
-    constexpr uint32_t GetButton() const { return m_Button; }
+    constexpr unsigned int GetButton() const { return m_Button; }
 
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 protected:
-    MouseButtonEvent(uint32_t Button) : m_Button {Button} {}
+    MouseButtonEvent(unsigned int Button) : m_Button {Button} {}
 
-    uint32_t m_Button;
+    unsigned int m_Button;
 };
 
 class VT_ENGINE_EXPORT MouseButtonPressedEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonPressedEvent(uint32_t Button) : MouseButtonEvent(Button) {}
+    MouseButtonPressedEvent(unsigned int Button) : MouseButtonEvent(Button) {}
 
     EVENT_CLASS_TYPE(EventType::eMouseButtonPressed)
 };
@@ -60,7 +59,7 @@ class VT_ENGINE_EXPORT MouseButtonReleasedEvent : public MouseButtonEvent
 {
 
 public:
-    MouseButtonReleasedEvent(uint32_t Button) : MouseButtonEvent(Button) {}
+    MouseButtonReleasedEvent(unsigned int Button) : MouseButtonEvent(Button) {}
 
     EVENT_CLASS_TYPE(EventType::eMouseButtonReleased)
 };

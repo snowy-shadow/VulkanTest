@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BuildDir="build"
+BuildDir="build_linux"
 
 case "$1" in
 	"")
@@ -12,6 +12,11 @@ case "$1" in
 		cmake --build "$BuildDir"
 		;;
 
+	"fbuild")
+		cmake --fresh -B "$BuildDir" -S . -G Ninja  
+		cmake --build "$BuildDir"
+		;;
+		
 	"clean")
 		cmake --build "$BuildDir" --target clean
 		rm -rf "$BuildDir"

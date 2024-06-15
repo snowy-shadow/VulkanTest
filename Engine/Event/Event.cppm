@@ -1,6 +1,7 @@
+
 export module Event;
 
-export import Event.Base;
-export import Event.Application;
-export import Event.Key;
-export import Event.Mouse;
+export import :Base;
+export import :Application;
+export import :Key;
+export import :Mouse;

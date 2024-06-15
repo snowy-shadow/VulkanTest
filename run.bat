@@ -1,11 +1,14 @@
 @echo off
 
-set BuildDir=build
+set BuildDir=build_win
 
 IF "%~1"=="" (
 	cmake "-B" "%BuildDir%" "-S" "." "-G" "Ninja"
 ) ELSE IF "%~1"=="build" (
 	cmake "-B" "%BuildDir%" "-S" "." "-G" "Ninja"
+	cmake "--build" "%BuildDir%"
+) ELSE IF "%~1"=="fbuild" (
+	cmake "--fresh" "-B" "%BuildDir%" "-S" "." "-G" "Ninja"
 	cmake "--build" "%BuildDir%"
 ) ELSE IF "%~1"=="clean" (
 	cmake "--build" "%BuildDir%" "--target" "clean"

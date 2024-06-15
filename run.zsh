@@ -1,6 +1,6 @@
 #!/bin/zsh
 
-BuildDir="build"
+BuildDir="build_mac"
 
 case "$1" in
 	"")
@@ -9,6 +9,11 @@ case "$1" in
 
 	"build")
 		cmake -B "$BuildDir" -S . -G Ninja  
+		cmake --build "$BuildDir"
+		;;
+		
+	"fbuild")
+		cmake --fresh -B "$BuildDir" -S . -G Ninja  
 		cmake --build "$BuildDir"
 		;;
 

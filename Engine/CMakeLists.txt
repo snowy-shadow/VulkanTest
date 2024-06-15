@@ -7,7 +7,6 @@ if (POLICY CMP0141)
 endif()
 
 project ("VT_Engine")
-
 add_library(${PROJECT_NAME} SHARED)
 
 # Project files
@@ -22,20 +21,20 @@ generate_export_header(${PROJECT_NAME}
 target_sources(${PROJECT_NAME}
 	PUBLIC
 	FILE_SET CXX_MODULES
-	BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}
 	FILES
 		Engine.cppm
 		Log.cppm
 		VT_Engine.cppm
 
 		Window.cppm
+
 	PRIVATE
 		Engine.cpp
 
 )
 
 add_subdirectory(Event)
-# add_subdirectory(Platform)
+add_subdirectory(Platform)
 
 
 target_include_directories(${PROJECT_NAME}
@@ -44,7 +43,6 @@ PUBLIC
 )
 
 #Libs
-set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 add_subdirectory(Lib SYSTEM)
 
 target_link_libraries(${PROJECT_NAME}
@@ -87,7 +85,7 @@ if (MSVC)
 		/wd5027
 		/wd5262
 		/wd5267
-		/Wall
+		# /Wall
 		/WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
@@ -105,7 +103,6 @@ else()
 		-Werror
 		-Wno-error=unused-variable
 		-Wpedantic
-		-O2
 	)
 endif()
 

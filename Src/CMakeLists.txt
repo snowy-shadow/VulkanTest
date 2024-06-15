@@ -1,6 +1,7 @@
 ﻿cmake_minimum_required (VERSION 3.28)
 
 add_executable(${PROJECT_NAME})
+
 target_sources(${PROJECT_NAME}
 	PRIVATE
 		App.cpp
@@ -10,6 +11,12 @@ target_sources(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
 	PRIVATE
 		VT_Engine
+)
+
+target_compile_definitions(${PROJECT_NAME}
+	PRIVATE
+		VT_ENABLE_MESSAGE
+		VT_ENABLE_ASSERT
 )
 
 set_target_properties(${PROJECT_NAME}
@@ -32,7 +39,7 @@ if (MSVC)
 		/wd5027
 		/wd5262
 		/wd5267
-		/Wall
+		# /Wall
 		/WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
@@ -50,6 +57,5 @@ else()
 		-Werror
 		-Wno-error=unused-variable
 		-Wpedantic
-		-O2
 	)
 endif()

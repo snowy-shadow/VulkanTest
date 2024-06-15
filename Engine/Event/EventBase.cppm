@@ -1,11 +1,9 @@
 module;
-
 #include <ostream>
+#include "VT_Export"
 #include <functional>
 #include <cstdint>
-
-#include "VT_Export"
-export module Event.Base;
+export module Event:Base;
 
 export namespace VT
 {

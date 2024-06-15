@@ -1,3 +1,3 @@
 export module Platform;
 
-export import Platform.Windows;
+export import :Windows;

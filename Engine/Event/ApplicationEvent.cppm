@@ -5,8 +5,8 @@ module;
 
 #include <array>
 #include <cstdint>
-export module Event.Application;
-import Event.Base;
+export module Event:Application;
+import :Base;
 
 export namespace VT
 {

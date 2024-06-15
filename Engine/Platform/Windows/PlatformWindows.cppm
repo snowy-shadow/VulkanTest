@@ -1,3 +1,3 @@
-export module Platform.Windows;
+export module Platform:Windows;
 
 export import Platform.Windows.Window;

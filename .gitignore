@@ -3,7 +3,7 @@
 .idea/
 
 out/
-[Bb]uild/
+[Bb]uild*/
 cmake-build-debug/
 CMakeSettings.json
 

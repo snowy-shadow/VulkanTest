@@ -17,6 +17,13 @@ int main()
         VT_ERROR("Window Resize is not category input");
     }
 
+    VT::Window* Window = VT::Window::Create();
+    Window->OnUpdate();
+
+    VT_INFO("End of program");
+
     Engine.Terminate();
+
+    delete Window;
     return 0;
 }

@@ -3,22 +3,24 @@ module;
 #include <functional>
 
 export module Platform.Windows.Window;
-import titw;
 
-namespace VT::Windows
+import Window;
+import Event;
+
+export namespace VT::Windows
 {
-class Window : public ::VT::Window
+class Window : public VT::Window
 {
 public:
-    Window(const ::VT::WindowProperties& Properties = ::VT::WindowProperties {});
+    Window(const VT::WindowProperties& Properties = VT::WindowProperties {});
     void OnUpdate() override;
 
     unsigned int GetWidth() const override;
     unsigned int GetHeight() const override;
 
-    void SetEventCallBack(const std::function<void(Event&)> CallbackFN) override { m_Data.EventCallBack = CallBackFN; }
+    void SetEventCallBack(const std::function<void(Event&)> Callback) override { m_Data.EventCallBack = Callback; }
 
-    void SetVSync(bool Enabled) override;
+    void SetVSync(bool Enable) override;
     bool IsVSync() const override;
 
     ~Window();
@@ -26,13 +28,11 @@ public:
 private:
     GLFWwindow* m_Window;
 
-    struct WindowInfo : ::VT::WindowProperties
+    struct WindowInfo : VT::WindowProperties
     {
         bool VSync;
 
         std::function<void(Event&)> EventCallBack;
     } m_Data;
-
-    static bool m_GLFW_Initialized;
-}
+};
 } // namespace VT::Windows
