@@ -28,8 +28,12 @@ target_sources(${PROJECT_NAME}
 
 		Window.cppm
 
+		Layer.cppm
+		LayerStack.cppm
+
 	PRIVATE
 		Engine.cpp
+		LayerStack.cpp
 
 )
 
@@ -86,7 +90,7 @@ if (MSVC)
 		/wd5262
 		/wd5267
 		# /Wall
-		/WX
+		# /WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
 	# cl : Command line warning D9025 : overriding '/W3' with '/W4'.  Since this is

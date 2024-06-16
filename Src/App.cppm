@@ -18,5 +18,7 @@ private:
 private:
     std::unique_ptr<VT::Window> m_Window;
 
+    VT::LayerStack m_LayerStack;
+
     bool m_Running {true};
 };

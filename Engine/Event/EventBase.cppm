@@ -43,10 +43,15 @@ class VT_ENGINE_EXPORT Event
 {
     friend class EventDispatcher;
 
+    template <typename T>
+    friend bool Dispatch(Event&, std::function<bool(T&)>);
+
 public:
     virtual constexpr EventType GetEventType() const       = 0;
     virtual constexpr const char* GetName() const          = 0;
     virtual constexpr unsigned int GetCategoryFlag() const = 0;
+
+    constexpr bool Handled() { return m_Handled; }
 
     constexpr bool IsInCategory(EventCategory Category) { return GetCategoryFlag() & Category; }
 
@@ -68,7 +73,7 @@ public:
         // check Event and the handling function match
         if (m_Event.GetEventType() == Type::GetType())
         {
-            m_Event.m_Handled = Function(*(Type*) &m_Event);
+            m_Event.m_Handled = Function(dynamic_cast<Type&>(m_Event));
             return true;
         }
 
@@ -81,6 +86,18 @@ private:
     Event& m_Event;
 };
 
+template <typename Type>
+// requires requires { std::is_base_of<Event, Type::GetType()>; }
+bool Dispatch(Event& Event, std::function<bool(Type&)> Function)
+{
+    // check Event and the handling function match
+    if (Event.GetEventType() == Type::GetType())
+    {
+        Event.m_Handled = Function(dynamic_cast<Type&>(Event));
+    }
+
+    return Event.m_Handled;
+}
 } // namespace VT
 
 export template <>
