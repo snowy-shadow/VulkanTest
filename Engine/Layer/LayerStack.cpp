@@ -5,11 +5,11 @@ module;
 
 // Compiler bug
 #include <format>
-module LayerStack;
-import Layer;
+module VT.LayerStack;
+import VT.Layer;
 
 #ifdef VT_ENABLE_MESSAGE
-import Log;
+import VT.Log;
 #endif
 
 namespace VT

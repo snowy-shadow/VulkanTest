@@ -28,17 +28,15 @@ target_sources(${PROJECT_NAME}
 
 		Window.cppm
 
-		Layer.cppm
-		LayerStack.cppm
-
 	PRIVATE
 		Engine.cpp
-		LayerStack.cpp
 
 )
 
 add_subdirectory(Event)
+add_subdirectory(Layer)
 add_subdirectory(Platform)
+add_subdirectory(Renderer)
 
 
 target_include_directories(${PROJECT_NAME}
@@ -49,13 +47,13 @@ PUBLIC
 #Libs
 add_subdirectory(Lib SYSTEM)
 
-target_link_libraries(${PROJECT_NAME}
-	PUBLIC
-		spdlog::spdlog
-
-	PRIVATE
-		glfw
-)
+# target_link_libraries(${PROJECT_NAME}
+# 	PUBLIC
+# 		spdlog::spdlog
+#
+# 	PRIVATE
+# 		glfw
+# )
 
 # Target properties
 set_target_properties(${PROJECT_NAME}

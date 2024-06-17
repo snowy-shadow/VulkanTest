@@ -4,7 +4,7 @@ module;
 #include "VT_Export"
 #include "EngineMacro.h"
 
-export module Event:Mouse;
+export module VT.Event:Mouse;
 import :Base;
 
 export namespace VT
@@ -37,20 +37,20 @@ private:
 class VT_ENGINE_EXPORT MouseButtonEvent : public Event
 {
 public:
-    constexpr unsigned int GetButton() const { return m_Button; }
+    constexpr int GetButton() const { return m_Button; }
 
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
 
 protected:
-    MouseButtonEvent(unsigned int Button) : m_Button {Button} {}
+    MouseButtonEvent(int Button) : m_Button {Button} {}
 
-    unsigned int m_Button;
+    int m_Button;
 };
 
 class VT_ENGINE_EXPORT MouseButtonPressEvent : public MouseButtonEvent
 {
 public:
-    MouseButtonPressEvent(unsigned int Button) : MouseButtonEvent(Button) {}
+    MouseButtonPressEvent(int Button) : MouseButtonEvent(Button) {}
 
     EVENT_CLASS_TYPE(EventType::eMouseButtonPress)
 };
@@ -59,7 +59,7 @@ class VT_ENGINE_EXPORT MouseButtonReleaseEvent : public MouseButtonEvent
 {
 
 public:
-    MouseButtonReleaseEvent(unsigned int Button) : MouseButtonEvent(Button) {}
+    MouseButtonReleaseEvent(int Button) : MouseButtonEvent(Button) {}
 
     EVENT_CLASS_TYPE(EventType::eMouseButtonRelease)
 };

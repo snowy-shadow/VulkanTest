@@ -12,7 +12,7 @@ case "$1" in
 		cmake --build "$BuildDir"
 		;;
 		
-	"fbuild")
+	"buildf")
 		cmake --fresh -B "$BuildDir" -S . -G Ninja  
 		cmake --build "$BuildDir"
 		;;

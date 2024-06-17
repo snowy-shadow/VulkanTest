@@ -1,3 +1,3 @@
-export module Platform:Windows;
+export module VT.Platform:Windows;
 
-export import Platform.Windows.Window;
+export import VT.Platform.Windows.Window;

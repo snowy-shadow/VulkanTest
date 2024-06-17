@@ -1,13 +1,17 @@
 export module VulkanTest;
 
-export import Engine;
+export import VT.Engine;
 
-export import Log;
+export import VT.Log;
 
-export import Event;
+export import VT.Event;
 
-export import Window;
-export import Platform;
+export import VT.Window;
+export import VT.Platform;
 
-export import Layer;
-export import LayerStack;
+export import VT.Layer;
+export import VT.LayerStack;
+
+export import VT.RendererAPI;
+export import VT.Buffer;
+export import VT.GraphicsContext;

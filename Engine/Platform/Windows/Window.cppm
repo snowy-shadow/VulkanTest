@@ -2,10 +2,10 @@ module;
 #include <GLFW/glfw3.h>
 #include <functional>
 
-export module Platform.Windows.Window;
+export module VT.Platform.Windows.Window;
 
-import Window;
-import Event;
+import VT.Window;
+import VT.Event;
 
 export namespace VT::Windows
 {

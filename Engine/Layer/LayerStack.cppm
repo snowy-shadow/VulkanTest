@@ -1,8 +1,8 @@
 module;
 #include <vector>
 #include "VT_Export"
-export module LayerStack;
-import Layer;
+export module VT.LayerStack;
+import VT.Layer;
 
 export namespace VT
 {

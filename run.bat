@@ -7,7 +7,7 @@ IF "%~1"=="" (
 ) ELSE IF "%~1"=="build" (
 	cmake "-B" "%BuildDir%" "-S" "." "-G" "Ninja"
 	cmake "--build" "%BuildDir%"
-) ELSE IF "%~1"=="fbuild" (
+) ELSE IF "%~1"=="buildf" (
 	cmake "--fresh" "-B" "%BuildDir%" "-S" "." "-G" "Ninja"
 	cmake "--build" "%BuildDir%"
 ) ELSE IF "%~1"=="clean" (

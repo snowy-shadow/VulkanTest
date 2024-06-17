@@ -1,3 +1,3 @@
-export module Platform;
+export module VT.Platform;
 
 export import :Windows;

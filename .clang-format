@@ -1,4 +1,4 @@
-AlignAfterOpenBracket: Align
+AlignAfterOpenBracket: AlwaysBreak
 AlignArrayOfStructures: Right
 AlignConsecutiveAssignments: AcrossComments
 AlignConsecutiveBitFields: AcrossComments
@@ -7,6 +7,7 @@ AlignEscapedNewlines: Left
 AlignOperands: Align
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
@@ -29,7 +30,6 @@ IndentPPDirectives: BeforeHash
 IndentRequires: true
 IndentWidth: 4
 IndentWrappedFunctionNames: true
-LambdaBodyIndentation: OuterScope
 NamespaceIndentation: None
 PackConstructorInitializers: NextLine
 PointerAlignment: Left
@@ -44,8 +44,9 @@ TabWidth: 4
 UseTab: Never
 BraceWrapping:
   AfterCaseLabel: true
-  AfterClass: true
+  AfterClass: false
   AfterControlStatement: Always
+  AfterEnum: true
   AfterFunction: true
   AfterNamespace: true
   AfterStruct: true

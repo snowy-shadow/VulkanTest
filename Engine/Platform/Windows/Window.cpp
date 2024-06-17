@@ -2,12 +2,10 @@ module;
 #include <GLFW/glfw3.h>
 #include "EngineMacro.h"
 
-// error C3688: invalid literal suffix 'sv'. compiler bug, remove include when fixed
-#include <format>
-module Platform.Windows.Window;
+module VT.Platform.Windows.Window;
 
-import Event;
-import Log;
+import VT.Event;
+import VT.Log;
 
 namespace VT
 {
@@ -47,100 +45,106 @@ Window::Window(const WindowProperties& Properties) : m_Data(Properties, true, {}
      *  =================================
      */
 
-    glfwSetWindowSizeCallback(m_Window,
-                              [](GLFWwindow* Window, int Width, int Height)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-        Data.Width       = Width;
-        Data.Height      = Height;
-
-        VT::WindowResizeEvent E {{{static_cast<unsigned int>(Width), static_cast<unsigned int>(Height)}}};
-        Data.EventCallBack(E);
-    });
-
-    glfwSetWindowCloseCallback(m_Window,
-                               [](GLFWwindow* Window)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-        VT::WindowCloseEvent E;
-        Data.EventCallBack(E);
-    });
-
-    glfwSetKeyCallback(m_Window,
-                       [](GLFWwindow* Window, int Key, int ScanCode, int Action, int Mods)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-
-        // Warn unused
-        (void) ScanCode;
-        (void) Mods;
-
-        switch (Action)
+    glfwSetWindowSizeCallback(
+        m_Window,
+        [](GLFWwindow* Window, int Width, int Height)
         {
-            case GLFW_PRESS:
-            {
-                VT::KeyPressEvent E {static_cast<unsigned int>(Key), 0};
-                Data.EventCallBack(E);
-                break;
-            }
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+            Data.Width       = Width;
+            Data.Height      = Height;
 
-            case GLFW_REPEAT:
-            {
-                VT::KeyPressEvent E {static_cast<unsigned int>(Key), 1};
-                Data.EventCallBack(E);
-                break;
-            }
-            case GLFW_RELEASE:
-            {
-                VT::KeyReleaseEvent E {static_cast<unsigned int>(Key)};
-                Data.EventCallBack(E);
-                break;
-            }
-        }
-    });
+            VT::WindowResizeEvent E {{{static_cast<unsigned int>(Width), static_cast<unsigned int>(Height)}}};
+            Data.EventCallBack(E);
+        });
 
-    glfwSetMouseButtonCallback(m_Window,
-                               [](GLFWwindow* Window, int Button, int Action, int Mods)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-
-        // warn unused
-        (void) Mods;
-
-        switch (Action)
+    glfwSetWindowCloseCallback(
+        m_Window,
+        [](GLFWwindow* Window)
         {
-            case GLFW_PRESS:
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+            VT::WindowCloseEvent E;
+            Data.EventCallBack(E);
+        });
+
+    glfwSetKeyCallback(
+        m_Window,
+        [](GLFWwindow* Window, int Key, int ScanCode, int Action, int Mods)
+        {
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+
+            // Warn unused
+            (void) ScanCode;
+            (void) Mods;
+
+            switch (Action)
             {
-                VT::MouseButtonPressEvent E {static_cast<unsigned int>(Button)};
-                Data.EventCallBack(E);
-                break;
-            }
+                case GLFW_PRESS:
+                {
+                    VT::KeyPressEvent E {Key};
+                    Data.EventCallBack(E);
+                    break;
+                }
 
-            case GLFW_RELEASE:
+                case GLFW_REPEAT:
+                {
+                    VT::KeyPressEvent E {Key, 1};
+                    Data.EventCallBack(E);
+                    break;
+                }
+                case GLFW_RELEASE:
+                {
+                    VT::KeyReleaseEvent E {Key};
+                    Data.EventCallBack(E);
+                    break;
+                }
+            }
+        });
+
+    glfwSetMouseButtonCallback(
+        m_Window,
+        [](GLFWwindow* Window, int Button, int Action, int Mods)
+        {
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+
+            // warn unused
+            (void) Mods;
+
+            switch (Action)
             {
-                VT::MouseButtonReleaseEvent E {static_cast<unsigned int>(Button)};
-                Data.EventCallBack(E);
-                break;
+                case GLFW_PRESS:
+                {
+                    VT::MouseButtonPressEvent E {Button};
+                    Data.EventCallBack(E);
+                    break;
+                }
+
+                case GLFW_RELEASE:
+                {
+                    VT::MouseButtonReleaseEvent E {Button};
+                    Data.EventCallBack(E);
+                    break;
+                }
             }
-        }
-    });
+        });
 
-    glfwSetScrollCallback(m_Window,
-                          [](GLFWwindow* Window, double XOffset, double YOffset)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+    glfwSetScrollCallback(
+        m_Window,
+        [](GLFWwindow* Window, double XOffset, double YOffset)
+        {
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
 
-        VT::MouseScrollEvent E {{{static_cast<float>(XOffset), static_cast<float>(YOffset)}}};
-        Data.EventCallBack(E);
-    });
+            VT::MouseScrollEvent E {{{static_cast<float>(XOffset), static_cast<float>(YOffset)}}};
+            Data.EventCallBack(E);
+        });
 
-    glfwSetCursorPosCallback(m_Window,
-                             [](GLFWwindow* Window, double XPos, double YPos)
-    {
-        WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-        VT::MouseMoveEvent E {{{static_cast<float>(XPos), static_cast<float>(YPos)}}};
-        Data.EventCallBack(E);
-    });
+    glfwSetCursorPosCallback(
+        m_Window,
+        [](GLFWwindow* Window, double XPos, double YPos)
+        {
+            WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
+            VT::MouseMoveEvent E {{{static_cast<float>(XPos), static_cast<float>(YPos)}}};
+            Data.EventCallBack(E);
+        });
 }
 
 void Window::OnUpdate()

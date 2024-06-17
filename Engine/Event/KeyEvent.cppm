@@ -2,7 +2,7 @@ module;
 #include "VT_Export"
 #include "EngineMacro.h"
 
-export module Event:Key;
+export module VT.Event:Key;
 import :Base;
 
 export namespace VT
@@ -10,20 +10,20 @@ export namespace VT
 class VT_ENGINE_EXPORT KeyEvent : public Event
 {
 public:
-    constexpr unsigned int GetKeyCode() const { return m_KeyCode; }
+    constexpr int GetKeyCode() const { return m_KeyCode; }
 
     EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
 
 protected:
-    KeyEvent(unsigned int KeyCode) : m_KeyCode(KeyCode) {}
+    KeyEvent(int KeyCode) : m_KeyCode(KeyCode) {}
 
-    unsigned int m_KeyCode;
+    int m_KeyCode;
 };
 
 class VT_ENGINE_EXPORT KeyPressEvent : public KeyEvent
 {
 public:
-    KeyPressEvent(unsigned int KeyCode, unsigned int RepeatCount) : KeyEvent(KeyCode), m_RepeatCount(RepeatCount) {}
+    KeyPressEvent(int KeyCode, unsigned int RepeatCount = 0) : KeyEvent(KeyCode), m_RepeatCount(RepeatCount) {}
 
     constexpr unsigned int GetRepeatCount() const { return m_RepeatCount; }
 
@@ -36,7 +36,7 @@ private:
 class VT_ENGINE_EXPORT KeyReleaseEvent : public KeyEvent
 {
 public:
-    KeyReleaseEvent(unsigned int KeyCode) : KeyEvent(KeyCode) {}
+    KeyReleaseEvent(int KeyCode) : KeyEvent(KeyCode) {}
 
     EVENT_CLASS_TYPE(EventType::eKeyRelease)
 };

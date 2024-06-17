@@ -1,6 +1,6 @@
 module;
 #include "VT_Export"
-export module Engine;
+export module VT.Engine;
 
 export namespace VT
 {

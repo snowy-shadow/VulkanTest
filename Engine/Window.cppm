@@ -1,9 +1,9 @@
 module;
 #include <functional>
 #include "VT_Export"
-export module Window;
+export module VT.Window;
 
-import Event;
+import VT.Event;
 
 export namespace VT
 {
