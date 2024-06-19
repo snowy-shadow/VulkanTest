@@ -10,8 +10,6 @@ import VT.Log;
 namespace VT
 {
 static bool s_GLFW_Initialized = false;
-Window* Window::Create(const WindowProperties& Properties) { return new Windows::Window(Properties); }
-
 } // namespace VT
 
 namespace VT::Windows

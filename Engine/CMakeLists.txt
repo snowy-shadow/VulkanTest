@@ -28,8 +28,12 @@ target_sources(${PROJECT_NAME}
 
 		Window.cppm
 
+		Input.cppm
+
 	PRIVATE
 		Engine.cpp
+		Window.cpp
+		Input.cpp
 
 )
 
@@ -38,22 +42,25 @@ add_subdirectory(Layer)
 add_subdirectory(Platform)
 add_subdirectory(Renderer)
 
-
-target_include_directories(${PROJECT_NAME}
-PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}
-)
-
 #Libs
 add_subdirectory(Lib SYSTEM)
 
-# target_link_libraries(${PROJECT_NAME}
-# 	PUBLIC
-# 		spdlog::spdlog
-#
-# 	PRIVATE
-# 		glfw
-# )
+find_package(Vulkan REQUIRED 
+	COMPONENTS
+		shaderc_combined
+		dxc
+)
+target_link_libraries(${PROJECT_NAME}
+	PRIVATE
+		Vulkan::Vulkan
+		Vulkan::shaderc_combined
+		Vulkan::dxc_lib
+)
+
+target_include_directories(${PROJECT_NAME}
+	PUBLIC
+		${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # Target properties
 set_target_properties(${PROJECT_NAME}

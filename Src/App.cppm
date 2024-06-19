@@ -17,6 +17,7 @@ private:
 
 private:
     std::unique_ptr<VT::Window> m_Window;
+    VT::Input& m_Input;
 
     VT::LayerStack m_LayerStack;
 

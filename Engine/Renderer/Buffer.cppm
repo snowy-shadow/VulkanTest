@@ -1,7 +1,6 @@
 module;
 #include <cstdint>
 #include <vector>
-#include <initializer_list>
 #include "VT_Export"
 #include "EngineMacro.h"
 export module VT.Buffer;

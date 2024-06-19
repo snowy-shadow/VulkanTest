@@ -9,7 +9,7 @@ import VT.Event;
 
 export namespace VT::Windows
 {
-class Window : public VT::Window
+class Window final : public VT::Window
 {
 public:
     Window(const VT::WindowProperties& Properties = VT::WindowProperties {});
@@ -22,6 +22,9 @@ public:
 
     void SetVSync(bool Enable) override;
     bool IsVSync() const override;
+
+    constexpr WindowAPI GetWindowAPI() const override { return WindowAPI::eGLFWwindow; };
+    inline void* GetNativeWindow() const override { return m_Window; }
 
     ~Window();
 

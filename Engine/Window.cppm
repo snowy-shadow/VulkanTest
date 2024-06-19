@@ -20,10 +20,16 @@ struct VT_ENGINE_EXPORT WindowProperties
     }
 };
 
+enum class WindowAPI
+{
+    eGLFWwindow
+};
+
 class VT_ENGINE_EXPORT Window
 {
 public:
-    static Window* Create(const WindowProperties& Properties = WindowProperties {});
+    static Window*
+        Create(WindowAPI API = WindowAPI::eGLFWwindow, const WindowProperties& Properties = WindowProperties {});
 
     virtual void OnUpdate() = 0;
 
@@ -34,6 +40,9 @@ public:
 
     virtual void SetVSync(bool Enabled) = 0;
     virtual bool IsVSync() const        = 0;
+
+    virtual constexpr WindowAPI GetWindowAPI() const = 0;
+    virtual void* GetNativeWindow() const            = 0;
 
     virtual ~Window() = default;
 };

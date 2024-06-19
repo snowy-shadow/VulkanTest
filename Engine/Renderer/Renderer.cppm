@@ -1,21 +1,31 @@
 module;
 #include "VT_Export"
-export module VT.RendererAPI;
+export module VT.Renderer;
+
+import VT.RenderCmdAPI;
+import VT.Camera;
 
 export namespace VT
 {
-enum class RendererAPI
-{
-    eNone,
-    eVulkan
-};
-
 class VT_ENGINE_EXPORT Renderer
 {
 public:
-    constexpr RendererAPI GetAPI() { return m_RendererAPI; }
+    Renderer(RenderCmdAPI::API Type = RenderCmdAPI::API::eVulkan);
+
+    void BeginScene(Camera* Camera);
+    void EndScene();
+
+    void BeginRenderPass();
+    void EndRenderPass();
+
+    void Submit();
+
+    void SetRendererAPI(RenderCmdAPI::API API);
 
 private:
-    RendererAPI m_RendererAPI;
+    static inline RenderCmdAPI* SetAPI(RenderCmdAPI::API Type);
+
+private:
+    RenderCmdAPI* m_API;
 };
 } // namespace VT

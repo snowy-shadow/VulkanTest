@@ -7,7 +7,6 @@ AlignEscapedNewlines: Left
 AlignOperands: Align
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: Always
-AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false

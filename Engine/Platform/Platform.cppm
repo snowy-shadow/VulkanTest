@@ -1,3 +1,4 @@
 export module VT.Platform;
 
-export import :Windows;
+export import VT.Platform.Windows.Window;
+export import VT.Platform.GLFW.Input;

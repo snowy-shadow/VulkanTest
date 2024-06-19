@@ -3,6 +3,13 @@ target_sources(${PROJECT_NAME}
 	FILE_SET CXX_MODULES
 	FILES
 	    Buffer.cppm
-	    Renderer.cppm
 	    GraphicsContext.cppm
+
+	    RenderCmdAPI.cppm
+	    Renderer.cppm
+
+	    Camera.cppm
+
+	PRIVATE
+	    Renderer.cpp
 )
