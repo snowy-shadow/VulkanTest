@@ -9,18 +9,18 @@ import VT.Log;
 
 namespace VT
 {
-Input& Input::Create(const Window& Window)
+Input* Input::Create(const Window& Window)
 {
     switch (Window.GetWindowAPI())
     {
         case WindowAPI::eGLFWwindow:
         {
-            static GLFW::Input Input {Window.GetNativeWindow()};
-            return Input;
+            return new GLFW::Input {Window.GetNativeWindow()};
         }
 
         default:
             VT_CORE_HALT("Failed to create Input handler : Invalid Window API");
+            nullptr;
     }
 }
 } // namespace VT

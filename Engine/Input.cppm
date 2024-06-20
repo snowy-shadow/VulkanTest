@@ -16,7 +16,7 @@ public:
     virtual bool IsMouseButtonPressed(int Button) = 0;
     virtual std::pair<float, float> GetMouseXY()  = 0;
 
-    static Input& Create(const Window& Window);
+    static Input* Create(const Window& Window);
 
     virtual ~Input() = default;
 
