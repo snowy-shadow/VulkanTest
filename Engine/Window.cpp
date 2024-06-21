@@ -5,12 +5,14 @@ import VT.Platform;
 namespace VT
 {
 
-Window* Window::Create(WindowAPI API, const WindowProperties& Properties)
+Window* Window::Create(WindowAPI WindowAPI, RendererOption::API RendererAPI, const WindowProperties& Properties)
 {
     switch (API)
     {
         case WindowAPI::eGLFWwindow:
-            return new Windows::Window(Properties);
+#ifdef _WIN32
+            return new Windows::Window(RendererAPI, Properties);
+#endif
     }
 }
 } // namespace VT

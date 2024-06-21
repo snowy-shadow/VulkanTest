@@ -4,6 +4,7 @@ module;
 export module VT.Window;
 
 import VT.Event;
+import VT.RendererOption;
 
 export namespace VT
 {
@@ -28,8 +29,10 @@ enum class WindowAPI
 class VT_ENGINE_EXPORT Window
 {
 public:
-    static Window*
-        Create(WindowAPI API = WindowAPI::eGLFWwindow, const WindowProperties& Properties = WindowProperties {});
+    static Window* Create(
+        WindowAPI WindowAPI                = WindowAPI::eGLFWwindow,
+        RendererOption::API RendererAPI    = RendererOption::API::eVulkan,
+        const WindowProperties& Properties = WindowProperties {});
 
     virtual void OnUpdate() = 0;
 

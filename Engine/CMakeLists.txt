@@ -78,6 +78,12 @@ target_compile_definitions(${PROJECT_NAME}
 	PRIVATE
 		VT_ENABLE_MESSAGE
 		VT_ENABLE_ASSERT
+		
+		GLFW_INCLUDE_NONE
+		GLFW_INCLUDE_VULKAN
+
+		# enable aggregate initialization
+		VULKAN_HPP_NO_CONSTRUCTORS
 )
 
 # Compile flags

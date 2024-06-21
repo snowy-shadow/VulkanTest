@@ -1,25 +1,19 @@
 export module VT.RenderCmdAPI;
 
+import VT.RendererOption;
 export namespace VT
 {
 class RenderCmdAPI
 {
 public:
-    enum class API
-    {
-        eNone,
-        eVulkan
-    };
-
-public:
     virtual void SetClearColor() = 0;
     virtual void Clear()         = 0;
 
-    constexpr API GetAPI() const { return m_RendererAPI; }
+    constexpr RendererAPI GetAPI() const { return m_RendererAPI; }
 
     virtual ~RenderCmdAPI() = default;
 
 private:
-    API m_RendererAPI;
+    RendererAPI m_RendererAPI;
 };
 } // namespace VT

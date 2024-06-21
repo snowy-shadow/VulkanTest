@@ -6,6 +6,7 @@ module VT.Platform.Windows.Window;
 
 import VT.Event;
 import VT.Log;
+import VT.RendererOption;
 
 namespace VT
 {
@@ -19,7 +20,7 @@ static void GLFWErrorCallBack(int Error, const char* Description)
     VT_CORE_ERROR("GLFW Error ({0}) : {1}", Error, Description);
 }
 
-Window::Window(const WindowProperties& Properties) : m_Data(Properties, true, {})
+Window::Window(RendererOption::API API, const WindowProperties& Properties) : m_Data(Properties, true, {})
 {
     if (!VT::s_GLFW_Initialized)
     {
@@ -31,7 +32,11 @@ Window::Window(const WindowProperties& Properties) : m_Data(Properties, true, {}
 
         VT::s_GLFW_Initialized = Result == GLFW_TRUE;
     }
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+    if (API == RendererOption::API::eVulkan)
+    {
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    }
 
     m_Window = glfwCreateWindow(
         static_cast<int>(m_Data.Width), static_cast<int>(m_Data.Height), m_Data.Title, nullptr, nullptr);
