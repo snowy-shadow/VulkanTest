@@ -1,6 +1,6 @@
 export module VT.RendererOption;
 
-namespace VT::RendererOption
+export namespace VT::RendererOption
 {
 enum class API
 {

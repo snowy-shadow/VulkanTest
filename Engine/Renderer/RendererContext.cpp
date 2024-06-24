@@ -9,7 +9,7 @@ import VT.Log;
 namespace VT
 {
 
-static PtrRef<RendererContext> RendererContext::Create(RendererOption::API API, Window* Window)
+Shared<RendererContext> RendererContext::Create(RendererOption::API API, Shared<Window> Window)
 {
     switch (API)
     {

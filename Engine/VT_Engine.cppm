@@ -16,9 +16,10 @@ export import VT.LayerStack;
 export import VT.Renderer;
 
 export import VT.Buffer;
-export import VT.GraphicsContext;
 
 // export import VT.ShaderCompiler;
 export import VT.Input;
 
 export import VT.Timestep;
+
+export import VT.Util;

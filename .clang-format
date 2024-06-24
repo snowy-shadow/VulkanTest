@@ -6,6 +6,8 @@ AlignConsecutiveMacros: AcrossComments
 AlignEscapedNewlines: Left
 AlignOperands: Align
 AlignTrailingComments: true
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Always
 AllowShortFunctionsOnASingleLine: All
 AlwaysBreakTemplateDeclarations: Yes
@@ -16,8 +18,8 @@ BreakBeforeBraces: Allman
 BreakBeforeConceptDeclarations: true
 BreakConstructorInitializers: AfterColon
 BreakInheritanceList: AfterComma
-Cpp11BracedListStyle: true
 ColumnLimit: 120
+Cpp11BracedListStyle: true
 EmptyLineBeforeAccessModifier: Always
 FixNamespaceComments: true
 AccessModifierOffset: -4

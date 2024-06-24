@@ -1,18 +1,19 @@
-export module VT.Vulkan.Context;
+export module VT.Platform.Vulkan.Context;
 
 import VT.RendererContext;
+import VT.Util;
 import VT.Window;
 
-namespace VT::Vulkan
+export namespace VT::Vulkan
 {
 class Context : public RendererContext
 {
 public:
-    Context(Window* Window);
+    Context(Shared<Window> Window);
     void Init() override;
     void SwapBuffers() override;
 
 private:
-    Window* m_Window {nullptr};
+    Shared<Window> m_Window;
 };
 } // namespace VT::Vulkan

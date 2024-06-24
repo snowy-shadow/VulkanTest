@@ -9,11 +9,11 @@ public:
     virtual void SetClearColor() = 0;
     virtual void Clear()         = 0;
 
-    constexpr RendererAPI GetAPI() const { return m_RendererAPI; }
+    constexpr RendererOption::API GetAPI() const { return m_RendererAPI; }
 
     virtual ~RenderCmdAPI() = default;
 
 private:
-    RendererAPI m_RendererAPI;
+    RendererOption::API m_RendererAPI;
 };
 } // namespace VT

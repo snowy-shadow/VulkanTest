@@ -7,4 +7,5 @@ target_sources(${PROJECT_NAME}
 )
 add_subdirectory(Windows)
 add_subdirectory(GLFW)
+add_subdirectory(Vulkan)
 

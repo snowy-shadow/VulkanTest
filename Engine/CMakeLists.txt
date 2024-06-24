@@ -16,6 +16,7 @@ generate_export_header(${PROJECT_NAME}
 	EXPORT_FILE_NAME
 		${CMAKE_CURRENT_SOURCE_DIR}/VT_Export
 )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Files
 target_sources(${PROJECT_NAME}
@@ -29,6 +30,7 @@ target_sources(${PROJECT_NAME}
 		Window.cppm
 
 		Input.cppm
+		Timestep.cppm
 
 	PRIVATE
 		Engine.cpp
@@ -41,6 +43,7 @@ add_subdirectory(Event)
 add_subdirectory(Layer)
 add_subdirectory(Platform)
 add_subdirectory(Renderer)
+add_subdirectory(Util)
 
 #Libs
 add_subdirectory(Lib SYSTEM)

@@ -16,8 +16,8 @@ private:
     bool OnWindowClose(VT::WindowCloseEvent&);
 
 private:
-    std::unique_ptr<VT::Window> m_Window;
-    std::unique_ptr<VT::Input> m_Input;
+    VT::Shared<VT::Window> m_Window;
+    VT::Uniq<VT::Input> m_Input;
 
     VT::LayerStack m_LayerStack;
 

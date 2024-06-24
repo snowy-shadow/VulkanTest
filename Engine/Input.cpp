@@ -4,18 +4,19 @@ module;
 module VT.Input;
 
 import VT.Window;
+import VT.Util;
 import VT.Platform;
 import VT.Log;
 
 namespace VT
 {
-Input* Input::Create(const Window& Window)
+Uniq<Input> Input::Create(const Window& Window)
 {
     switch (Window.GetWindowAPI())
     {
         case WindowAPI::eGLFWwindow:
         {
-            return new GLFW::Input {Window.GetNativeWindow()};
+            return CreateUniq<GLFW::Input>(Window.GetNativeWindow());
         }
 
         default:

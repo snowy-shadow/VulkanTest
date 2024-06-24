@@ -1,0 +1,23 @@
+#pragma once
+
+#define GLFW_INCLUDE_NONE
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
+
+#include <array>
+
+namespace VT
+{
+	struct Window
+	{
+		Window(const std::array<int, 2>& Dimension_XY, const char* WindowName);
+
+		void draw();
+
+		~Window();
+		Window(const Window&) = delete;
+		Window& operator = (const Window&) = delete;
+
+		GLFWwindow* m_Window{ nullptr };
+	};
+}

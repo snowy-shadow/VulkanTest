@@ -2,9 +2,9 @@ module;
 #include "VT_Export"
 export module VT.Timestep;
 
-namespace VT
+export namespace VT
 {
-struct VT_ENGINE_EXPORT Timestep
+class VT_ENGINE_EXPORT Timestep
 {
 public:
     Timestep(float Time = 0.f) : m_TimeSecond(Time) {}
@@ -16,5 +16,5 @@ public:
 
 private:
     float m_TimeSecond;
-}
+};
 } // namespace VT

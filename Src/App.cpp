@@ -11,7 +11,7 @@ import ImageLayer;
 
 Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Create(VT::WindowAPI::eGLFWwindow)))
 {
-    m_Input.reset(VT::Input::Create(*m_Window));
+    m_Input = VT::Input::Create(*m_Window);
     m_Window->SetEventCallBack(std::bind(&Application::OnEvent, this, std::placeholders::_1));
     m_LayerStack.PushLayer(new ImageLayer());
 }

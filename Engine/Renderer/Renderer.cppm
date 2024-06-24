@@ -5,6 +5,7 @@ export module VT.Renderer;
 import VT.RendererOption;
 import VT.RenderCmdAPI;
 import VT.Camera;
+import VT.Util;
 
 export namespace VT
 {
@@ -13,7 +14,7 @@ class VT_ENGINE_EXPORT Renderer
 public:
     Renderer(RendererOption::API Type = RendererOption::API::eVulkan);
 
-    void BeginScene(Camera* Camera);
+    void BeginScene(Shared<Camera> Camera);
     void EndScene();
 
     void BeginRenderPass();
@@ -24,9 +25,9 @@ public:
     void SetRendererAPI(RendererOption::API API);
 
 private:
-    static inline RenderCmdAPI* SetAPI(RendererAPI Type);
+    inline Shared<RenderCmdAPI> SetAPI(RendererOption::API Type);
 
 private:
-    RenderCmdAPI* m_API;
+    Shared<RenderCmdAPI> m_API;
 };
 } // namespace VT

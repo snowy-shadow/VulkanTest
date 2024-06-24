@@ -1,3 +1,3 @@
-export module VT.DataStructure;
+export module VT.Util.DataStructure;
 
-export import VT.PointerWrapper;
+export import VT.Util.Datastructure.PointerWrapper;

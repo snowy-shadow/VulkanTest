@@ -1,6 +1,4 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
-#
+﻿# CMakeList.txt : Top-level CMake project file
 cmake_minimum_required (VERSION 3.28)
 
 # Enable Hot Reload for MSVC compilers if supported.
@@ -10,7 +8,6 @@ if (POLICY CMP0141)
 endif()
 
 project ("VulkanTest" VERSION 0.1 LANGUAGES CXX)
-set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 # Custom libraries
 if(APPLE)

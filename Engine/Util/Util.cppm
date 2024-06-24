@@ -1,3 +1,3 @@
 export module VT.Util;
 
-export import VT.DataStructure;
+export import VT.Util.DataStructure;

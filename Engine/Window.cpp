@@ -7,7 +7,7 @@ namespace VT
 
 Window* Window::Create(WindowAPI WindowAPI, RendererOption::API RendererAPI, const WindowProperties& Properties)
 {
-    switch (API)
+    switch (WindowAPI)
     {
         case WindowAPI::eGLFWwindow:
 #ifdef _WIN32

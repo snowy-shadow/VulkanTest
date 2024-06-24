@@ -6,6 +6,7 @@ module;
 export module VT.Input;
 
 import VT.Window;
+import VT.Util;
 
 export namespace VT
 {
@@ -16,7 +17,7 @@ public:
     virtual bool IsMouseButtonPressed(int Button) = 0;
     virtual std::pair<float, float> GetMouseXY()  = 0;
 
-    static Input* Create(const Window& Window);
+    static Uniq<Input> Create(const Window& Window);
 
     virtual ~Input() = default;
 

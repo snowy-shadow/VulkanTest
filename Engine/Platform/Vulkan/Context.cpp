@@ -2,15 +2,16 @@ module;
 #include <GLFW/glfw3.h>
 #include "EngineMacro.h"
 
-module VT.Vulkan.Context;
+module VT.Platform.Vulkan.Context;
 import VT.Log;
+import VT.Util;
 
 namespace VT::Vulkan
 {
-Context::Context(Window* Window) : m_Window(Window) {}
+Context::Context(Shared<Window> Window) : m_Window(Window) {}
 void Context::Init()
 {
-    if (Window->GetWindowAPI() == WindowAPI::eGLFWwindow)
+    if (m_Window->GetWindowAPI() == WindowAPI::eGLFWwindow)
     {
         VT_CORE_ASSERT(glfwVulkanSupported(), "GLFW Window context does not support vulkan");
     }
