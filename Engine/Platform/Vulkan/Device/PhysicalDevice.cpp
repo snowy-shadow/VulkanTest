@@ -66,7 +66,12 @@ bool PhysicalDevice::AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriori
     auto Index {static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator))};
 
     // save queue info
-    m_DeviceQueues.emplace_back(RequiredQueue, Index, QueueFamilies.at(Index).queueCount, &QueuePriority);
+    m_DeviceQueues.emplace_back(
+        RequiredQueue,
+        vk::DeviceQueueCreateInfo {
+            .queueFamilyIndex = Index,
+            .queueCount       = QueueFamilies.at(Index).queueCount,
+            .pQueuePriorities = &QueuePriority});
 
     if (RequiredQueue == vk::QueueFlagBits::eGraphics)
     {
@@ -150,7 +155,9 @@ bool PhysicalDevice::FindPresentQueue(vk::SurfaceKHR Surface)
 
     for (int i = 0; i < m_DeviceQueues.size(); i++)
     {
-        if (m_PhysicalDevice.getSurfaceSupportKHR(m_DeviceQueues[i].second.queueFamilyIndex, Surface))
+        if (m_PhysicalDevice.getSurfaceSupportKHR(
+                static_cast<uint32_t>(m_DeviceQueues[i].second.queueFamilyIndex),
+                Surface))
         {
             m_PresentQueue = i;
             return true;
@@ -168,28 +175,24 @@ bool PhysicalDevice::FindGraphicsQueueWithPresent(
     // find queue
     auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
 
-    auto Iterator = std::find_if(
-        QueueFamilies.cbegin(),
-        QueueFamilies.cend(),
-        [&](const vk::QueueFamilyProperties& QFP)
-        {
-            return (QFP.queueFlags & vk::QueueFlagBits::eGraphics) && (QFP.queueCount >= MinGraphicsQCount) &&
-                   (m_PhysicalDevice.getSurfaceSupportKHR(QFP.queueFamilyIndex, Surface));
-        });
-
-    if (Iterator != QueueFamilies.cend())
+    for (int Index = 0; Index < QueueFamilies.size(); Index++)
     {
-        auto Index = static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator));
-        m_DeviceQueues.emplace_back(
-            vk::QueueFlagBits::eGraphics,
-            static_cast<uint32_t>(Index),
-            MinGraphicsQCount,
-            &GraphicsQPriority);
+        auto& QF = QueueFamilies[Index];
 
-        // last element index
-        m_PresentQueue  = static_cast<int>(m_DeviceQueues.size() - 1);
-        m_GraphicsQueue = m_PresentQueue;
-        return true;
+        if ((QF.queueFlags & vk::QueueFlagBits::eGraphics) && (QF.queueCount >= MinGraphicsQCount) &&
+            m_PhysicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(Index), Surface))
+        {
+            auto Iter = m_DeviceQueues.emplace_back(
+                vk::QueueFlagBits::eGraphics,
+                vk::DeviceQueueCreateInfo {
+                    .queueFamilyIndex = static_cast<uint32_t>(Index),
+                    .queueCount       = MinGraphicsQCount,
+                    .pQueuePriorities = &GraphicsQPriority});
+
+            // last element index
+            m_GraphicsQueue = m_PresentQueue = static_cast<int>(m_DeviceQueues.size() - 1);
+            return true;
+        }
     }
 
     // FIX : try find a random queue that can present
