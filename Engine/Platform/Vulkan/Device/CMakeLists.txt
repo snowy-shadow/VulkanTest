@@ -2,12 +2,9 @@
 	PUBLIC
 	FILE_SET CXX_MODULES
 	FILES
-		DebugMessenger.cppm
-		# Device.cppm
+		Instance.cppm
 		PhysicalDevice.cppm
 	PRIVATE
-	# Device.cpp
-	PhysicalDevice.cpp
+		Instance.cpp
+		PhysicalDevice.cpp
 )
-
-target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -6,7 +6,7 @@ module;
 
 export module VT.Platform.Vulkan.PhysicalDevice;
 
-namespace VT::Vulkan
+export namespace VT::Vulkan
 {
 class PhysicalDevice
 {
@@ -65,14 +65,14 @@ private:
         const vk::PhysicalDevice& PhysicalDevice,
         const std::vector<const char*>& RequiredExtensions);
 
-    int m_PresentQueue {-1};
-    int m_GraphicsQueue {-1};
-
-    vk::PhysicalDevice m_PhysicalDevice;
-    vk::PhysicalDeviceProperties m_PhysicalDeviceProperties;
-
+private:
     // <Purpose of queue, queue info>
     // could all be referring to the same queue
     std::vector<std::pair<vk::QueueFlagBits, vk::DeviceQueueCreateInfo>> m_DeviceQueues;
+
+    vk::PhysicalDevice m_PhysicalDevice;
+
+    int m_PresentQueue {-1};
+    int m_GraphicsQueue {-1};
 };
 } // namespace VT::Vulkan

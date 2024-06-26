@@ -7,7 +7,7 @@ target_sources(${PROJECT_NAME}
 	    Buffer.cppm
 
 		RendererOption.cppm
-	    RenderCmdAPI.cppm
+	    RendererAPI.cppm
 	    Renderer.cppm
 
 	    Camera.cppm

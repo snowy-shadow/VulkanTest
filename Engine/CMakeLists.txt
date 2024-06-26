@@ -54,7 +54,7 @@ find_package(Vulkan REQUIRED
 		dxc
 )
 target_link_libraries(${PROJECT_NAME}
-	PRIVATE
+	PUBLIC
 		Vulkan::Vulkan
 		Vulkan::shaderc_combined
 		Vulkan::dxc_lib
@@ -81,12 +81,14 @@ target_compile_definitions(${PROJECT_NAME}
 	PRIVATE
 		VT_ENABLE_MESSAGE
 		VT_ENABLE_ASSERT
+		VT_ENABLE_DEBUG
 		
 		GLFW_INCLUDE_NONE
 		GLFW_INCLUDE_VULKAN
 
 		# enable aggregate initialization
 		VULKAN_HPP_NO_CONSTRUCTORS
+		VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
 )
 
 # Compile flags

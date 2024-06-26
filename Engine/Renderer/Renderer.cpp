@@ -1,26 +1,30 @@
 module VT.Renderer;
 
 import VT.RendererOption;
-import VT.RenderCmdAPI;
+import VT.RendererAPI;
+import VT.Window;
 import VT.Camera;
 import VT.Util;
 
 namespace VT
 {
 
-Renderer::Renderer(RendererOption::API Type) : m_API(SetAPI(Type)) {}
+Renderer::Renderer(RendererOption::API Type) : m_API(CreateAPI(Type)) {}
 
 void Renderer::BeginScene(Shared<Camera> Camera) { (void) Camera; }
 void Renderer::EndScene() {}
 
 void Renderer::Submit() {}
 
-void Renderer::SetRendererAPI(RendererOption::API API) { m_API = SetAPI(API); }
+void Renderer::SetRendererAPI(RendererOption::API Type) { m_API = CreateAPI(Type); }
 
-inline Shared<RenderCmdAPI> Renderer::SetAPI(RendererOption::API Type)
+inline Uniq<RendererAPI> Renderer::CreateAPI(RendererOption::API Type)
 {
-    m_API.reset();
-    // TODO : Set type by API
-    return m_API;
+    switch (Type)
+    {
+        // case RendererOption::API::eVulkan:
+        //     return CreateRef < Vulkan::Context
+    }
+    return nullptr;
 }
 } // namespace VT

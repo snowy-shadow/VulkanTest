@@ -9,12 +9,12 @@ import VT.Log;
 namespace VT
 {
 
-Shared<RendererContext> RendererContext::Create(RendererOption::API API, Shared<Window> Window)
+RendererContext* RendererContext::Create(RendererOption::API API, Shared<Window> Window)
 {
     switch (API)
     {
         case RendererOption::API::eVulkan:
-            return CreateRef<Vulkan::Context>(Window);
+            return new Vulkan::Context(Window);
     }
     VT_CORE_HALT("Unsupported RendererAPI");
 

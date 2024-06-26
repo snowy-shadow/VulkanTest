@@ -3,31 +3,32 @@ module;
 export module VT.Renderer;
 
 import VT.RendererOption;
-import VT.RenderCmdAPI;
+import VT.RendererAPI;
+import VT.Window;
 import VT.Camera;
 import VT.Util;
 
 export namespace VT
 {
-class VT_ENGINE_EXPORT Renderer
+class Renderer
 {
 public:
-    Renderer(RendererOption::API Type = RendererOption::API::eVulkan);
+    VT_ENGINE_EXPORT Renderer(RendererOption::API Type = RendererOption::API::eVulkan);
 
-    void BeginScene(Shared<Camera> Camera);
-    void EndScene();
+    VT_ENGINE_EXPORT void BeginScene(Shared<Camera> Camera);
+    VT_ENGINE_EXPORT void EndScene();
 
-    void BeginRenderPass();
-    void EndRenderPass();
+    VT_ENGINE_EXPORT void BeginRenderPass();
+    VT_ENGINE_EXPORT void EndRenderPass();
 
-    void Submit();
+    VT_ENGINE_EXPORT void Submit();
 
-    void SetRendererAPI(RendererOption::API API);
-
-private:
-    inline Shared<RenderCmdAPI> SetAPI(RendererOption::API Type);
+    VT_ENGINE_EXPORT void SetRendererAPI(RendererOption::API Type);
 
 private:
-    Shared<RenderCmdAPI> m_API;
+    inline static Uniq<RendererAPI> CreateAPI(RendererOption::API Type);
+
+private:
+    Uniq<RendererAPI> m_API;
 };
 } // namespace VT

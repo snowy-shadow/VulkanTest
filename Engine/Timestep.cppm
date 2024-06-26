@@ -4,6 +4,7 @@ export module VT.Timestep;
 
 export namespace VT
 {
+// TODO : update to tick system instead
 class VT_ENGINE_EXPORT Timestep
 {
 public:

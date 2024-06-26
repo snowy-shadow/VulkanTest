@@ -19,6 +19,8 @@ private:
     VT::Shared<VT::Window> m_Window;
     VT::Uniq<VT::Input> m_Input;
 
+    VT::Uniq<VT::RendererContext> m_RendererContext;
+
     VT::LayerStack m_LayerStack;
 
     bool m_Running {true};

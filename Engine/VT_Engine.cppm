@@ -14,6 +14,7 @@ export import VT.Layer;
 export import VT.LayerStack;
 
 export import VT.Renderer;
+export import VT.RendererContext;
 
 export import VT.Buffer;
 
