@@ -1,7 +1,6 @@
 module;
 #include <GLFW/glfw3.h>
 
-#include <compare>
 #include <vulkan/vulkan.hpp>
 
 #include "EngineMacro.h"
@@ -53,7 +52,7 @@ void Context::Init()
         m_Instance.Init({.apiVersion = VK_MAKE_API_VERSION(0, 1, 3, 0)}, InstanceExtension, InstanceLayer);
     }
 
-    VT_CORE_TRACE("Vulkan instance init");
+    VT_CORE_TRACE("Vulkan Instance created");
     /* ===============================================
      *          Variables
      * ===============================================
@@ -79,7 +78,7 @@ void Context::Init()
             "Cannot find compatible physical device");
     }
 
-    VT_CORE_TRACE("Vulkan Physical device created");
+    VT_CORE_TRACE("Vulkan Physical Device created");
     /* ===============================================
      *          Create Window Surface
      * ===============================================
@@ -100,7 +99,7 @@ void Context::Init()
         }
     }
 
-    VT_CORE_TRACE("Vulkan window surface created");
+    VT_CORE_TRACE("Vulkan Window Surface created");
     /* ===============================================
      *          Create Logical device
      * ===============================================
@@ -110,7 +109,7 @@ void Context::Init()
         // m_PhysicalDevice.addQueue(vk::QueueFlagBits::eGraphics, 1.f);
         // m_PhysicalDevice.addQueue(vk::QueueFlagBits::eTransfer, 1.f);
         VT_CORE_ASSERT(
-            m_PhysicalDevice.FindGraphicsQueueWithPresent(m_Surface, 1.f, 1),
+            m_PhysicalDevice.FindGraphicsQueueWithPresent(m_Surface, 1.0f, 1),
             "Failed to find graphics queue that can present");
 
         if (m_PhysicalDevice.SupportsPortabilitySubset())
@@ -122,7 +121,7 @@ void Context::Init()
         m_LogicalDevice = m_PhysicalDevice.CreateLogicalDevice(DeviceExtension);
     }
 
-    VT_CORE_TRACE("Vulkan logical device created");
+    VT_CORE_TRACE("Vulkan Logical Device created");
     /* ===============================================
      *          Create Command Pool
      * ===============================================
@@ -136,6 +135,7 @@ void Context::Init()
 
 void Context::SwapBuffers() {}
 
-Context::~Context() { m_LogicalDevice.destroyCommandPool(m_CmdPool); }
+// FIX : validation layer no message
+Context::~Context() {} // m_LogicalDevice.destroyCommandPool(m_CmdPool); }
 
 } // namespace VT::Vulkan

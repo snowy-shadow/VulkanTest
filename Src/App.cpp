@@ -26,7 +26,7 @@ void Application::Run()
         m_Window->OnUpdate();
         auto [MouseX, MouseY] = m_Input->GetMouseXY();
 
-        VT_TRACE("{0}, {1}", MouseX, MouseY);
+        // VT_TRACE("{0}, {1}", MouseX, MouseY);
     }
 }
 
@@ -46,7 +46,7 @@ void Application::OnEvent(VT::Event& E)
         }
     }
 
-    VT_TRACE("{}", E);
+    // VT_TRACE("{}", E);
 }
 
 bool Application::OnWindowClose(VT::WindowCloseEvent&)

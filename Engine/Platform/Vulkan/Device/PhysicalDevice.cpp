@@ -69,9 +69,9 @@ bool PhysicalDevice::AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriori
     auto& DeviceQ = m_DeviceQueues.emplace_back(
         RequiredQueue,
         vk::DeviceQueueCreateInfo {
-            .queueFamilyIndex = Index,
-            .queueCount       = QueueFamilies.at(Index).queueCount,
-            .pQueuePriorities = &QueuePriority});
+            .queueFamilyIndex = static_cast<uint32_t>(Index),
+            .queueCount       = QueueFamilies[Index].queueCount,
+            .pQueuePriorities = static_cast<const float*>(&QueuePriority)});
 
     if (RequiredQueue == vk::QueueFlagBits::eGraphics)
     {
@@ -184,15 +184,15 @@ bool PhysicalDevice::FindGraphicsQueueWithPresent(
             continue;
         }
 
-        auto Iter = m_DeviceQueues.emplace_back(
+        auto& DeviceQ = m_DeviceQueues.emplace_back(
             vk::QueueFlagBits::eGraphics,
             vk::DeviceQueueCreateInfo {
                 .queueFamilyIndex = static_cast<uint32_t>(Index),
                 .queueCount       = MinGraphicsQCount,
-                .pQueuePriorities = &GraphicsQPriority});
+                .pQueuePriorities = static_cast<const float*>(&GraphicsQPriority)});
 
         // last element index
-        m_GraphicsQueue = m_PresentQueue = static_cast<int>(&Iter - &(*m_DeviceQueues.cbegin()));
+        m_GraphicsQueue = m_PresentQueue = static_cast<int>(&DeviceQ - &(*m_DeviceQueues.cbegin()));
         return true;
     }
 

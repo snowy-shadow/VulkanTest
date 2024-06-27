@@ -1,7 +1,6 @@
 module;
 #include <GLFW/glfw3.h>
 
-#include <compare>
 #include <vulkan/vulkan.hpp>
 
 #include "EngineMacro.h"
@@ -30,11 +29,11 @@ public:
 private:
     Shared<Window> m_Window;
 
-    Instance m_Instance;
     PhysicalDevice m_PhysicalDevice;
     vk::Device m_LogicalDevice;
     vk::SurfaceKHR m_Surface;
 
     vk::CommandPool m_CmdPool;
+    Instance m_Instance;
 };
 } // namespace VT::Vulkan

@@ -4,19 +4,19 @@ module;
 #include <string>
 #include <unordered_set>
 #include <vulkan/vulkan.hpp>
-
 #include "EngineMacro.h"
 
 module VT.Platform.Vulkan.Instance;
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
 
-#ifdef VT_ENABLE_ASSERT
 import VT.Log;
-#endif
 
 #ifdef VT_ENABLE_DEBUG
-
+/* ======================================================
+ *              DebugMessenger
+ *  ======================================================
+ */
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
     VkInstance Instance,
     const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -47,21 +47,31 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
 
     return pfnVkDestroyDebugUtilsMessengerEXT(Instance, Messenger, pAllocator);
 }
-#endif
 
 namespace VT::Vulkan
 {
-
 VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT, // MessageSeverity
     VkDebugUtilsMessageTypeFlagsEXT,        // MessageType
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* // pUserData
-)
+    void* pUserData)
 {
-    VT_CORE_ERROR("Message ID : {0}\n Message : {1}", pCallbackData->pMessageIdName, pCallbackData->pMessage);
+    reinterpret_cast<Log*>(pUserData)->CoreLogger->error(
+        "Message ID : {0}\n Message : {1}",
+        pCallbackData->pMessageIdName,
+        pCallbackData->pMessage);
+
     return vk::False;
 }
+} // namespace VT::Vulkan
+#endif
+
+/* ======================================================
+ *              Instance
+ *  ======================================================
+ */
+namespace VT::Vulkan
+{
 
 bool Instance::Init(
     const vk::ApplicationInfo& ApplicationInfo,
@@ -79,7 +89,7 @@ bool Instance::Init(
      *              Extensions and Layer config
      *  ======================================================
      */
-#ifndef VT_ENABLE_DEBUG
+#ifdef VT_ENABLE_DEBUG
     Layers.emplace_back("VK_LAYER_KHRONOS_validation");
     Extensions.emplace_back("VK_EXT_debug_utils");
 #endif
@@ -117,18 +127,19 @@ bool Instance::Init(
      *              Validation Layer
      *  ======================================================
      */
-#ifdef VK_ENABLE_DEBUG
+#ifdef VT_ENABLE_DEBUG
 
     vk::DebugUtilsMessengerCreateInfoEXT DebugMessengerCreateInfo {
         .messageSeverity =
             vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning | vk::DebugUtilsMessageSeverityFlagBitsEXT::eError,
         .messageType =
             vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation | vk::DebugUtilsMessageTypeFlagBitsEXT::ePerformance,
-        .pfnUserCallback = &DebugCallback};
+        .pfnUserCallback = DebugCallback,
+        .pUserData       = m_Logger.get()};
 
     m_DebugMessenger = m_VulkanInstance.createDebugUtilsMessengerEXT(DebugMessengerCreateInfo);
 
-    VT_CORE_INFO("Validation layer enabled");
+    VT_CORE_TRACE("Validation layer enabled");
 #endif
 }
 
@@ -137,10 +148,10 @@ vk::Instance Instance::GetInstance() const noexcept { return m_VulkanInstance; }
 Instance::~Instance()
 {
 
-#ifndef VT_ENABLE_DEBUG
+#ifdef VT_ENABLE_DEBUG
     if (m_DebugMessenger != VK_NULL_HANDLE)
     {
-        m_VulkanInstance.destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, m_DLD_Instance);
+        m_VulkanInstance.destroyDebugUtilsMessengerEXT(m_DebugMessenger);
     }
 #endif
 

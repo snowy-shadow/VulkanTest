@@ -18,7 +18,7 @@ template <typename T>
 using Shared = std::shared_ptr<T>;
 
 template <typename T, typename... Args>
-constexpr Shared<T> CreateRef(Args&&... args)
+constexpr Shared<T> CreateShared(Args&&... args)
 {
     return std::make_shared<T>(std::forward<Args>(args)...);
 }

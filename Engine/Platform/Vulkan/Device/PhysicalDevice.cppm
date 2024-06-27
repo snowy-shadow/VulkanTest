@@ -16,7 +16,7 @@ public:
     /* Add queues needed by logical device
      * must be added before creating the logical device
      */
-    bool AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriority = 1.f, uint32_t QueueCount = 1);
+    bool AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriority = 0.f, uint32_t QueueCount = 1);
 
     bool FindPhysicalDevice(
         const std::vector<vk::PhysicalDevice>& DeviceList,

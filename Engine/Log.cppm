@@ -5,6 +5,7 @@ module;
 #include "VT_Export"
 #include <memory>
 export module VT.Log;
+import VT.Util;
 // import std;
 
 /*
@@ -15,11 +16,11 @@ export namespace VT
 class Log
 {
 public:
-    std::shared_ptr<spdlog::logger> CoreLogger;
-    std::shared_ptr<spdlog::logger> ClientLogger;
-    VT_ENGINE_EXPORT static std::shared_ptr<Log> Instance()
+    Shared<spdlog::logger> CoreLogger;
+    Shared<spdlog::logger> ClientLogger;
+    VT_ENGINE_EXPORT static Shared<Log> Instance()
     {
-        static std::shared_ptr<Log> Logger {new Log()};
+        static Shared<Log> Logger {new Log()};
         return Logger;
     }
 

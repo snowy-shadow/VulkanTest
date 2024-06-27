@@ -39,7 +39,11 @@ Window::Window(RendererOption::API API, const WindowProperties& Properties) : m_
     }
 
     m_Window = glfwCreateWindow(
-        static_cast<int>(m_Data.Width), static_cast<int>(m_Data.Height), m_Data.Title, nullptr, nullptr);
+        static_cast<int>(m_Data.Width),
+        static_cast<int>(m_Data.Height),
+        m_Data.Title,
+        nullptr,
+        nullptr);
 
     glfwSetWindowUserPointer(m_Window, &m_Data);
 
@@ -75,10 +79,6 @@ Window::Window(RendererOption::API API, const WindowProperties& Properties) : m_
         {
             WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
 
-            // Warn unused
-            (void) ScanCode;
-            (void) Mods;
-
             switch (Action)
             {
                 case GLFW_PRESS:
@@ -108,9 +108,6 @@ Window::Window(RendererOption::API API, const WindowProperties& Properties) : m_
         [](GLFWwindow* Window, int Button, int Action, int Mods)
         {
             WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
-
-            // warn unused
-            (void) Mods;
 
             switch (Action)
             {
