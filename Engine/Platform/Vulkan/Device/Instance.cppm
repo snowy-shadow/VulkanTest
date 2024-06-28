@@ -19,7 +19,7 @@ public:
         std::vector<const char*> RequiredExtensions,
         std::vector<const char*> RequiredLayers);
 
-    vk::Instance GetInstance() const noexcept;
+    vk::Instance Get() const noexcept;
 
     Instance() = default;
     ~Instance();
@@ -29,7 +29,7 @@ public:
 public:
 
 private:
-    bool static IsSupported(std::span<const char*> RequiredExtensions = {}, std::span<const char*> RequiredLayers = {});
+    bool static IsSupported(std::span<const char*> RequiredExtensions, std::span<const char*> RequiredLayers);
 
 private:
     vk::Instance m_VulkanInstance;

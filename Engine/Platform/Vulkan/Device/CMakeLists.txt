@@ -4,7 +4,9 @@
 	FILES
 		Instance.cppm
 		PhysicalDevice.cppm
+		Swapchain.cppm
 	PRIVATE
 		Instance.cpp
 		PhysicalDevice.cpp
+		Swapchain.cpp
 )

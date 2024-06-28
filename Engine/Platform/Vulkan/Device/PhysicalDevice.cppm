@@ -11,46 +11,6 @@ export namespace VT::Vulkan
 class PhysicalDevice
 {
 public:
-    vk::Device CreateLogicalDevice(const std::vector<const char*>& DeviceExtensionName = {}) const;
-
-    /* Add queues needed by logical device
-     * must be added before creating the logical device
-     */
-    bool AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriority = 0.f, uint32_t QueueCount = 1);
-
-    bool FindPhysicalDevice(
-        const std::vector<vk::PhysicalDevice>& DeviceList,
-        const std::vector<vk::PhysicalDeviceProperties>& DeviceProperties,
-        const std::vector<const char*>& DeviceRequiredExtensions);
-
-    /*
-     * Determines if extra device extensions will be required
-     * DeviceRequiredExtensions will be modified if VK_KHR_portability_subset is supported
-     *   The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of
-     * vkEnumerateDeviceExtensionProperties, ppEnabledExtensionNames must include "VK_KHR_portability_subset"
-     *   (https://vulkan.lunarg.com/doc/view/1.3.275.0/mac/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
-     */
-
-    bool FindPresentQueue(vk::SurfaceKHR Surface);
-
-    bool FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, float GraphicsQPriority, uint32_t MinGraphicsQCount);
-
-    bool SupportsPortabilitySubset() const;
-    bool GraphicsQueueCanPresent() const;
-    /**
-     * get Device queues
-     */
-    std::vector<std::pair<vk::QueueFlagBits, vk::DeviceQueueCreateInfo>> GetDeviceQueues() const;
-
-    vk::PhysicalDevice GetPhysicalDevice() const;
-    vk::DeviceQueueCreateInfo GetPresentQueue() const;
-    vk::DeviceQueueCreateInfo GetGraphicsQueue() const;
-
-    /* Resets all states inside physical device
-     * All states except for the physical device itself will be erased
-     */
-    void Rest();
-
     PhysicalDevice(
         const std::vector<vk::PhysicalDevice>& DeviceList,
         const std::vector<vk::PhysicalDeviceProperties>& DeviceProperties,
@@ -59,6 +19,50 @@ public:
     PhysicalDevice()                          = default;
     PhysicalDevice(PhysicalDevice&)           = delete;
     PhysicalDevice& operator=(PhysicalDevice) = delete;
+
+public:
+    vk::Device CreateLogicalDevice(
+        const std::vector<const char*>& DeviceExtensionName = {},
+        vk::PhysicalDeviceFeatures EnableFeatures           = {}) const;
+
+    /* Add queues needed by logical device
+     * must be added before creating the logical device
+     */
+    bool AddQueue(vk::QueueFlagBits RequiredQueue, std::span<const float> QueuePriorities);
+
+    bool FindPhysicalDevice(
+        const std::vector<vk::PhysicalDevice>& DeviceList,
+        const std::vector<vk::PhysicalDeviceProperties>& DeviceProperties,
+        const std::vector<const char*>& DeviceRequiredExtensions);
+
+    bool FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, std::span<const float> QueuePriorities);
+
+    bool FindPresentQueue(vk::SurfaceKHR Surface);
+
+    uint32_t FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const;
+
+    /*
+     * Determines if extra device extensions will be required
+     * DeviceRequiredExtensions will be modified if VK_KHR_portability_subset is supported
+     *   The Vulkan spec states: If the VK_KHR_portability_subset extension is included in pProperties of
+     * vkEnumerateDeviceExtensionProperties, ppEnabledExtensionNames must include "VK_KHR_portability_subset"
+     *   (https://vulkan.lunarg.com/doc/view/1.3.275.0/mac/1.3-extensions/vkspec.html#VUID-VkDeviceCreateInfo-pProperties-04451)
+     */
+    bool SupportsPortabilitySubset() const;
+    bool GraphicsQueueCanPresent() const;
+    /**
+     * get Device queues
+     */
+    std::vector<std::pair<vk::QueueFlagBits, vk::DeviceQueueCreateInfo>> GetDeviceQueues() const;
+
+    vk::PhysicalDevice Get() const;
+    vk::DeviceQueueCreateInfo GetPresentQueue() const;
+    vk::DeviceQueueCreateInfo GetGraphicsQueue() const;
+
+    /* Resets all states inside physical device
+     * All states except for the physical device itself will be erased
+     */
+    void Reset();
 
 private:
     static bool ExtensionSupported(

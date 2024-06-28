@@ -85,6 +85,9 @@ target_compile_definitions(${PROJECT_NAME}
 		
 		GLFW_INCLUDE_NONE
 		GLFW_INCLUDE_VULKAN
+		
+		GLM_FORCE_RADIANS
+		GLM_FORCE_DEPTH_ZERO_TO_ONE
 
 		# enable aggregate initialization
 		VULKAN_HPP_NO_CONSTRUCTORS

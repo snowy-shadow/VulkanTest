@@ -143,7 +143,7 @@ bool Instance::Init(
 #endif
 }
 
-vk::Instance Instance::GetInstance() const noexcept { return m_VulkanInstance; }
+vk::Instance Instance::Get() const noexcept { return m_VulkanInstance; }
 
 Instance::~Instance()
 {

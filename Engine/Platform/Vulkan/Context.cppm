@@ -9,6 +9,7 @@ export module VT.Platform.Vulkan.Context;
 
 import VT.Platform.Vulkan.Instance;
 import VT.Platform.Vulkan.PhysicalDevice;
+import VT.Platform.Vulkan.Swapchain;
 
 import VT.RendererContext;
 import VT.Util;
@@ -29,11 +30,26 @@ public:
 private:
     Shared<Window> m_Window;
 
+    // TODO : create logical device class, wrap all with Shared
+    // Device
+    Instance m_Instance;
     PhysicalDevice m_PhysicalDevice;
     vk::Device m_LogicalDevice;
     vk::SurfaceKHR m_Surface;
 
+    // Render
+    Swapchain m_Swapchain;
     vk::CommandPool m_CmdPool;
-    Instance m_Instance;
+    vk::Queue m_GraphicQ;
+    vk::Queue m_PresentQ;
+    std::vector<vk::CommandBuffer> m_DrawBuffer;
+
+    // Synchronization
+    vk::Semaphore m_ImageAvailable, m_RenderFinished;
+    vk::Fence m_DrawFence;
+
+    // Util
+    uint32_t m_MaxFrameCount {2};
+    uint32_t m_CurrentFrameCount {0};
 };
 } // namespace VT::Vulkan

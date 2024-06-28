@@ -28,58 +28,6 @@ PhysicalDevice::PhysicalDevice(
     VT_CORE_HALT("Device name not found");
 }
 
-vk::Device PhysicalDevice::CreateLogicalDevice(const std::vector<const char*>& DeviceExtensionName) const
-{
-    std::vector<vk::DeviceQueueCreateInfo> Queues;
-    Queues.reserve(m_DeviceQueues.size());
-
-    for (int i = 0; i < m_DeviceQueues.size(); i++)
-    {
-        Queues.push_back(m_DeviceQueues[i].second);
-    }
-
-    vk::DeviceCreateInfo DeviceInfo {
-        .queueCreateInfoCount    = static_cast<uint32_t>(Queues.size()),
-        .pQueueCreateInfos       = Queues.data(),
-        .enabledExtensionCount   = static_cast<uint32_t>(DeviceExtensionName.size()),
-        .ppEnabledExtensionNames = DeviceExtensionName.data()};
-
-    return m_PhysicalDevice.createDevice(DeviceInfo);
-}
-
-bool PhysicalDevice::AddQueue(vk::QueueFlagBits RequiredQueue, float QueuePriority, uint32_t QueueCount)
-{
-    // find queue
-    auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
-
-    auto Iterator = std::find_if(
-        QueueFamilies.cbegin(),
-        QueueFamilies.cend(),
-        [&RequiredQueue, &QueueCount](const vk::QueueFamilyProperties& QFP)
-        { return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount); });
-
-    if (Iterator == QueueFamilies.cend())
-    {
-        return false;
-    }
-
-    auto Index {static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator))};
-
-    // save queue info
-    auto& DeviceQ = m_DeviceQueues.emplace_back(
-        RequiredQueue,
-        vk::DeviceQueueCreateInfo {
-            .queueFamilyIndex = static_cast<uint32_t>(Index),
-            .queueCount       = QueueFamilies[Index].queueCount,
-            .pQueuePriorities = static_cast<const float*>(&QueuePriority)});
-
-    if (RequiredQueue == vk::QueueFlagBits::eGraphics)
-    {
-        m_GraphicsQueue = static_cast<int>(&DeviceQ - &(*m_DeviceQueues.cbegin()));
-    }
-    return true;
-}
-
 bool PhysicalDevice::FindPhysicalDevice(
     const std::vector<vk::PhysicalDevice>& DeviceList,
     const std::vector<vk::PhysicalDeviceProperties>& DeviceProperties,
@@ -124,6 +72,91 @@ bool PhysicalDevice::FindPhysicalDevice(
     }
     return true;
 }
+bool PhysicalDevice::AddQueue(vk::QueueFlagBits RequiredQueue, std::span<const float> QueuePriorities)
+{
+    // find queue
+    auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
+
+    auto Iterator = std::find_if(
+        QueueFamilies.cbegin(),
+        QueueFamilies.cend(),
+        [RequiredQueue, QueueCount = QueuePriorities.size()](const vk::QueueFamilyProperties& QFP)
+        { return (QFP.queueFlags & RequiredQueue) && (QFP.queueCount >= QueueCount); });
+
+    if (Iterator == QueueFamilies.cend())
+    {
+        return false;
+    }
+
+    auto Index {static_cast<uint32_t>(std::distance(QueueFamilies.cbegin(), Iterator))};
+
+    // save queue info
+    auto& DeviceQ = m_DeviceQueues.emplace_back(
+        RequiredQueue,
+        vk::DeviceQueueCreateInfo {
+            .queueFamilyIndex = static_cast<uint32_t>(Index),
+            .queueCount       = static_cast<uint32_t>(QueuePriorities.size()),
+            .pQueuePriorities = QueuePriorities.data()});
+
+    if (RequiredQueue == vk::QueueFlagBits::eGraphics)
+    {
+        m_GraphicsQueue = static_cast<int>(&DeviceQ - &(*m_DeviceQueues.cbegin()));
+    }
+    return true;
+}
+
+bool PhysicalDevice::FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, std::span<const float> QueuePriorities)
+{
+    // find queue
+    auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
+
+    for (int Index = 0; Index < QueueFamilies.size(); Index++)
+    {
+        auto& QF = QueueFamilies[Index];
+
+        bool Result = (QF.queueFlags & vk::QueueFlagBits::eGraphics) && (QF.queueCount >= QueuePriorities.size()) &&
+                      m_PhysicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(Index), Surface);
+        if (!Result)
+        {
+            continue;
+        }
+
+        auto& DeviceQ = m_DeviceQueues.emplace_back(
+            vk::QueueFlagBits::eGraphics,
+            vk::DeviceQueueCreateInfo {
+                .queueFamilyIndex = static_cast<uint32_t>(Index),
+                .queueCount       = static_cast<uint32_t>(QueuePriorities.size()),
+                .pQueuePriorities = QueuePriorities.data()});
+
+        // last element index
+        m_GraphicsQueue = m_PresentQueue = static_cast<int>(&DeviceQ - &(*m_DeviceQueues.cbegin()));
+        return true;
+    }
+
+    // FIX : try find a random queue that can present
+
+    // else
+    //  auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
+    //
+    //  for (std::uint32_t Index = 0; Index < QueueFamilies.size(); Index++)
+    //  {
+    //      if (m_PhysicalDevice.getSurfaceSupportKHR(Index, Surface))
+    //      {
+    //          m_PresentQueue = Index;
+    //
+    //          // create seperate presentation queue
+    //          m_DeviceQueues.emplace_back(
+    //              vk::QueueFlagBits::eCompute,
+    //              {.queueFamilyIndex = static_cast<uint32_t>(Index),
+    //               .queueCount       = MinPresentQCount,
+    //               .pQueuePriorities = &PresentQPriority});
+    //          return false;
+    //      }
+    //  }
+
+    VT_CORE_ERROR("Cannot find present queue, try adding more queues");
+    return false;
+}
 
 bool PhysicalDevice::SupportsPortabilitySubset() const
 {
@@ -165,60 +198,47 @@ bool PhysicalDevice::FindPresentQueue(vk::SurfaceKHR Surface)
     return false;
 }
 
-bool PhysicalDevice::FindGraphicsQueueWithPresent(
-    vk::SurfaceKHR Surface,
-    float GraphicsQPriority,
-    uint32_t MinGraphicsQCount)
+vk::Device PhysicalDevice::CreateLogicalDevice(
+    const std::vector<const char*>& DeviceExtensionName,
+    vk::PhysicalDeviceFeatures EnableFeatures) const
 {
-    // find queue
-    auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
+    std::vector<vk::DeviceQueueCreateInfo> Queues;
+    Queues.reserve(m_DeviceQueues.size());
 
-    for (int Index = 0; Index < QueueFamilies.size(); Index++)
+    for (int i = 0; i < m_DeviceQueues.size(); i++)
     {
-        auto& QF = QueueFamilies[Index];
-
-        bool Result = (QF.queueFlags & vk::QueueFlagBits::eGraphics) && (QF.queueCount >= MinGraphicsQCount) &&
-                      m_PhysicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(Index), Surface);
-        if (!Result)
-        {
-            continue;
-        }
-
-        auto& DeviceQ = m_DeviceQueues.emplace_back(
-            vk::QueueFlagBits::eGraphics,
-            vk::DeviceQueueCreateInfo {
-                .queueFamilyIndex = static_cast<uint32_t>(Index),
-                .queueCount       = MinGraphicsQCount,
-                .pQueuePriorities = static_cast<const float*>(&GraphicsQPriority)});
-
-        // last element index
-        m_GraphicsQueue = m_PresentQueue = static_cast<int>(&DeviceQ - &(*m_DeviceQueues.cbegin()));
-        return true;
+        Queues.push_back(m_DeviceQueues[i].second);
     }
 
-    // FIX : try find a random queue that can present
+    vk::DeviceCreateInfo DeviceInfo {
+        .queueCreateInfoCount    = static_cast<uint32_t>(Queues.size()),
+        .pQueueCreateInfos       = Queues.data(),
+        .enabledExtensionCount   = static_cast<uint32_t>(DeviceExtensionName.size()),
+        .ppEnabledExtensionNames = DeviceExtensionName.data(),
+        .pEnabledFeatures        = &EnableFeatures};
 
-    // else
-    //  auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
-    //
-    //  for (std::uint32_t Index = 0; Index < QueueFamilies.size(); Index++)
-    //  {
-    //      if (m_PhysicalDevice.getSurfaceSupportKHR(Index, Surface))
-    //      {
-    //          m_PresentQueue = Index;
-    //
-    //          // create seperate presentation queue
-    //          m_DeviceQueues.emplace_back(
-    //              vk::QueueFlagBits::eCompute,
-    //              {.queueFamilyIndex = static_cast<uint32_t>(Index),
-    //               .queueCount       = MinPresentQCount,
-    //               .pQueuePriorities = &PresentQPriority});
-    //          return false;
-    //      }
-    //  }
+    return m_PhysicalDevice.createDevice(DeviceInfo);
+}
 
-    VT_CORE_ERROR("Cannot find present queue, try adding more queues");
-    return false;
+uint32_t PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
+{
+    /*
+    2 arrays:
+        memory type: VRAM, swap in RAM, etc
+        memory heap: where the mem comes from
+    */
+    vk::PhysicalDeviceMemoryProperties MemProperties = m_PhysicalDevice.getMemoryProperties();
+
+    for (uint32_t i = 0; i < MemProperties.memoryTypeCount; i++)
+    {
+        if ((TypeFilter & (1 << i)) && (MemProperties.memoryTypes[i].propertyFlags & Properties) == Properties)
+        {
+            return i;
+        }
+    }
+
+    VT_CORE_HALT("failed to find suitable memory type");
+    return (uint32_t) -1;
 }
 
 bool PhysicalDevice::GraphicsQueueCanPresent() const { return m_GraphicsQueue == m_PresentQueue; }
@@ -231,9 +251,9 @@ std::vector<std::pair<vk::QueueFlagBits, vk::DeviceQueueCreateInfo>> PhysicalDev
 vk::DeviceQueueCreateInfo PhysicalDevice::GetPresentQueue() const { return m_DeviceQueues[m_PresentQueue].second; }
 vk::DeviceQueueCreateInfo PhysicalDevice::GetGraphicsQueue() const { return m_DeviceQueues[m_GraphicsQueue].second; }
 
-vk::PhysicalDevice PhysicalDevice::GetPhysicalDevice() const { return m_PhysicalDevice; }
+vk::PhysicalDevice PhysicalDevice::Get() const { return m_PhysicalDevice; }
 
-void PhysicalDevice::Rest() { m_DeviceQueues.clear(); }
+void PhysicalDevice::Reset() { m_DeviceQueues.clear(); }
 /*
  * ==================================================
  *					    PRIVATE
