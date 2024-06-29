@@ -132,7 +132,7 @@ std::pair<bool, vk::SwapchainCreateInfoKHR> Swapchain::QueryCapabilities(
             [&DeviceSurfaceCapabilities](const vk::SurfaceTransformFlagBitsKHR& ST)
             { return DeviceSurfaceCapabilities.supportedTransforms & ST; })};
 
-        if (Iterator != PreferredCapabilities.surfaceTransform.cend())
+        if (Iterator == PreferredCapabilities.surfaceTransform.cend())
         {
             VT_CORE_ERROR("Did not find required Surface Transform");
             return {false, Info};
@@ -189,13 +189,17 @@ Swapchain& Swapchain::operator=(Swapchain&& Other) noexcept
 
     return *this;
 }
-Swapchain::~Swapchain()
+
+void Swapchain::Destroy()
 {
     if (m_SwapchainCreated)
     {
         m_Device.waitIdle();
         m_Device.destroySwapchainKHR(m_Swapchain);
     }
+    m_SwapchainCreated = false;
 }
+
+Swapchain::~Swapchain() { Destroy(); }
 
 } // namespace VT::Vulkan

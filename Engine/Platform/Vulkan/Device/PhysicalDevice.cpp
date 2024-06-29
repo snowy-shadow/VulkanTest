@@ -220,7 +220,7 @@ vk::Device PhysicalDevice::CreateLogicalDevice(
     return m_PhysicalDevice.createDevice(DeviceInfo);
 }
 
-uint32_t PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
+std::pair<bool, uint32_t> PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
 {
     /*
     2 arrays:
@@ -233,12 +233,33 @@ uint32_t PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyF
     {
         if ((TypeFilter & (1 << i)) && (MemProperties.memoryTypes[i].propertyFlags & Properties) == Properties)
         {
-            return i;
+            return {true, i};
         }
     }
 
-    VT_CORE_HALT("failed to find suitable memory type");
-    return (uint32_t) -1;
+    return {false, -1};
+}
+
+std::pair<bool, vk::Format> PhysicalDevice::FindSupportedFormat(
+    const std::vector<vk::Format>& Candidates,
+    vk::ImageTiling Tiling,
+    vk::FormatFeatureFlags Features) const
+{
+    for (const auto& Format : Candidates)
+    {
+        vk::FormatProperties Props = m_PhysicalDevice.getFormatProperties(Format);
+
+        if (Tiling == vk::ImageTiling::eLinear && (Props.linearTilingFeatures & Features) == Features)
+        {
+            return {true, Format};
+        }
+        else if (Tiling == vk::ImageTiling::eOptimal && (Props.optimalTilingFeatures & Features) == Features)
+        {
+            return {true, Format};
+        }
+    }
+
+    return {false, {}};
 }
 
 bool PhysicalDevice::GraphicsQueueCanPresent() const { return m_GraphicsQueue == m_PresentQueue; }

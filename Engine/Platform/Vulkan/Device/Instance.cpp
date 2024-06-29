@@ -91,7 +91,7 @@ bool Instance::Init(
      */
 #ifdef VT_ENABLE_DEBUG
     Layers.emplace_back("VK_LAYER_KHRONOS_validation");
-    Extensions.emplace_back("VK_EXT_debug_utils");
+    Extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
 #ifdef __APPLE__

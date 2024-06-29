@@ -59,9 +59,6 @@ void Context::Init()
      */
     std::vector<const char*> DeviceExtension {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-#ifdef VT_ENABLE_DEBUG
-        "VK_EXT_debug_marker"
-#endif
     };
 
     vk::Instance VulkanInstance = m_Instance.Get();
@@ -141,9 +138,7 @@ void Context::Init()
 
         {
             const auto [Result, Surfaceformat] = m_Swapchain.FindSurfaceFormat(
-                std::vector<vk::SurfaceFormatKHR> {
-                    {vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}
-            },
+                {{{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}}},
                 m_PhysicalDevice.Get().getSurfaceFormatsKHR(m_Surface));
 
             VT_CORE_ASSERT(Result, "Could not find required surface format");
@@ -247,7 +242,7 @@ void Context::Init()
     }
     VT_CORE_TRACE("Vulkan draw buffer (cmd buffer) created");
     /* ===============================================
-     *          Synchronization Objs
+     *          Synchronization Obj
      * ===============================================
      */
     {
@@ -256,6 +251,28 @@ void Context::Init()
         m_DrawFence      = m_LogicalDevice.createFence({.flags = vk::FenceCreateFlagBits::eSignaled});
     }
     VT_CORE_TRACE("Vulkan Synchronization objs created");
+
+    /* ===============================================
+     *          Depth Image
+     * ===============================================
+     */
+    {
+        auto [Result, DepthFormat] = m_PhysicalDevice.FindSupportedFormat(
+            {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
+            vk::ImageTiling::eOptimal,
+            vk::FormatFeatureFlagBits::eDepthStencilAttachment);
+
+        VT_CORE_ASSERT(Result, "Failed to find depth format");
+
+        m_DepthStencil.Create(
+            m_Swapchain.GetInfo().imageExtent,
+            vk::SampleCountFlagBits::e1,
+            DepthFormat,
+            m_LogicalDevice,
+            m_PhysicalDevice);
+    }
+
+    VT_CORE_TRACE("Depth resource created");
 }
 
 void Context::SwapBuffers() {}
@@ -264,6 +281,8 @@ Context::~Context()
 {
     m_LogicalDevice.waitIdle();
 
+    m_DepthStencil.Destroy();
+
     m_LogicalDevice.destroySemaphore(m_ImageAvailable);
     m_LogicalDevice.destroySemaphore(m_RenderFinished);
     m_LogicalDevice.destroyFence(m_DrawFence);
@@ -271,8 +290,14 @@ Context::~Context()
     m_LogicalDevice.freeCommandBuffers(m_CmdPool, m_DrawBuffer);
     m_LogicalDevice.destroyCommandPool(m_CmdPool);
 
+    m_Swapchain.Destroy();
+
     m_LogicalDevice.destroy();
     m_Instance.Get().destroySurfaceKHR(m_Surface);
 }
 
+/* ==================================================================
+ *                      Private
+ * ==================================================================
+ */
 } // namespace VT::Vulkan

@@ -10,6 +10,7 @@ export module VT.Platform.Vulkan.Context;
 import VT.Platform.Vulkan.Instance;
 import VT.Platform.Vulkan.PhysicalDevice;
 import VT.Platform.Vulkan.Swapchain;
+import VT.Platform.Vulkan.Attachments;
 
 import VT.RendererContext;
 import VT.Util;
@@ -17,7 +18,7 @@ import VT.Window;
 
 export namespace VT::Vulkan
 {
-class Context : public RendererContext
+class Context final : public RendererContext
 {
 public:
     Context(Shared<Window> Window);
@@ -44,12 +45,15 @@ private:
     vk::Queue m_PresentQ;
     std::vector<vk::CommandBuffer> m_DrawBuffer;
 
+    DepthStencil m_DepthStencil;
+
     // Synchronization
     vk::Semaphore m_ImageAvailable, m_RenderFinished;
     vk::Fence m_DrawFence;
 
+private:
     // Util
-    uint32_t m_MaxFrameCount {2};
+    uint32_t m_MaxFrameCount;
     uint32_t m_CurrentFrameCount {0};
 };
 } // namespace VT::Vulkan

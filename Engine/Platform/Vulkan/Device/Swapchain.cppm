@@ -47,9 +47,6 @@ public:
      */
     void RecreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice);
 
-    /*
-     * Get
-     */
     vk::SwapchainKHR Get() const noexcept;
     vk::SwapchainCreateInfoKHR GetInfo() const noexcept;
 
@@ -60,6 +57,8 @@ public:
     Swapchain& operator=(Swapchain&& Other) noexcept;
     Swapchain operator=(Swapchain&) = delete;
     Swapchain(const Swapchain&)     = delete;
+
+    void Destroy();
     ~Swapchain();
 
 private:
