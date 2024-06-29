@@ -14,6 +14,8 @@ Renderer::Renderer(RendererOption::API Type) : m_API(CreateAPI(Type)) {}
 void Renderer::BeginScene(Shared<Camera> Camera) { (void) Camera; }
 void Renderer::EndScene() {}
 
+void Renderer::BeginRenderPass() {}
+void Renderer::EndRenderPass() {}
 void Renderer::Submit() {}
 
 void Renderer::SetRendererAPI(RendererOption::API Type) { m_API = CreateAPI(Type); }
