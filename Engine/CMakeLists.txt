@@ -91,6 +91,7 @@ target_compile_definitions(${PROJECT_NAME}
 
 		# enable aggregate initialization
 		VULKAN_HPP_NO_CONSTRUCTORS
+		VULKAN_HPP_NO_EXCEPTIONS
 		VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
 )
 

@@ -1,18 +1,18 @@
 module VT.Renderer;
 
-import VT.RendererOption;
-import VT.RendererAPI;
-import VT.Window;
-import VT.Camera;
-import VT.Util;
+import VT.Event;
 
 namespace VT
 {
 
 Renderer::Renderer(RendererOption::API Type) : m_API(CreateAPI(Type)) {}
 
-void Renderer::BeginScene(Shared<Camera> Camera) { (void) Camera; }
-void Renderer::EndScene() {}
+void Renderer::BeginScene(Shared<Camera> Camera)
+{
+    (void) Camera;
+    // m_API->BeginScene(Camera);
+}
+void Renderer::EndScene() {} // m_API->EndScene(); }
 
 void Renderer::BeginRenderPass() {}
 void Renderer::EndRenderPass() {}
@@ -20,7 +20,7 @@ void Renderer::Submit() {}
 
 void Renderer::SetRendererAPI(RendererOption::API Type) { m_API = CreateAPI(Type); }
 
-inline Uniq<RendererAPI> Renderer::CreateAPI(RendererOption::API Type)
+inline Uniq<RendererContext> Renderer::CreateAPI(RendererOption::API Type)
 {
     switch (Type)
     {

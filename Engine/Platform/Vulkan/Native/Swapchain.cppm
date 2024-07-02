@@ -2,11 +2,11 @@ module;
 #include <vulkan/vulkan.hpp>
 
 #include <utility>
-export module VT.Platform.Vulkan.Swapchain;
+export module VT.Platform.Vulkan.Native.Swapchain;
 
-import VT.Platform.Vulkan.PhysicalDevice;
+import VT.Platform.Vulkan.Native.PhysicalDevice;
 
-export namespace VT::Vulkan
+export namespace VT::Vulkan::Native
 {
 class Swapchain
 {
@@ -21,7 +21,7 @@ public:
     };
 
 public:
-    void Init(vk::Instance, vk::PhysicalDevice, vk::Device);
+    void Init(vk::PhysicalDevice, vk::Device);
     /*
      * Finds and replaces the first supported format for each in vk::SwapchainCreateInfoKHR.
      */
@@ -62,13 +62,12 @@ public:
     ~Swapchain();
 
 private:
-    vk::Instance m_Instance;
     vk::PhysicalDevice m_PhysicalDevice;
-    vk::Device m_Device;
+    vk::Device m_LogicalDevice;
 
     vk::SwapchainCreateInfoKHR m_SwapchainCreateInfo;
     vk::SwapchainKHR m_Swapchain;
 
     bool m_SwapchainCreated {false};
 };
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

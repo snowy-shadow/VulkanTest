@@ -6,11 +6,9 @@ module;
 #include <vulkan/vulkan.hpp>
 #include "EngineMacro.h"
 
-module VT.Platform.Vulkan.Instance;
+module VT.Platform.Vulkan.Native.Instance;
 
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
-
-import VT.Log;
 
 #ifdef VT_ENABLE_DEBUG
 /* ======================================================
@@ -48,7 +46,7 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
     return pfnVkDestroyDebugUtilsMessengerEXT(Instance, Messenger, pAllocator);
 }
 
-namespace VT::Vulkan
+namespace VT::Vulkan::Native
 {
 VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT, // MessageSeverity
@@ -63,14 +61,14 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
 
     return vk::False;
 }
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native
 #endif
 
 /* ======================================================
  *              Instance
  *  ======================================================
  */
-namespace VT::Vulkan
+namespace VT::Vulkan::Native
 {
 
 bool Instance::Init(
@@ -205,4 +203,4 @@ bool Instance::IsSupported(std::span<const char*> RequiredExtensions, std::span<
     return true;
 }
 
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

@@ -6,8 +6,8 @@ module;
 #include "EngineMacro.h"
 
 module VT.Platform.Vulkan.Context;
+
 import VT.Log;
-import VT.Util;
 
 #define VK_CHECK(res, expect, ...)              \
     VT_CORE_ASSERT(                             \
@@ -67,7 +67,9 @@ void Context::Init()
      * ===============================================
      */
     {
-        const auto PDs = VulkanInstance.enumeratePhysicalDevices();
+        const auto [Result , PDs] = VulkanInstance.enumeratePhysicalDevices();
+        VK_CHECK(Result, vk::Result::eSuccess, "Could not enumerate physical devices");
+
         std::vector<vk::PhysicalDeviceProperties> PDProperties;
         PDProperties.reserve(PDs.size());
 
@@ -122,177 +124,96 @@ void Context::Init()
         }
 
         // create device;
-        m_LogicalDevice = m_PhysicalDevice.CreateLogicalDevice(DeviceExtension);
+        m_LogicalDevice.Init(m_PhysicalDevice.CreateLogicalDevice(DeviceExtension));
     }
 
     VT_CORE_TRACE("Vulkan Logical Device created");
-
     /* ===============================================
-     *          Create Swapchain
+     *          Variables
      * ===============================================
      */
-    {
-        m_Swapchain.Init(m_Instance.Get(), m_PhysicalDevice.Get(), m_LogicalDevice);
+    vk::Device LogicalDevice = m_LogicalDevice.Get();
+   
 
-        vk::SwapchainCreateInfoKHR SwapchainInfo {.imageUsage = vk::ImageUsageFlagBits::eColorAttachment};
-
-        {
-            const auto [Result, Surfaceformat] = m_Swapchain.FindSurfaceFormat(
-                {{{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}}},
-                m_PhysicalDevice.Get().getSurfaceFormatsKHR(m_Surface));
-
-            VT_CORE_ASSERT(Result, "Could not find required surface format");
-            SwapchainInfo.imageFormat     = Surfaceformat.format;
-            SwapchainInfo.imageColorSpace = Surfaceformat.colorSpace;
-        }
-
-        {
-            const auto [Result, PresentMode] = m_Swapchain.FindPresentMode(
-                {vk::PresentModeKHR::eFifo},
-                m_PhysicalDevice.Get().getSurfacePresentModesKHR(m_Surface));
-
-            VT_CORE_ASSERT(Result, "Could not find required present mode");
-            SwapchainInfo.presentMode = PresentMode;
-        }
-
-        Swapchain::Capabilities SwapchainQueries {
-            .minImageCount    = m_MaxFrameCount,
-            .imageExtent      = {m_Window->GetWidth(), m_Window->GetHeight()},
-            .arrayLayers      = 1,
-            .surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
-            .compositeAlpha   = {vk::CompositeAlphaFlagBitsKHR::eOpaque},
-        };
-
-        auto [Result, SwapchainCreateInfo] = m_Swapchain.QueryCapabilities(SwapchainInfo, SwapchainQueries, m_Surface);
-
-        VT_CORE_ASSERT(Result, "Failed to find appropriate swapchain settings");
-
-        if (!m_PhysicalDevice.GraphicsQueueCanPresent())
-        {
-            uint32_t QueueFamilyIndices[] {
-                m_PhysicalDevice.GetGraphicsQueue().queueFamilyIndex,
-                m_PhysicalDevice.GetPresentQueue().queueFamilyIndex};
-
-            SwapchainCreateInfo.imageSharingMode      = vk::SharingMode::eConcurrent;
-            SwapchainCreateInfo.queueFamilyIndexCount = 2;
-            SwapchainCreateInfo.pQueueFamilyIndices   = QueueFamilyIndices;
-        }
-
-        m_Swapchain.CreateSwapchain(SwapchainCreateInfo, m_LogicalDevice);
-        m_MaxFrameCount = SwapchainCreateInfo.minImageCount;
-    }
-    VT_CORE_TRACE("Vulkan swapchain created");
-    /* ===============================================
-     *          Get Graphics and present queues
-     * ===============================================
-     */
-    {
-        uint32_t GraphicsQueueFamilyIndex, GraphicsQueueIndex, PresentQueueFamilyIndex, PresentQueueIndex;
-
-        if (m_PhysicalDevice.GraphicsQueueCanPresent())
-        {
-            const auto DeviceQueueInfo = m_PhysicalDevice.GetGraphicsQueue();
-            GraphicsQueueFamilyIndex   = DeviceQueueInfo.queueFamilyIndex;
-            // only created 1 queue, so index 0
-            GraphicsQueueIndex         = 0;
-
-            PresentQueueFamilyIndex = GraphicsQueueFamilyIndex;
-            PresentQueueIndex       = GraphicsQueueIndex;
-        }
-        else
-        {
-            auto DeviceQueueInfo     = m_PhysicalDevice.GetGraphicsQueue();
-            GraphicsQueueFamilyIndex = DeviceQueueInfo.queueFamilyIndex;
-            // use the first queue
-            GraphicsQueueIndex       = 0;
-
-            DeviceQueueInfo         = m_PhysicalDevice.GetPresentQueue();
-            PresentQueueFamilyIndex = DeviceQueueInfo.queueFamilyIndex;
-            // use the first queue
-            PresentQueueIndex       = 0;
-        }
-
-        m_GraphicQ = m_LogicalDevice.getQueue(GraphicsQueueFamilyIndex, GraphicsQueueIndex);
-        m_PresentQ = m_LogicalDevice.getQueue(PresentQueueFamilyIndex, PresentQueueIndex);
-    }
-    VT_CORE_TRACE("Vulkan graphics and present queues obtained ");
-    /* ===============================================
-     *          Create Command Pool
-     * ===============================================
-     */
-    {
-        m_CmdPool = m_LogicalDevice.createCommandPool(
-            {.flags            = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-             .queueFamilyIndex = m_PhysicalDevice.GetGraphicsQueue().queueFamilyIndex});
-    }
-
-    VT_CORE_TRACE("Vulkan Command pool created");
-
-    /* ===============================================
-     *          Create command buffer
-     * ===============================================
-     */
-    {
-        vk::CommandBufferAllocateInfo CommandBufferInfo {
-            .commandPool        = m_CmdPool,
-            .level              = vk::CommandBufferLevel::ePrimary,
-            .commandBufferCount = m_MaxFrameCount};
-
-        m_DrawBuffer = m_LogicalDevice.allocateCommandBuffers(CommandBufferInfo);
-    }
-    VT_CORE_TRACE("Vulkan draw buffer (cmd buffer) created");
     /* ===============================================
      *          Synchronization Obj
      * ===============================================
      */
     {
-        m_ImageAvailable = m_LogicalDevice.createSemaphore({});
-        m_RenderFinished = m_LogicalDevice.createSemaphore({});
-        m_DrawFence      = m_LogicalDevice.createFence({.flags = vk::FenceCreateFlagBits::eSignaled});
+        vk::Result Result;
+        std::tie(Result, m_ImageAvailable) = LogicalDevice.createSemaphore({});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create image available semaphore");
+
+        std::tie(Result, m_RenderFinished) = LogicalDevice.createSemaphore({});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create render finish semaphore");
+
+        std::tie(Result, m_DrawFence)      = LogicalDevice.createFence({.flags = vk::FenceCreateFlagBits::eSignaled});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create Draw fence");
     }
     VT_CORE_TRACE("Vulkan Synchronization objs created");
 
     /* ===============================================
-     *          Depth Image
+     *          Swapchain
      * ===============================================
      */
     {
-        auto [Result, DepthFormat] = m_PhysicalDevice.FindSupportedFormat(
-            {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
-            vk::ImageTiling::eOptimal,
-            vk::FormatFeatureFlagBits::eDepthStencilAttachment);
-
-        VT_CORE_ASSERT(Result, "Failed to find depth format");
-
-        m_DepthStencil.Create(
-            m_Swapchain.GetInfo().imageExtent,
-            vk::SampleCountFlagBits::e1,
-            DepthFormat,
-            m_LogicalDevice,
-            m_PhysicalDevice);
+        m_Swapchain.Init(*m_Window, LogicalDevice, m_PhysicalDevice, m_Surface, 2);
+        m_MaxFrameCount = m_Swapchain.GetMaxFrameCount();
     }
 
-    VT_CORE_TRACE("Depth resource created");
-}
+    /* ===============================================
+     *          RenderPass
+     * ===============================================
+     */
 
-void Context::SwapBuffers() {}
+    {
+        m_RenderPass.Init(LogicalDevice);
+
+        std::vector<vk::AttachmentDescription> Attachment {
+            {{.format = m_Swapchain.GetInfo().imageFormat,
+              .samples        = vk::SampleCountFlagBits::e1,
+              .loadOp         = vk::AttachmentLoadOp::eClear,
+              .storeOp        = vk::AttachmentStoreOp::eStore,
+              .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+              .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+              .initialLayout  = vk::ImageLayout::eUndefined,
+              .finalLayout    = vk::ImageLayout::ePresentSrcKHR}
+
+            }};
+
+        std::vector<vk::AttachmentReference> ColorAttachmentReference {
+            {{.attachment = 0, .layout = vk::ImageLayout::eColorAttachmentOptimal}}};
+
+        std::vector<vk::SubpassDescription> Subpass {{{
+            .pipelineBindPoint    = vk::PipelineBindPoint::eGraphics,
+            .colorAttachmentCount = static_cast<uint32_t>(ColorAttachmentReference.size()),
+            .pColorAttachments    = ColorAttachmentReference.data(),
+        }}};
+
+        std::vector<vk::SubpassDependency> SubpassDependency {
+            {{.srcSubpass    = vk::SubpassExternal,
+              .dstSubpass    = 0,
+              .srcStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+              .dstStageMask  = vk::PipelineStageFlagBits::eColorAttachmentOutput,
+              .srcAccessMask = vk::AccessFlagBits::eNone,
+              .dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite}}};
+
+        m_RenderPass.Create(Attachment, Subpass, SubpassDependency);
+    }
+
+    VT_CORE_TRACE("Renderpass created");
+}
 
 Context::~Context()
 {
-    m_LogicalDevice.waitIdle();
+    vk::Device LogicalDevice = m_LogicalDevice.Get();
 
-    m_DepthStencil.Destroy();
+    LogicalDevice.waitIdle();
 
-    m_LogicalDevice.destroySemaphore(m_ImageAvailable);
-    m_LogicalDevice.destroySemaphore(m_RenderFinished);
-    m_LogicalDevice.destroyFence(m_DrawFence);
+    LogicalDevice.destroySemaphore(m_ImageAvailable);
+    LogicalDevice.destroySemaphore(m_RenderFinished);
+    LogicalDevice.destroyFence(m_DrawFence);
 
-    m_LogicalDevice.freeCommandBuffers(m_CmdPool, m_DrawBuffer);
-    m_LogicalDevice.destroyCommandPool(m_CmdPool);
-
-    m_Swapchain.Destroy();
-
-    m_LogicalDevice.destroy();
     m_Instance.Get().destroySurfaceKHR(m_Surface);
 }
 

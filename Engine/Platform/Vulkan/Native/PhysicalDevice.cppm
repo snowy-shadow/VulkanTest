@@ -4,9 +4,9 @@ module;
 #include <utility>
 #include <cstdint>
 
-export module VT.Platform.Vulkan.PhysicalDevice;
+export module VT.Platform.Vulkan.Native.PhysicalDevice;
 
-export namespace VT::Vulkan
+export namespace VT::Vulkan::Native
 {
 class PhysicalDevice
 {
@@ -16,9 +16,12 @@ public:
         const std::vector<vk::PhysicalDeviceProperties>& DeviceProperties,
         const std::vector<const char*>& DeviceRequiredExtensions,
         const char* Name);
-    PhysicalDevice()                          = default;
-    PhysicalDevice(PhysicalDevice&)           = delete;
-    PhysicalDevice& operator=(PhysicalDevice) = delete;
+    PhysicalDevice() = default;
+
+    PhysicalDevice(PhysicalDevice&)             = default;
+    PhysicalDevice& operator=(PhysicalDevice&)  = default;
+    PhysicalDevice(PhysicalDevice&&)            = default;
+    PhysicalDevice& operator=(PhysicalDevice&&) = default;
 
 public:
     vk::Device CreateLogicalDevice(
@@ -84,4 +87,4 @@ private:
     int m_PresentQueue {-1};
     int m_GraphicsQueue {-1};
 };
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

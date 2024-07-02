@@ -3,8 +3,9 @@ module;
 export module VT.Renderer;
 
 import VT.RendererOption;
-import VT.RendererAPI;
+import VT.RendererContext;
 import VT.Window;
+import VT.Event;
 import VT.Camera;
 import VT.Util;
 
@@ -23,12 +24,14 @@ public:
 
     VT_ENGINE_EXPORT void Submit();
 
+    VT_ENGINE_EXPORT void OnEvent(Event& E);
+
     VT_ENGINE_EXPORT void SetRendererAPI(RendererOption::API Type);
 
 private:
-    inline static Uniq<RendererAPI> CreateAPI(RendererOption::API Type);
+    inline static Uniq<RendererContext> CreateAPI(RendererOption::API Type);
 
 private:
-    Uniq<RendererAPI> m_API;
+    Uniq<RendererContext> m_API;
 };
 } // namespace VT

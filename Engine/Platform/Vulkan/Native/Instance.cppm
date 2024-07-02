@@ -2,11 +2,11 @@ module;
 #include <vulkan/vulkan.hpp>
 #include <vector>
 
-export module VT.Platform.Vulkan.Instance;
+export module VT.Platform.Vulkan.Native.Instance;
 import VT.Log;
 import VT.Util;
 
-export namespace VT::Vulkan
+export namespace VT::Vulkan::Native
 {
 class Instance
 {
@@ -40,4 +40,4 @@ private:
     vk::DebugUtilsMessengerEXT m_DebugMessenger;
 #endif
 };
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

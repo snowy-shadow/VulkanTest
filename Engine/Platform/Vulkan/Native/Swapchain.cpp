@@ -6,23 +6,18 @@ module;
 #include <utility>
 
 #include "EngineMacro.h"
-module VT.Platform.Vulkan.Swapchain;
+module VT.Platform.Vulkan.Native.Swapchain;
 
-import VT.Platform.Vulkan.PhysicalDevice;
 import VT.Log;
 
-namespace VT::Vulkan
+namespace VT::Vulkan::Native
 {
-Swapchain::Swapchain(vk::Instance Instance, vk::PhysicalDevice PD, vk::Device Device) :
-    m_Instance(Instance), m_PhysicalDevice(PD), m_Device(Device)
-{
-}
+Swapchain::Swapchain(vk::PhysicalDevice PD, vk::Device Device) : m_PhysicalDevice(PD), m_LogicalDevice(Device) {}
 
-void Swapchain::Init(vk::Instance Instance, vk::PhysicalDevice PD, vk::Device Device)
+void Swapchain::Init(vk::PhysicalDevice PD, vk::Device Device)
 {
-    m_Instance       = Instance;
     m_PhysicalDevice = PD;
-    m_Device         = Device;
+    m_LogicalDevice         = Device;
 }
 
 std::pair<bool, vk::SurfaceFormatKHR> Swapchain::FindSurfaceFormat(
@@ -145,10 +140,6 @@ std::pair<bool, vk::SwapchainCreateInfoKHR> Swapchain::QueryCapabilities(
     return {true, Info};
 }
 
-vk::SwapchainKHR Swapchain::Get() const noexcept { return m_Swapchain; }
-
-vk::SwapchainCreateInfoKHR Swapchain::GetInfo() const noexcept { return m_SwapchainCreateInfo; }
-
 void Swapchain::CreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, vk::Device LogicalDevice)
 {
     SwapchainCreateInfo.oldSwapchain = m_Swapchain;
@@ -157,9 +148,9 @@ void Swapchain::CreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo, 
 
     if (m_SwapchainCreated)
     {
-        m_Device.destroySwapchainKHR(m_SwapchainCreateInfo.oldSwapchain);
+        m_LogicalDevice.destroySwapchainKHR(m_SwapchainCreateInfo.oldSwapchain);
     }
-    m_Device           = LogicalDevice;
+    m_LogicalDevice           = LogicalDevice;
     m_SwapchainCreated = true;
 }
 
@@ -170,10 +161,14 @@ void Swapchain::RecreateSwapchain(vk::SwapchainCreateInfoKHR SwapchainCreateInfo
     CreateSwapchain(std::move(SwapchainCreateInfo), LogicalDevice);
 }
 
+vk::SwapchainKHR Swapchain::Get() const noexcept { return m_Swapchain; }
+
+vk::SwapchainCreateInfoKHR Swapchain::GetInfo() const noexcept { return m_SwapchainCreateInfo; }
+
 Swapchain::Swapchain(Swapchain&& Other) noexcept :
     m_SwapchainCreateInfo(std::move(Other.m_SwapchainCreateInfo)),
     m_Swapchain(Other.m_Swapchain),
-    m_Device(Other.m_Device),
+    m_LogicalDevice(Other.m_LogicalDevice),
     m_SwapchainCreated(Other.m_SwapchainCreated)
 {
     Other.m_SwapchainCreated = false;
@@ -183,7 +178,7 @@ Swapchain& Swapchain::operator=(Swapchain&& Other) noexcept
 {
     m_SwapchainCreateInfo    = std::move(Other.m_SwapchainCreateInfo);
     m_Swapchain              = Other.m_Swapchain;
-    m_Device                 = Other.m_Device;
+    m_LogicalDevice                 = Other.m_LogicalDevice;
     m_SwapchainCreated       = Other.m_SwapchainCreated;
     Other.m_SwapchainCreated = false;
 
@@ -194,12 +189,12 @@ void Swapchain::Destroy()
 {
     if (m_SwapchainCreated)
     {
-        m_Device.waitIdle();
-        m_Device.destroySwapchainKHR(m_Swapchain);
+        m_LogicalDevice.waitIdle();
+        m_LogicalDevice.destroySwapchainKHR(m_Swapchain);
     }
     m_SwapchainCreated = false;
 }
 
 Swapchain::~Swapchain() { Destroy(); }
 
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

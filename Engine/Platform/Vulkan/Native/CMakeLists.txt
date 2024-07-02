@@ -5,8 +5,10 @@
 		Instance.cppm
 		PhysicalDevice.cppm
 		Swapchain.cppm
+		RenderPass.cppm
 	PRIVATE
 		Instance.cpp
 		PhysicalDevice.cpp
 		Swapchain.cpp
+		RenderPass.cpp
 )

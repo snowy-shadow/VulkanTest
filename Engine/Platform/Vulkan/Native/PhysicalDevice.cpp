@@ -6,10 +6,10 @@ module;
 #include <utility>
 #include "EngineMacro.h"
 
-module VT.Platform.Vulkan.PhysicalDevice;
+module VT.Platform.Vulkan.Native.PhysicalDevice;
 import VT.Log;
 
-namespace VT::Vulkan
+namespace VT::Vulkan::Native
 {
 PhysicalDevice::PhysicalDevice(
     const std::vector<vk::PhysicalDevice>& DeviceList,
@@ -302,4 +302,4 @@ bool PhysicalDevice::ExtensionSupported(
     }
     return true;
 }
-} // namespace VT::Vulkan
+} // namespace VT::Vulkan::Native

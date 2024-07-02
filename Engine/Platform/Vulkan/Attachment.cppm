@@ -3,10 +3,10 @@ module;
 #include <cstdint>
 #include <utility>
 #include "EngineMacro.h"
-export module VT.Platform.Vulkan.Attachments;
+export module VT.Platform.Vulkan.Attachment;
 
 import VT.Log;
-import VT.Platform.Vulkan.PhysicalDevice;
+import VT.Platform.Vulkan.Native.PhysicalDevice;
 
 #define VK_CHECK(res, expect, ...)              \
     VT_CORE_ASSERT(                             \
@@ -31,7 +31,7 @@ public:
         vk::SampleCountFlagBits NumSample,
         vk::Format DepthFormat,
         vk::Device Device,
-        const PhysicalDevice& PD)
+        const Native::PhysicalDevice& PD)
     {
         LogicalDevice = Device;
 
@@ -105,6 +105,8 @@ public:
             LogicalDevice.freeMemory(ImageMemory);
         }
     }
+
+    ~DepthStencil() { Destroy(); }
 
 private:
     vk::Device LogicalDevice;
