@@ -1,24 +1,73 @@
 module;
-#include <vulkan/vulkan.hpp>
-#include <cstdint>
 #include <utility>
-#include "EngineMacro.h"
+#include "Vulkan.h"
 export module VT.Platform.Vulkan.Attachment;
 
 import VT.Log;
 import VT.Platform.Vulkan.Native.PhysicalDevice;
 
-#define VK_CHECK(res, expect, ...)              \
-    VT_CORE_ASSERT(                             \
-        static_cast<vk::Result>(res) == expect, \
-        "Vulkan check failed at ",              \
-        __FILE__,                               \
-        __LINE__,                               \
-        " : ",                                  \
-        __VA_ARGS__);
-
 export namespace VT::Vulkan
 {
+class FrameBuffer
+{
+public:
+    void Create(vk::Device Device, vk::FramebufferCreateInfo FB_Info)
+    {
+        Destroy();
+
+        m_LogicalDevice   = Device;
+        m_FramebufferInfo = FB_Info;
+
+        vk::Result Result;
+        std::tie(Result, m_FrameBuffer) = m_LogicalDevice.createFramebuffer(FB_Info);
+
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create framebuffer");
+    }
+
+    vk::Framebuffer Get() const { return m_FrameBuffer; }
+
+    vk::FramebufferCreateInfo& GetInfo() { return m_FramebufferInfo; }
+
+    void Destroy()
+    {
+        if (m_FrameBuffer != VK_NULL_HANDLE)
+        {
+            m_LogicalDevice.destroyFramebuffer(m_FrameBuffer);
+            m_FrameBuffer = VK_NULL_HANDLE;
+        }
+    }
+
+public:
+    FrameBuffer() = default;
+    FrameBuffer(vk::Device Device, vk::FramebufferCreateInfo FB_Info) { Create(Device, FB_Info); }
+    FrameBuffer(const FrameBuffer&)            = delete;
+    FrameBuffer& operator=(FrameBuffer& Other) = delete;
+
+    FrameBuffer(FrameBuffer&& Other) :
+        m_FramebufferInfo(Other.m_FramebufferInfo), m_FrameBuffer(Other.m_FrameBuffer),
+        m_LogicalDevice(Other.m_LogicalDevice)
+    {
+        Other.m_FrameBuffer = VK_NULL_HANDLE;
+    }
+
+    FrameBuffer& operator=(FrameBuffer&& Other)
+    {
+        m_FramebufferInfo   = std::move(Other.m_FramebufferInfo);
+        m_FrameBuffer       = std::move(Other.m_FrameBuffer);
+        Other.m_FrameBuffer = VK_NULL_HANDLE;
+        m_LogicalDevice     = Other.m_LogicalDevice;
+
+        return *this;
+    }
+    ~FrameBuffer() { Destroy(); }
+
+private:
+    vk::FramebufferCreateInfo m_FramebufferInfo;
+    vk::Framebuffer m_FrameBuffer;
+    vk::Device m_LogicalDevice;
+};
+
+
 class DepthStencil
 {
 public:
@@ -57,22 +106,27 @@ public:
             .sharingMode   = vk::SharingMode::eExclusive,
             .initialLayout = vk::ImageLayout::eUndefined};
 
-        Image = LogicalDevice.createImage(ImageInfo);
+        vk::Result Result;
+
+        std::tie(Result, Image) = LogicalDevice.createImage(ImageInfo);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create depth image");
 
         // Memory
         const auto MemReq = LogicalDevice.getImageMemoryRequirements(Image);
 
-        const auto [Result, MemIndex] =
+        const auto [Found, MemIndex] =
             PD.FindMemoryType(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-        VT_CORE_ASSERT(Result, "Failed to find depth memory type");
+        VT_CORE_ASSERT(Found, "Failed to find depth memory type");
 
         vk::MemoryAllocateInfo MemAllocInfo {.allocationSize = MemReq.size, .memoryTypeIndex = MemIndex};
 
-        ImageMemory = LogicalDevice.allocateMemory(MemAllocInfo);
+        std::tie(Result, ImageMemory) = LogicalDevice.allocateMemory(MemAllocInfo);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to allocate depth memory");
 
         // Image bind to mem
-        LogicalDevice.bindImageMemory(Image, ImageMemory, 0);
+        Result = LogicalDevice.bindImageMemory(Image, ImageMemory, 0);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to bind depth image memory");
 
         // ImageView
         vk::ImageViewCreateInfo ImageViewInfo {
@@ -87,7 +141,8 @@ public:
                                .layerCount     = 1}
         };
 
-        ImageView = LogicalDevice.createImageView(ImageViewInfo);
+        std::tie(Result, ImageView) = LogicalDevice.createImageView(ImageViewInfo);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create depth image view");
     }
 
     void Destroy()
@@ -95,17 +150,26 @@ public:
         if (ImageView != VK_NULL_HANDLE)
         {
             LogicalDevice.destroyImageView(ImageView);
+            ImageView = VK_NULL_HANDLE;
         }
         if (Image != VK_NULL_HANDLE)
         {
             LogicalDevice.destroyImage(Image);
+            Image = VK_NULL_HANDLE;
         }
         if (ImageMemory != VK_NULL_HANDLE)
         {
             LogicalDevice.freeMemory(ImageMemory);
+            ImageMemory = VK_NULL_HANDLE;
         }
     }
 
+public:
+    DepthStencil()                                = default;
+    DepthStencil(const DepthStencil&)             = delete;
+    DepthStencil(const DepthStencil&&)            = delete;
+    DepthStencil& operator=(const DepthStencil&)  = delete;
+    DepthStencil& operator=(const DepthStencil&&) = delete;
     ~DepthStencil() { Destroy(); }
 
 private:

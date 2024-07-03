@@ -21,13 +21,14 @@ public:
     };
 
 public:
-    void Init(vk::PhysicalDevice, vk::Device);
+    void Init(vk::Device);
     /*
      * Finds and replaces the first supported format for each in vk::SwapchainCreateInfoKHR.
      */
     std::pair<bool, vk::SwapchainCreateInfoKHR> QueryCapabilities(
         vk::SwapchainCreateInfoKHR Createinfo,
         Capabilities PreferredCapabilities,
+        vk::PhysicalDevice PhysicalDevice,
         vk::SurfaceKHR Surface) const;
 
     std::pair<bool, vk::SurfaceFormatKHR> FindSurfaceFormat(
@@ -52,7 +53,7 @@ public:
 
 public:
     Swapchain() = default;
-    Swapchain(vk::Instance, vk::PhysicalDevice, vk::Device);
+    Swapchain(vk::Device);
     Swapchain(Swapchain&& Other) noexcept;
     Swapchain& operator=(Swapchain&& Other) noexcept;
     Swapchain operator=(Swapchain&) = delete;
@@ -62,7 +63,6 @@ public:
     ~Swapchain();
 
 private:
-    vk::PhysicalDevice m_PhysicalDevice;
     vk::Device m_LogicalDevice;
 
     vk::SwapchainCreateInfoKHR m_SwapchainCreateInfo;

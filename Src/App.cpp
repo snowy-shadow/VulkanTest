@@ -24,8 +24,9 @@ void Application::Run()
     while (m_Running)
     {
         m_Window->OnUpdate();
-        auto [MouseX, MouseY] = m_Input->GetMouseXY();
-
+        //  auto [MouseX, MouseY] = m_Input->GetMouseXY();
+        m_RendererContext->BeginFrame();
+        m_RendererContext->EndFrame();
         // VT_TRACE("{0}, {1}", MouseX, MouseY);
     }
 }
@@ -36,6 +37,8 @@ void Application::OnEvent(VT::Event& E)
     {
         return;
     }
+
+    m_RendererContext->OnEvent(E);
 
     for (auto Layer : m_LayerStack)
     {

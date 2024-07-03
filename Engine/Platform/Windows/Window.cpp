@@ -79,6 +79,9 @@ Window::Window(RendererOption::API API, const WindowProperties& Properties) : m_
         {
             WindowInfo& Data = *reinterpret_cast<WindowInfo*>(glfwGetWindowUserPointer(Window));
 
+            (void)ScanCode;
+            (void)Mods;
+
             switch (Action)
             {
                 case GLFW_PRESS:

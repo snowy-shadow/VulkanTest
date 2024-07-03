@@ -1,10 +1,10 @@
 module;
 #include <unordered_set>
 #include <array>
-#include <vulkan/vulkan.hpp>
 #include <vector>
 #include <utility>
 #include "EngineMacro.h"
+#include "Platform/Vulkan/Vulkan.h"
 
 module VT.Platform.Vulkan.Native.PhysicalDevice;
 import VT.Log;
@@ -72,6 +72,7 @@ bool PhysicalDevice::FindPhysicalDevice(
     }
     return true;
 }
+
 bool PhysicalDevice::AddQueue(vk::QueueFlagBits RequiredQueue, std::span<const float> QueuePriorities)
 {
     // find queue
@@ -115,7 +116,7 @@ bool PhysicalDevice::FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, std::s
         auto& QF = QueueFamilies[Index];
 
         bool Result = (QF.queueFlags & vk::QueueFlagBits::eGraphics) && (QF.queueCount >= QueuePriorities.size()) &&
-                      m_PhysicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(Index), Surface);
+                      m_PhysicalDevice.getSurfaceSupportKHR(static_cast<uint32_t>(Index), Surface).value;
         if (!Result)
         {
             continue;
@@ -164,7 +165,8 @@ bool PhysicalDevice::SupportsPortabilitySubset() const
         m_PhysicalDevice != VK_NULL_HANDLE,
         "Cannot check for protability subset if Physical device is not set first");
 
-    auto Extensions {m_PhysicalDevice.enumerateDeviceLayerProperties()};
+    auto [Result, Extensions] {m_PhysicalDevice.enumerateDeviceLayerProperties()};
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to enumerate device layer properties");
 
     for (auto Iter {Extensions.cbegin()}; Iter != Extensions.cend(); Iter++)
     {
@@ -186,9 +188,9 @@ bool PhysicalDevice::FindPresentQueue(vk::SurfaceKHR Surface)
 
     for (int i = 0; i < m_DeviceQueues.size(); i++)
     {
-        if (m_PhysicalDevice.getSurfaceSupportKHR(
-                static_cast<uint32_t>(m_DeviceQueues[i].second.queueFamilyIndex),
-                Surface))
+        if (m_PhysicalDevice
+                .getSurfaceSupportKHR(static_cast<uint32_t>(m_DeviceQueues[i].second.queueFamilyIndex), Surface)
+                .value)
         {
             m_PresentQueue = i;
             return true;
@@ -217,7 +219,10 @@ vk::Device PhysicalDevice::CreateLogicalDevice(
         .ppEnabledExtensionNames = DeviceExtensionName.data(),
         .pEnabledFeatures        = &EnableFeatures};
 
-    return m_PhysicalDevice.createDevice(DeviceInfo);
+    const auto [Result, Device] = m_PhysicalDevice.createDevice(DeviceInfo);
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to create logical device");
+
+    return Device;
 }
 
 std::pair<bool, uint32_t> PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
@@ -287,7 +292,10 @@ bool PhysicalDevice::ExtensionSupported(
 {
     // construct set
     std::unordered_set<std::string> DeviceSupportedExtentions;
-    for (const auto& Extension : PhysicalDevice.enumerateDeviceExtensionProperties())
+    const auto [Result, Extensions] = PhysicalDevice.enumerateDeviceExtensionProperties();
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to enumerate device extension properties at extension check");
+
+    for (const auto& Extension : Extensions)
     {
         DeviceSupportedExtentions.insert(Extension.extensionName);
     }

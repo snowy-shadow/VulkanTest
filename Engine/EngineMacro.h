@@ -7,19 +7,19 @@
 #ifdef VT_ENABLE_MESSAGE
 // compiler bug, remove when fixed : include\format(2636): error C3688: invalid literal suffix 'sv'; literal
 // operator or literal operator template 'operator ""sv' not found
-    #include <format>
+#include <format>
 
-    #define VT_CORE_CRITICAL(...) VT::Log::Instance()->CoreLogger->critical(__VA_ARGS__)
-    #define VT_CORE_ERROR(...)    VT::Log::Instance()->CoreLogger->error(__VA_ARGS__)
-    #define VT_CORE_WARN(...)     VT::Log::Instance()->CoreLogger->warn(__VA_ARGS__)
-    #define VT_CORE_INFO(...)     VT::Log::Instance()->CoreLogger->info(__VA_ARGS__)
-    #define VT_CORE_TRACE(...)    VT::Log::Instance()->CoreLogger->trace(__VA_ARGS__)
+#define VT_CORE_CRITICAL(...) VT::Log::Instance()->CoreLogger->critical(__VA_ARGS__)
+#define VT_CORE_ERROR(...)    VT::Log::Instance()->CoreLogger->error(__VA_ARGS__)
+#define VT_CORE_WARN(...)     VT::Log::Instance()->CoreLogger->warn(__VA_ARGS__)
+#define VT_CORE_INFO(...)     VT::Log::Instance()->CoreLogger->info(__VA_ARGS__)
+#define VT_CORE_TRACE(...)    VT::Log::Instance()->CoreLogger->trace(__VA_ARGS__)
 
-    #define VT_CRITICAL(...) VT::Log::Instance()->ClientLogger->critical(__VA_ARGS__)
-    #define VT_ERROR(...)    VT::Log::Instance()->ClientLogger->error(__VA_ARGS__)
-    #define VT_WARN(...)     VT::Log::Instance()->ClientLogger->warn(__VA_ARGS__)
-    #define VT_INFO(...)     VT::Log::Instance()->ClientLogger->info(__VA_ARGS__)
-    #define VT_TRACE(...)    VT::Log::Instance()->ClientLogger->trace(__VA_ARGS__)
+#define VT_CRITICAL(...) VT::Log::Instance()->ClientLogger->critical(__VA_ARGS__)
+#define VT_ERROR(...)    VT::Log::Instance()->ClientLogger->error(__VA_ARGS__)
+#define VT_WARN(...)     VT::Log::Instance()->ClientLogger->warn(__VA_ARGS__)
+#define VT_INFO(...)     VT::Log::Instance()->ClientLogger->info(__VA_ARGS__)
+#define VT_TRACE(...)    VT::Log::Instance()->ClientLogger->trace(__VA_ARGS__)
 #else
     #define VT_CORE_FATAL(...)
     #define VT_CORE_ERROR(...)
@@ -40,9 +40,9 @@
  */
 
 #ifdef VT_ENABLE_ASSERT
-    #include <cstdlib>
+#include <cstdlib>
 
-    #define VT_ASSERT(x, ...)                                   \
+#define VT_ASSERT(x, ...)                                       \
         {                                                       \
             if (!(x))                                           \
             {                                                   \
@@ -51,7 +51,7 @@
             }                                                   \
         }
 
-    #define VT_CORE_ASSERT(x, ...)                                   \
+#define VT_CORE_ASSERT(x, ...)                                       \
         {                                                            \
             if (!(x))                                                \
             {                                                        \
@@ -60,32 +60,20 @@
             }                                                        \
         }
 
-    #define VT_HALT(...)                                        \
+#define VT_HALT(...)                                            \
         {                                                       \
             VT_CORE_CRITICAL("Program Halt : {}", __VA_ARGS__); \
             std::abort();                                       \
         }
-    #define VT_CORE_HALT(...)                                   \
+#define VT_CORE_HALT(...)                                       \
         {                                                       \
             VT_CORE_CRITICAL("Program Halt : {}", __VA_ARGS__); \
             std::abort();                                       \
         }
 #else
-    #define VT_ASSERT(x, ...)                                   \
-        {                                                       \
-            if (!(x))                                           \
-            {                                                   \
-                VT_CRITICAL("Assert Failed : {}", __VA_ARGS__); \
-            }                                                   \
-        }
+    #define VT_ASSERT(x, ...) x;
 
-    #define VT_CORE_ASSERT(x, ...)                                   \
-        {                                                            \
-            if (!(x))                                                \
-            {                                                        \
-                VT_CORE_CRITICAL("Assert Failed : {}", __VA_ARGS__); \
-            }                                                        \
-        }
+    #define VT_CORE_ASSERT(x, ...) x;
 
     #define VT_HALT(...)                                   \
         {                                                  \

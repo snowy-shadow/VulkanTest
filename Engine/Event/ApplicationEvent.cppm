@@ -14,7 +14,7 @@ class VT_ENGINE_EXPORT WindowResizeEvent : public Event
 {
 public:
     WindowResizeEvent(const std::array<uint32_t, 2>& DimensionXY) : m_DimensionXY(DimensionXY) {}
-    constexpr std::array<uint32_t, 2> GetDimensionXY() { return m_DimensionXY; }
+    constexpr std::array<uint32_t, 2> GetDimensionXY() const { return m_DimensionXY; }
 
     EVENT_CLASS_TYPE(EventType::eWindowResize)
     EVENT_CLASS_CATEGORY(EventCategoryApplication)

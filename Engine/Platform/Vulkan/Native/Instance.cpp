@@ -1,10 +1,8 @@
 module;
-
 #include <vector>
 #include <string>
 #include <unordered_set>
-#include <vulkan/vulkan.hpp>
-#include "EngineMacro.h"
+#include "Platform/Vulkan/Vulkan.h"
 
 module VT.Platform.Vulkan.Native.Instance;
 
@@ -49,8 +47,10 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
 namespace VT::Vulkan::Native
 {
 VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT, // MessageSeverity
-    VkDebugUtilsMessageTypeFlagsEXT,        // MessageType
+    VkDebugUtilsMessageSeverityFlagBitsEXT,
+    // MessageSeverity
+    VkDebugUtilsMessageTypeFlagsEXT,
+    // MessageType
     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
     void* pUserData)
 {
@@ -81,12 +81,15 @@ bool Instance::Init(
      *              API version check
      *  ======================================================
      */
-    VT_CORE_ASSERT(ApplicationInfo.apiVersion <= vk::enumerateInstanceVersion(), "Required api version too high!");
+    auto [Result, InstanceVersion] = vk::enumerateInstanceVersion();
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to get instance version");
 
-    /* ======================================================
-     *              Extensions and Layer config
-     *  ======================================================
-     */
+    VT_CORE_ASSERT(ApplicationInfo.apiVersion <= InstanceVersion, "Required api version too high!");
+
+/* ======================================================
+ *              Extensions and Layer config
+ *  ======================================================
+ */
 #ifdef VT_ENABLE_DEBUG
     Layers.emplace_back("VK_LAYER_KHRONOS_validation");
     Extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -116,15 +119,16 @@ bool Instance::Init(
         .enabledExtensionCount   = static_cast<uint32_t>(Extensions.size()),
         .ppEnabledExtensionNames = Extensions.data()};
 
-    m_VulkanInstance = vk::createInstance(InstanceCreateInfo, nullptr);
+    std::tie(Result, m_VulkanInstance) = vk::createInstance(InstanceCreateInfo, nullptr);
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to create instance");
 
     VULKAN_HPP_DEFAULT_DISPATCHER.init(m_VulkanInstance);
     VT_CORE_TRACE("Instance created");
 
-    /* ======================================================
-     *              Validation Layer
-     *  ======================================================
-     */
+/* ======================================================
+ *              Validation Layer
+ *  ======================================================
+ */
 #ifdef VT_ENABLE_DEBUG
 
     vk::DebugUtilsMessengerCreateInfoEXT DebugMessengerCreateInfo {
@@ -135,7 +139,8 @@ bool Instance::Init(
         .pfnUserCallback = DebugCallback,
         .pUserData       = m_Logger.get()};
 
-    m_DebugMessenger = m_VulkanInstance.createDebugUtilsMessengerEXT(DebugMessengerCreateInfo);
+    std::tie(Result, m_DebugMessenger) = m_VulkanInstance.createDebugUtilsMessengerEXT(DebugMessengerCreateInfo);
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to create Debug util messenger");
 
     VT_CORE_TRACE("Validation layer enabled");
 #endif
@@ -165,37 +170,43 @@ Instance::~Instance()
  */
 bool Instance::IsSupported(std::span<const char*> RequiredExtensions, std::span<const char*> RequiredLayers)
 {
-    // extension
-    auto InstanceExtensions {vk::enumerateInstanceExtensionProperties()};
     std::unordered_set<std::string> Capability(std::max(RequiredExtensions.size(), RequiredLayers.size()) * 2);
+    {
+        // extension
+        const auto [Result, InstanceExtensions] {vk::enumerateInstanceExtensionProperties()};
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to enumerate instance extension properties");
 
-    for (const auto& Ext : InstanceExtensions)
-    {
-        Capability.insert(Ext.extensionName);
-    }
-    // if support extensions
-    for (const auto& ReqExt : RequiredExtensions)
-    {
-        if (!Capability.contains(ReqExt))
+        for (const auto& Ext : InstanceExtensions)
         {
-            return false;
+            Capability.insert(Ext.extensionName);
+        }
+        // if support extensions
+        for (const auto& ReqExt : RequiredExtensions)
+        {
+            if (!Capability.contains(ReqExt))
+            {
+                return false;
+            }
         }
     }
-
-    // layer
-    Capability.clear();
-    auto InstanceLayerProperties {vk::enumerateInstanceLayerProperties()};
-    for (const auto& Layer : InstanceLayerProperties)
     {
-        Capability.insert(Layer.layerName);
-    }
+        // layer
+        Capability.clear();
+        const auto [Result, InstanceLayerProperties] {vk::enumerateInstanceLayerProperties()};
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to enumerate instance layer properties");
 
-    // if support layers
-    for (const auto& ReqLayer : RequiredLayers)
-    {
-        if (!Capability.contains(ReqLayer))
+        for (const auto& Layer : InstanceLayerProperties)
         {
-            return false;
+            Capability.insert(Layer.layerName);
+        }
+
+        // if support layers
+        for (const auto& ReqLayer : RequiredLayers)
+        {
+            if (!Capability.contains(ReqLayer))
+            {
+                return false;
+            }
         }
     }
 

@@ -14,33 +14,47 @@ export namespace VT::Vulkan
 class Swapchain
 {
 public:
-    void Init(Window& Window, vk::Device LogicalDevice, Native::PhysicalDevice& PhysicalDevice, vk::SurfaceKHR Surface, uint32_t MaxFrameCount);
-    uint32_t AcquireNextImage(vk::Semaphore Semaphore);
+	void Init(
+		Window& Window,
+		vk::Device LogicalDevice,
+		Native::PhysicalDevice& PhysicalDevice,
+		vk::SurfaceKHR Surface,
+		uint32_t MaxFrameCount);
 
-    void Resize(uint32_t Width, uint32_t Height);
+    std::pair<bool, uint32_t> AcquireNextImage(vk::Semaphore Semaphore);
 
-    vk::SwapchainKHR Get() const;
-    vk::SwapchainCreateInfoKHR GetInfo() const;
+	void Resize(uint32_t Width, uint32_t Height);
 
-    uint32_t GetCurrentFrameCount() const;
+	vk::SwapchainKHR Get() const;
+	vk::SwapchainCreateInfoKHR GetInfo() const;
+    std::vector<std::vector<vk::ImageView>> GetImageView() const;
+    uint32_t GetCurrentImageIndex() const;
     uint32_t GetMaxFrameCount() const;
 
-    ~Swapchain();
 
+
+public:
+	Swapchain()                             = default;
+	Swapchain(const Swapchain&)             = delete;
+	Swapchain(const Swapchain&&)            = delete;
+	Swapchain& operator=(const Swapchain&)  = delete;
+	Swapchain& operator=(const Swapchain&&) = delete;
+	~Swapchain();
 
 private:
-    Native::Swapchain m_Swapchain;
+    void CreateResources();
+    void DestroyResources();
 
-    vk::CommandPool m_CmdPool;
-    vk::Queue m_GraphicQ;
-    vk::Queue m_PresentQ;
-    std::vector<vk::CommandBuffer> m_DrawBuffer;
+private:
+	Native::Swapchain m_Swapchain;
+    std::vector<std::vector<vk::ImageView>> m_ImageView;
+    bool m_Initalized = false;
 
-    DepthStencil m_DepthStencil;
+	DepthStencil m_DepthStencil;
+    uint32_t m_CurrentImageIndex;
 
-    Window* m_Window;
     Native::PhysicalDevice* m_PhysicalDevice;
-    vk::Device m_LogicalDevice;
-    vk::SurfaceKHR m_Surface;
+	vk::Device m_LogicalDevice;
+	vk::SurfaceKHR m_Surface;
 };
 } // namespace VT::Vulkan

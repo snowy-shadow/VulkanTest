@@ -1,6 +1,6 @@
 module;
-#include <vulkan/vulkan.hpp>
 #include "EngineMacro.h"
+#include "Platform/Vulkan/Vulkan.h"
 module VT.Platform.Vulkan.Native.RenderPass;
 
 import VT.Log;
@@ -24,7 +24,10 @@ void RenderPass::Create(
         .dependencyCount = static_cast<uint32_t>(SubpassDependency.size()),
         .pDependencies   = SubpassDependency.data()};
 
-    m_RenderPass = m_LogicalDevice.createRenderPass(RenderPassInfo);
+    vk::Result Result;
+
+    std::tie(Result, m_RenderPass) = m_LogicalDevice.createRenderPass(RenderPassInfo);
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to create renderpass");
 }
 
 vk::CommandBuffer RenderPass::Begin(
@@ -46,11 +49,13 @@ vk::CommandBuffer RenderPass::Begin(
     return Buffer;
 }
 
-vk::CommandBuffer End(vk::CommandBuffer Buffer)
+vk::CommandBuffer RenderPass::End(vk::CommandBuffer Buffer)
 {
     Buffer.endRenderPass();
     return Buffer;
 }
+
+vk::RenderPass RenderPass::Get() const { return m_RenderPass; }
 
 RenderPass::~RenderPass()
 {

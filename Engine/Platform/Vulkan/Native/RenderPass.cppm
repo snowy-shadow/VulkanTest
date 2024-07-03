@@ -23,6 +23,9 @@ public:
         const std::vector<vk::ClearValue>& ClearValue) const;
 
     vk::CommandBuffer End(vk::CommandBuffer Buffer);
+
+    vk::RenderPass Get() const;
+
     ~RenderPass();
 
 private:
