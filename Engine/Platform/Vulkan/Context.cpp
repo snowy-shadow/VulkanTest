@@ -8,6 +8,7 @@ module;
 module VT.Platform.Vulkan.Context;
 
 import VT.Log;
+import VT.ShaderCompiler;
 
 namespace VT::Vulkan
 {
@@ -49,8 +50,9 @@ bool Context::BeginFrame()
         vk::Result::eSuccess,
         "Failed to begin cmd buffer");
 
-    // dynamic states
+    // Renderpass
     {
+        // dynamic states
         const auto ImageExtent = m_Swapchain.GetInfo().imageExtent;
         vk::Viewport ViewPort{ .x = 0.f,
                                .y = 0.f,
@@ -79,6 +81,8 @@ bool Context::BeginFrame()
         (void)m_RenderPass.Begin(CmdBuffer, m_FrameBuffer[ImageIndex].Get(), Scissor, ClearColor);
     }
 
+    (void)m_GraphicsPipeline.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+
     return true;
 }
 
@@ -87,8 +91,7 @@ bool Context::EndFrame()
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
     m_RenderPass.End(CmdBuffer);
 
-    vk::Result Result = CmdBuffer.end();
-    VK_CHECK(Result, vk::Result::eSuccess, "Failed to end command buffer");
+    VK_CHECK(CmdBuffer.end(), vk::Result::eSuccess, "Failed to end command buffer");
 
     VT_CORE_ASSERT(m_DrawFence.Reset(), "Failed to reset Draw fence");
 
@@ -104,8 +107,10 @@ bool Context::EndFrame()
                                      .signalSemaphoreCount = 1,
                                      .pSignalSemaphores = &m_RenderFinished };
 
-        Result = m_GraphicQ.submit(RenderSubmit, m_DrawFence.Get());
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to submit to graphic queue");
+        VK_CHECK(
+            m_GraphicQ.submit(RenderSubmit, m_DrawFence.Get()),
+            vk::Result::eSuccess,
+            "Failed to submit to graphic queue");
         // end Queue submit
     }
 
@@ -120,7 +125,7 @@ bool Context::EndFrame()
                                         .pSwapchains = &Swapchain,
                                         .pImageIndices = &CurrentImageIndex };
 
-        Result = m_PresentQ.presentKHR(PresentInfo);
+        vk::Result Result = m_PresentQ.presentKHR(PresentInfo);
 
         switch (Result)
         {
@@ -420,12 +425,90 @@ void Context::Init()
             } }
         };
 
+
         m_RenderPass.Create(Attachment, Subpass, SubpassDependency);
-	}
+    }
 
-	VT_CORE_TRACE("Renderpass created");
+    VT_CORE_TRACE("Renderpass created");
 
+    /* =====================================
+     *        Image Resources
+     * =====================================
+     */
     CreateResources();
+
+    /* =====================================
+     *         Shader modules
+     * =====================================
+     */
+
+    {
+        // Shader files
+        std::array<Shader::DXC::ShaderFileInfo, 2> ShaderFiles {
+            {{{.FileDir = "Src/Shader", .FileName = "Vertex.hlsl"},
+{L"-spirv", L"-E main", L"-T vs_6_3"},
+vk::ShaderStageFlagBits::eVertex,
+Shader::DXC::DXC_FileEncodingACP},
+
+             {{.FileDir = "Src/Shader", .FileName = "Fragment.hlsl"},
+             {L"-spirv", L"-E main", L"-T ps_6_3"},
+             vk::ShaderStageFlagBits::eFragment,
+             Shader::DXC::DXC_FileEncodingACP}}
+        };
+
+        std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfo(ShaderFiles.size());
+
+        Shader::DXC::Compiler ShaderCompiler;
+
+        for (std::size_t i = 0; i < ShaderFiles.size(); i++)
+        {
+            auto Spv = ShaderCompiler.CompileSpv(ShaderFiles[i]);
+
+            const auto [Result, Module] = LogicalDevice.createShaderModule(
+                {.codeSize = Spv.size(), .pCode = reinterpret_cast<uint32_t*>(Spv.data())});
+            VK_CHECK(Result, vk::Result::eSuccess, "Failed to create shader module");
+
+            ShaderStageInfo[i].stage  = ShaderFiles[i].Stage;
+            ShaderStageInfo[i].module = Module;
+            ShaderStageInfo[i].pName  = "main";
+        }
+
+        // Created graphics pipeline
+        m_GraphicsPipeline.Create(ShaderStageInfo, {}, m_RenderPass.Get(), LogicalDevice);
+
+        // clean up Shader stage
+        for (const auto& ShaderStage : ShaderStageInfo)
+        {
+            LogicalDevice.destroyShaderModule(ShaderStage.module);
+        }
+    }
+
+    VT_CORE_TRACE("Graphics Pipline Created");
+
+    /* =====================================
+     *         Vertex && Index buffer
+     * =====================================
+     */
+    {
+        const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
+
+        vk::BufferCreateInfo VertexBufferInfo {
+            .size        = 5,
+            .usage       = vk::BufferUsageFlagBits::eVertexBuffer,
+            .sharingMode = vk::SharingMode::eExclusive};
+
+        m_VertexBuffer
+            .Create(VertexBufferInfo, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal, LogicalDevice);
+
+        vk::BufferCreateInfo IndexBufferInfo {
+            .size        = 5,
+            .usage       = vk::BufferUsageFlagBits::eIndexBuffer,
+            .sharingMode = vk::SharingMode::eExclusive};
+
+        m_IndexBuffer.Create(IndexBufferInfo, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal, LogicalDevice);
+    }
+
+    VT_CORE_TRACE("Index and Vertex Buffer Created");
 }
 
 void Context::Resize(uint32_t Width, uint32_t Height)
@@ -470,7 +553,7 @@ void Context::CreateResources()
         vk::Result Result;
         std::tie(Result, m_DrawBuffer) = m_LogicalDevice.Get().allocateCommandBuffers(CommandBufferInfo);
 
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create command pool");
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create draw command buffer");
     }
     VT_CORE_TRACE("Vulkan draw buffer (cmd buffer) created");
 

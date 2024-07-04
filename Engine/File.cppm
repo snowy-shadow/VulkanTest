@@ -13,7 +13,7 @@ export namespace VT::File
 {
 struct VT_ENGINE_EXPORT FileInfo
 {
-    std::filesystem::path FileLocation;
+    std::filesystem::path FileDir;
     std::string FileName;
 };
 
@@ -43,7 +43,7 @@ struct hash<VT::File::FileInfo>
 {
     size_t operator()(const VT::File::FileInfo& F) const noexcept
     {
-        return hash<std::string>()(F.FileName) ^ (std::filesystem::hash_value(F.FileLocation) >> 3) ^ 11 << 7;
+        return hash<std::string>()(F.FileName) ^ (std::filesystem::hash_value(F.FileDir) >> 3) ^ 11 << 7;
     }
 };
 } // namespace std

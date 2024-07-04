@@ -42,7 +42,7 @@ public:
 
     bool FindPresentQueue(vk::SurfaceKHR Surface);
 
-    std::pair<bool, uint32_t> FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const;
+    std::pair<bool, uint32_t> FindMemoryTypeIndex(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const;
 
     std::pair<bool, vk::Format> FindSupportedFormat(
         const std::vector<vk::Format>& Candidates,

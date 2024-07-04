@@ -225,7 +225,8 @@ vk::Device PhysicalDevice::CreateLogicalDevice(
     return Device;
 }
 
-std::pair<bool, uint32_t> PhysicalDevice::FindMemoryType(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
+std::pair<bool, uint32_t>
+PhysicalDevice::FindMemoryTypeIndex(uint32_t TypeFilter, vk::MemoryPropertyFlags Properties) const
 {
     /*
     2 arrays:

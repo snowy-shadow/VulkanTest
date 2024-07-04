@@ -23,21 +23,21 @@ target_sources(${PROJECT_NAME}
 	PUBLIC
 	FILE_SET CXX_MODULES
 	FILES
+		VT_Engine.cppm
 		Engine.cppm
 		Log.cppm
-		VT_Engine.cppm
-
 		Window.cppm
-
 		Input.cppm
 		Timestep.cppm
+		ShaderCompiler.cppm
+		File.cppm
 
 	PRIVATE
 		Engine.cpp
 		Window.cpp
 		Input.cpp
-
-)
+		ShaderCompiler.cpp
+ "Platform/Vulkan/Util.cppm")
 
 add_subdirectory(Event)
 add_subdirectory(Layer)

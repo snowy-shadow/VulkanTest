@@ -5,6 +5,7 @@ export module VT.Platform.Vulkan.Attachment;
 
 import VT.Log;
 import VT.Platform.Vulkan.Native.PhysicalDevice;
+import VT.Platform.Vulkan.Util;
 
 export namespace VT::Vulkan
 {
@@ -79,8 +80,8 @@ public:
         vk::Extent2D ImageExtent,
         vk::SampleCountFlagBits NumSample,
         vk::Format DepthFormat,
-        vk::Device Device,
-        const Native::PhysicalDevice& PD)
+        const vk::PhysicalDeviceMemoryProperties MemProperties,
+        vk::Device Device)
     {
         LogicalDevice = Device;
 
@@ -115,7 +116,7 @@ public:
         const auto MemReq = LogicalDevice.getImageMemoryRequirements(Image);
 
         const auto [Found, MemIndex] =
-            PD.FindMemoryType(MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+            FindMemoryTypeIndex(MemProperties, MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
         VT_CORE_ASSERT(Found, "Failed to find depth memory type");
 

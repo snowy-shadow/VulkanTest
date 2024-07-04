@@ -1,5 +1,8 @@
 module;
 #include "VT_Export"
+#include <shaderc/shaderc.hpp>
+
+#include <vulkan/vulkan.hpp>
 
 #ifdef _WIN32
     /*
@@ -11,49 +14,50 @@ module;
 
 // provides cross platform CComPtr if not WIN32
 #include <dxc/dxcapi.h>
-#include <shaderc/shaderc.hpp>
+
 
 export module VT.ShaderCompiler;
 
 import VT.File;
 
-export namespace VT
+export namespace VT::Shader::GLSL
 {
 
 /* =========================================================
  *                      GLSL_Compiler
  * =========================================================
  */
-struct GLSL_FileInfo : File::FileInfo
+struct VT_ENGINE_EXPORT ShaderFileInfo : File::FileInfo
 {
     vk::ShaderStageFlagBits Stage;
     shaderc_shader_kind ShaderType;
     shaderc::CompileOptions CompileOptions;
 };
 
-class VT_ENGINE_EXPORT GLSL_Compiler
+class VT_ENGINE_EXPORT Compiler
 {
 public:
-    GLSL_Compiler() = default;
+    Compiler() = default;
 
-    [[nodiscard]]
-    std::vector<uint32_t> CompileSpv(File::ShadercFileInfo);
+    [[nodiscard]] std::vector<uint32_t> CompileSpv(ShaderFileInfo);
 
-    GLSL_Compiler(const GLSL_Compiler&)            = delete;
-    GLSL_Compiler& operator=(const GLSL_Compiler&) = delete;
+    Compiler(const Compiler&)            = delete;
+    Compiler& operator=(const Compiler&) = delete;
 
-    ~GLSL_Compiler() = default;
+    ~Compiler() = default;
 
 private:
     shaderc::Compiler m_Compiler;
 };
-};
+} // namespace VT::Shader::GLSL
 
+export namespace VT::Shader::DXC
+{
 /* =========================================================
  *                      DXC_Compiler
  * =========================================================
  */
-enum DXC_FileEncoding : uint32_t
+enum FileEncoding : uint32_t
 {
     DXC_FileEncodingACP   = DXC_CP_ACP,
     DXC_FileEncodingUTF8  = DXC_CP_UTF8,
@@ -62,27 +66,26 @@ enum DXC_FileEncoding : uint32_t
     DXC_FileEncodingWide  = DXC_CP_WIDE,
 };
 
-struct VT_ENGINE_EXPORT DXC_ShaderFileInfo : File::FileInfo
+struct VT_ENGINE_EXPORT ShaderFileInfo : File::FileInfo
 {
-    uint32_t Encoding;
-    vk::ShaderStageFlagBits Stage;
     std::vector<LPCWSTR> CL_Args;
+    vk::ShaderStageFlagBits Stage;
+    uint32_t Encoding = DXC_FileEncodingUTF8;
 };
 
-class VT_ENGINE_EXPORT DXC_Compiler
+class VT_ENGINE_EXPORT Compiler
 {
 public:
-    DXC_Compiler();
+    Compiler();
 
-    [[nodiscard]]
-    std::vector<std::byte> CompileSpv(DXC_ShaderFileInfo&) const;
+    [[nodiscard]] std::vector<std::byte> CompileSpv(ShaderFileInfo&) const;
 
-    DXC_Compiler(const DXC_Compiler&)            = delete;
-    DXC_Compiler& operator=(const DXC_Compiler&) = delete;
-    ~DXC_Compiler()                              = default;
+    Compiler(const Compiler&)                    = delete;
+    Compiler& operator=(const Compiler&) = delete;
+    ~Compiler()                                  = default;
 
 private:
-    CComPtr<IDxcCompiler3> m_DXC_Compiler = nullptr;
+    CComPtr<IDxcCompiler3> m_Compiler = nullptr;
     CComPtr<IDxcUtils> m_DXC_Utils        = nullptr;
 };
-} // namespace VT
+}

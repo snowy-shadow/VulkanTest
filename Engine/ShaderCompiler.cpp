@@ -11,22 +11,25 @@ module;
 #endif
 
 // provides cross platform CComPtr if not WIN32
+
 #include <dxc/dxcapi.h>
 #include <shaderc/shaderc.hpp>
-#include <shaderc/shaderc.hpp>
+#include <filesystem>
+
+#include "EngineMacro.h"
 
 module VT.ShaderCompiler;
-import VT.File;
+import VT.Log;
 
-namespace VT
+namespace VT::Shader::GLSL
 {
 /* =========================================================
  *                      GLSL_Compiler
  * =========================================================
  */
-std::vector<uint32_t> GLSL_Compiler::CompileSpv(File::ShadercFileInfo FileInfo)
+std::vector<uint32_t> Compiler::CompileSpv(ShaderFileInfo FileInfo)
 {
-    const auto Src {FileInfo.FileLocation / FileInfo.FileName};
+    const auto Src{ FileInfo.FileDir / FileInfo.FileName };
     const auto File = File::ReadFile(Src);
     std::string Source {File.cbegin(), File.cend()};
 
@@ -35,20 +38,23 @@ std::vector<uint32_t> GLSL_Compiler::CompileSpv(File::ShadercFileInfo FileInfo)
 
     if (Module.GetCompilationStatus() != shaderc_compilation_status_success)
     {
-        throw std::runtime_error("Failed to compile " + Src.string() + " Message : \n" + Module.GetErrorMessage());
+        VT_HALT("Failed to compile {0}, Message : {1}\n ", Src.string(), Module.GetErrorMessage());
     }
 
     return {Module.cbegin(), Module.cend()};
 }
+} // namespace VT::Shader::GLSL
 
+namespace VT::Shader::DXC
+{
 /* =========================================================
  *                      DXC_Compiler
  * =========================================================
  */
-DXC_Compiler::DXC_Compiler()
+Compiler::Compiler()
 {
     // Initialize DXC compiler
-    if (FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_DXC_Compiler))))
+    if (FAILED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&m_Compiler))))
     {
         throw std::runtime_error("Could not init DXC Compiler\n");
     }
@@ -61,10 +67,10 @@ DXC_Compiler::DXC_Compiler()
 }
 
 // must receive a CComPtr<IDxcBlob>, or dangling pointer
-std::vector<std::byte> DXC_Compiler::CompileSpv(DXC_ShaderFileInfo& File) const
+std::vector<std::byte> Compiler::CompileSpv(ShaderFileInfo& File) const
 {
     // parse data
-    const std::filesystem::path Src {File.FileLocation / File.FileName};
+    const std::filesystem::path Src{ File.FileDir / File.FileName };
 
     File.CL_Args.emplace_back(Src.wstring().c_str());
 
@@ -81,7 +87,7 @@ std::vector<std::byte> DXC_Compiler::CompileSpv(DXC_ShaderFileInfo& File) const
 
     // compile
     CComPtr<IDxcResult> CompileResult {nullptr};
-    HRes = m_DXC_Compiler->Compile(
+    HRes = m_Compiler->Compile(
         &SrcBuff,
         static_cast<LPCWSTR*>(File.CL_Args.data()),
         static_cast<uint32_t>(File.CL_Args.size()),

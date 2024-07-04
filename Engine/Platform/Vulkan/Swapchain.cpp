@@ -100,7 +100,16 @@ vk::SwapchainKHR Swapchain::Get() const { return m_Swapchain.Get(); }
 vk::SwapchainCreateInfoKHR Swapchain::GetInfo() const { return m_Swapchain.GetInfo(); }
 uint32_t Swapchain::GetCurrentImageIndex() const { return m_CurrentImageIndex; }
 
-std::vector<std::vector<vk::ImageView>> Swapchain::GetImageView() const { return m_ImageView; }
+std::vector<std::vector<vk::ImageView>> Swapchain::GetImageView() const
+{
+    std::vector<std::vector<vk::ImageView>> ImageView(m_ImageView.size());
+    for (size_t i = 0; i < m_ImageView.size(); i++)
+    {
+        ImageView[i] = { m_ImageView[i], m_DepthStencil.ImageView };
+    }
+
+    return ImageView;
+}
 
 uint32_t Swapchain::GetMaxFrameCount() const { return m_Swapchain.GetInfo().minImageCount; }
 
@@ -148,8 +157,8 @@ void Swapchain::CreateResources()
             m_Swapchain.GetInfo().imageExtent,
             vk::SampleCountFlagBits::e1,
             DepthFormat,
-            m_LogicalDevice,
-            *m_PhysicalDevice);
+            m_PhysicalDevice->Get().getMemoryProperties(),
+            m_LogicalDevice);
     }
     VT_CORE_TRACE("Depth resource created");
     /* ===============================================
@@ -181,7 +190,7 @@ void Swapchain::CreateResources()
             const auto [Result, ImageView] = m_LogicalDevice.createImageView(ImageViewInfo);
 
             VK_CHECK(Result, vk::Result::eSuccess, "Failed to create image view {}", std::to_string(i));
-            m_ImageView[i] = { ImageView, m_DepthStencil.ImageView };
+            m_ImageView[i] = ImageView;
         }
     }
     m_Initalized = true;
@@ -194,7 +203,7 @@ void Swapchain::DestroyResources()
 
     for (const auto& ImageView : m_ImageView)
     {
-        m_LogicalDevice.destroyImageView(ImageView.front());
+        m_LogicalDevice.destroyImageView(ImageView);
     }
 
     m_Initalized = false;

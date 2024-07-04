@@ -47,7 +47,7 @@ private:
 
 private:
 	Native::Swapchain m_Swapchain;
-    std::vector<std::vector<vk::ImageView>> m_ImageView;
+    std::vector<vk::ImageView> m_ImageView;
     bool m_Initalized = false;
 
 	DepthStencil m_DepthStencil;

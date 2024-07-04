@@ -12,6 +12,8 @@ import VT.Platform.Vulkan.Device;
 import VT.Platform.Vulkan.Swapchain;
 import VT.Platform.Vulkan.Synchronization;
 import VT.Platform.Vulkan.Attachment;
+import VT.Platform.Vulkan.Pipeline;
+import VT.Platform.Vulkan.Buffer;
 
 import VT.RendererContext;
 import VT.Util;
@@ -53,6 +55,7 @@ private:
     Swapchain m_Swapchain;
     bool m_ScheduleResize = false;
     Native::RenderPass m_RenderPass;
+    Pipeline m_GraphicsPipeline;
 
     // Command Resources
     vk::CommandPool m_CmdPool;
@@ -60,8 +63,11 @@ private:
     vk::Queue m_PresentQ;
     std::vector<vk::CommandBuffer> m_DrawBuffer;
 
-    // Images
+
+    // Images && buffers
     std::vector<FrameBuffer> m_FrameBuffer;
+    Buffer m_VertexBuffer;
+    Buffer m_IndexBuffer;
 
     // Synchronization
     vk::Semaphore m_ImageAvailable, m_RenderFinished;
