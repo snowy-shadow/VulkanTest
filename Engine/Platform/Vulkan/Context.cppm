@@ -19,6 +19,7 @@ import VT.RendererContext;
 import VT.Util;
 import VT.Window;
 import VT.Event;
+import VT.Buffer;
 
 export namespace VT::Vulkan
 {
@@ -38,6 +39,8 @@ public:
 
 private:
     void Resize(uint32_t Width, uint32_t Height);
+
+    void UploadData(vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Offset, vk::Queue, vk::Fence) const;
 
     void CreateResources();
     void DestroyResources();

@@ -29,13 +29,8 @@ bool Context::BeginFrame()
         Resize(m_Window->GetWidth(), m_Window->GetHeight());
         m_ScheduleResize = false;
     }
-
-	vk::Result Result;
-    bool bResult;
-
     // Swapchain Image index
-    uint32_t ImageIndex;
-    std::tie(bResult, ImageIndex) = m_Swapchain.AcquireNextImage(m_ImageAvailable);
+    auto [bResult, ImageIndex] = m_Swapchain.AcquireNextImage(m_ImageAvailable);
     VT_CORE_ASSERT(bResult, "Failed to obtain swapchain image");
 
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
@@ -82,6 +77,14 @@ bool Context::BeginFrame()
     }
 
     (void)m_GraphicsPipeline.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+    vk::Buffer VertexBuffer = m_VertexBuffer.Get();
+    vk::DeviceSize VertexBufferOffsetSize[] {0};
+    CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
+    CmdBuffer.bindIndexBuffer(m_IndexBuffer.Get(), 0, vk::IndexType::eUint32);
+
+    // Draw
+    CmdBuffer.drawIndexed(6, 1, 0, 0, 0);
+
 
     return true;
 }
@@ -89,6 +92,7 @@ bool Context::BeginFrame()
 bool Context::EndFrame()
 {
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
+
     m_RenderPass.End(CmdBuffer);
 
     VK_CHECK(CmdBuffer.end(), vk::Result::eSuccess, "Failed to end command buffer");
@@ -438,6 +442,65 @@ void Context::Init()
     CreateResources();
 
     /* =====================================
+     *         Vertex && Index buffer
+     * =====================================
+     */
+    {
+        const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
+
+
+        std::vector<std::array<float, 5>> VertexData {
+            {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
+             {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
+             {0.0f, 0.5f, 1.0f, 0.0f, 0.0f},
+             {0.5f, -0.5f, 0.0f, 0.0f, 1.0f}}
+        };
+
+        std::vector IndexData {0, 1, 2, 0, 3, 1};
+
+        BufferLayout VertexLayout {ShaderDataType::eFloat2, ShaderDataType::eFloat3};
+        BufferLayout IndexLayout {ShaderDataType::eInt};
+
+        vk::BufferCreateInfo VertexBufferInfo {
+            .size  = VertexLayout.GetSize() * VertexData.size(),
+            .usage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
+                vk::BufferUsageFlagBits::eTransferDst,
+            .sharingMode = vk::SharingMode::eExclusive};
+
+        m_VertexBuffer.Create(VertexBufferInfo, LogicalDevice);
+
+        m_VertexBuffer.BindMem(0, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+        vk::BufferCreateInfo IndexBufferInfo {
+            .size  = IndexLayout.GetSize() * IndexData.size(),
+            .usage = vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
+                vk::BufferUsageFlagBits::eTransferDst,
+            .sharingMode = vk::SharingMode::eExclusive};
+
+        m_IndexBuffer.Create(IndexBufferInfo, LogicalDevice);
+        m_IndexBuffer.BindMem(0, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+
+        VT_CORE_TRACE("Index and Vertex Buffer Created");
+
+        UploadData(
+            m_VertexBuffer.Get(),
+            VertexData.data(),
+            VertexData.size() * sizeof(VertexData[0]),
+            0,
+            m_GraphicQ,
+            m_DrawFence.Get());
+        UploadData(
+            m_IndexBuffer.Get(),
+            IndexData.data(),
+            IndexData.size() * sizeof(IndexData[0]),
+            0,
+            m_GraphicQ,
+            m_DrawFence.Get());
+    }
+    VT_CORE_TRACE("Index and Vertex Buffer data data uploaded");
+
+    /* =====================================
      *         Shader modules
      * =====================================
      */
@@ -484,40 +547,6 @@ Shader::DXC::DXC_FileEncodingACP},
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");
-
-    /* =====================================
-     *         Vertex && Index buffer
-     * =====================================
-     */
-    {
-        const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
-
-        vk::BufferCreateInfo VertexBufferInfo {
-            .size        = 5,
-            .usage       = vk::BufferUsageFlagBits::eVertexBuffer,
-            .sharingMode = vk::SharingMode::eExclusive};
-
-        m_VertexBuffer
-            .Create(VertexBufferInfo, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal, LogicalDevice);
-
-        vk::BufferCreateInfo IndexBufferInfo {
-            .size        = 5,
-            .usage       = vk::BufferUsageFlagBits::eIndexBuffer,
-            .sharingMode = vk::SharingMode::eExclusive};
-
-        m_IndexBuffer.Create(IndexBufferInfo, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal, LogicalDevice);
-    }
-
-    VT_CORE_TRACE("Index and Vertex Buffer Created");
-}
-
-void Context::Resize(uint32_t Width, uint32_t Height)
-{
-    m_Swapchain.Resize(Width, Height);
-    m_MaxFrameCount = m_Swapchain.GetMaxFrameCount();
-
-    DestroyResources();
-    CreateResources();
 }
 
 Context::~Context()
@@ -538,6 +567,38 @@ Context::~Context()
  *                      Private
  * ==================================================================
  */
+
+void Context::Resize(uint32_t Width, uint32_t Height)
+{
+    m_Swapchain.Resize(Width, Height);
+    m_MaxFrameCount = m_Swapchain.GetMaxFrameCount();
+
+    DestroyResources();
+    CreateResources();
+}
+
+
+void Context::UploadData(vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Offset, vk::Queue Queue, vk::Fence Fence)
+    const
+{
+    vk::BufferCreateInfo StagingBufferInfo {
+        .size        = Size,
+        .usage       = vk::BufferUsageFlagBits::eTransferSrc,
+        .sharingMode = vk::SharingMode::eExclusive};
+
+    Buffer StagingBuffer;
+    StagingBuffer.Create(StagingBufferInfo, m_LogicalDevice.Get());
+    StagingBuffer.BindMem(
+        0,
+        m_PhysicalDevice.Get().getMemoryProperties(),
+        vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
+
+    StagingBuffer.LoadData(Data, Size, {}, Offset);
+
+    vk::BufferCopy Region {.srcOffset = 0, .dstOffset = Offset, .size = Size};
+
+    StagingBuffer.CopyTo(Dest, Queue, m_CmdPool, Region);
+}
 
 void Context::CreateResources()
 {
