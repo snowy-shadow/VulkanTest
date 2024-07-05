@@ -11,48 +11,12 @@ namespace VT::Vulkan
 void Pipeline::Create(
     const std::vector<vk::PipelineShaderStageCreateInfo>& Shaders,
     vk::PipelineLayoutCreateInfo PipelineLayout,
+    vk::PipelineVertexInputStateCreateInfo VertexInput,
     vk::RenderPass Renderpass,
     vk::Device LogicalDevice)
 {
     m_LogicalDevice = LogicalDevice;
 
-    std::array<vk::VertexInputBindingDescription, 1> VertexInputBindings {
-        {{// binding 0
-          .binding = 0,
-          // pos, norm, tex coord
-          .stride    = sizeof(float) * (2 + 3),
-          .inputRate = vk::VertexInputRate::eVertex}}};
-
-    std::array<vk::VertexInputAttributeDescription, 2> VertexAttributes {
-        {
-         // pos, 2 floats
-         {.location = 0,
-         .binding  = VertexInputBindings[0].binding,
-         .format   = vk::Format::eR32G32Sfloat,
-         .offset   = 0},
-
-         // color, 3 floats
-         {.location = 1,
-         .binding  = VertexInputBindings[0].binding,
-         .format   = vk::Format::eR32G32B32Sfloat,
-         .offset   = sizeof(float) * 2},
-         //// tex coord, 2 floats
-         //{
-         //	.location = 2,
-         //	.binding = VertexInputBindings[0].binding,
-         //	.format = vk::Format::eR32G32Sfloat,
-         //	.offset = sizeof(float) * (3 + 3)
-         //},
-        }
-    };
-
-    // const auto& SwapchainInfo{ m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent};
-
-    vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo {
-        .vertexBindingDescriptionCount   = static_cast<uint32_t>(VertexInputBindings.size()),
-        .pVertexBindingDescriptions      = VertexInputBindings.data(),
-        .vertexAttributeDescriptionCount = static_cast<uint32_t>(VertexAttributes.size()),
-        .pVertexAttributeDescriptions    = VertexAttributes.data()};
 
     vk::PipelineInputAssemblyStateCreateInfo InputAssemblyInfo {
         .topology               = vk::PrimitiveTopology::eTriangleList,
@@ -166,7 +130,7 @@ void Pipeline::Create(
     vk::GraphicsPipelineCreateInfo GraphicPipelineInfo {
         .stageCount          = static_cast<uint32_t>(Shaders.size()),
         .pStages             = Shaders.data(),
-        .pVertexInputState   = &VertexInputStateInfo,
+        .pVertexInputState   = &VertexInput,
         .pInputAssemblyState = &InputAssemblyInfo,
         .pTessellationState  = &TessellationStateInfo,
         .pViewportState      = &ViewportStateInfo,
@@ -192,16 +156,10 @@ vk::CommandBuffer Pipeline::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBi
 
 void Pipeline::Destroy()
 {
-    if (m_Pipeline != VK_NULL_HANDLE)
-    {
-        m_LogicalDevice.destroyPipeline(m_Pipeline);
-        m_Pipeline = VK_NULL_HANDLE;
-    }
-    if (m_Layout != VK_NULL_HANDLE)
-    {
-        m_LogicalDevice.destroyPipelineLayout(m_Layout);
-        m_LogicalDevice = VK_NULL_HANDLE;
-    }
+    m_LogicalDevice.destroyPipeline(m_Pipeline);
+    m_Pipeline = VK_NULL_HANDLE;
+    m_LogicalDevice.destroyPipelineLayout(m_Layout);
+    m_Layout = VK_NULL_HANDLE;
 }
 
 Pipeline::~Pipeline() { Destroy(); }

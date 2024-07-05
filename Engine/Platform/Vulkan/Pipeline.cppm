@@ -11,6 +11,7 @@ public:
     void Create(
         const std::vector<vk::PipelineShaderStageCreateInfo>& Shaders,
         vk::PipelineLayoutCreateInfo PipelineLayout,
+        vk::PipelineVertexInputStateCreateInfo VertexInput,
         vk::RenderPass Renderpass,
         vk::Device LogicalDevice);
     vk::CommandBuffer Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);

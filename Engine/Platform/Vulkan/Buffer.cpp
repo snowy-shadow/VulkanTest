@@ -145,14 +145,11 @@ Buffer::Buffer(Buffer&& Other) noexcept :
 
 void Buffer::Destroy()
 {
-    if (m_Buffer != VK_NULL_HANDLE)
-    {
-        m_LogicalDevice.destroyBuffer(m_Buffer);
-        m_LogicalDevice.freeMemory(m_BufferMemory);
+    m_LogicalDevice.destroyBuffer(m_Buffer);
+    m_LogicalDevice.freeMemory(m_BufferMemory);
 
-        m_Buffer       = VK_NULL_HANDLE;
-        m_BufferMemory = VK_NULL_HANDLE;
-    }
+    m_Buffer       = VK_NULL_HANDLE;
+    m_BufferMemory = VK_NULL_HANDLE;
 }
 Buffer::~Buffer() { Destroy(); }
 } // namespace VT::Vulkan

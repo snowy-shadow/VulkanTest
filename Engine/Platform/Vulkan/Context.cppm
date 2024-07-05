@@ -14,6 +14,7 @@ import VT.Platform.Vulkan.Synchronization;
 import VT.Platform.Vulkan.Attachment;
 import VT.Platform.Vulkan.Pipeline;
 import VT.Platform.Vulkan.Buffer;
+import VT.Platform.Vulkan.Shader;
 
 import VT.RendererContext;
 import VT.Util;
@@ -58,7 +59,7 @@ private:
     Swapchain m_Swapchain;
     bool m_ScheduleResize = false;
     Native::RenderPass m_RenderPass;
-    Pipeline m_GraphicsPipeline;
+    Shader m_TriangleShader;
 
     // Command Resources
     vk::CommandPool m_CmdPool;

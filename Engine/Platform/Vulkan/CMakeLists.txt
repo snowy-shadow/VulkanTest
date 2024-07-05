@@ -10,12 +10,14 @@ target_sources(${PROJECT_NAME}
 		Pipeline.cppm
 		Buffer.cppm
 		Util.cppm
+		Shader.cppm
 	PRIVATE
 		Context.cpp
 		Swapchain.cpp
 		"Vulkan.h"
 		"Pipeline.cpp"
 		Buffer.cpp
+		Shader.cpp
 )
 
 add_subdirectory(Native)

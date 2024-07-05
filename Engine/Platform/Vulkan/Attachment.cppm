@@ -14,8 +14,6 @@ class FrameBuffer
 public:
     void Create(vk::Device Device, vk::FramebufferCreateInfo FB_Info)
     {
-        Destroy();
-
         m_LogicalDevice   = Device;
         m_FramebufferInfo = FB_Info;
 
@@ -31,11 +29,8 @@ public:
 
     void Destroy()
     {
-        if (m_FrameBuffer != VK_NULL_HANDLE)
-        {
-            m_LogicalDevice.destroyFramebuffer(m_FrameBuffer);
-            m_FrameBuffer = VK_NULL_HANDLE;
-        }
+        m_LogicalDevice.destroyFramebuffer(m_FrameBuffer);
+        m_FrameBuffer = VK_NULL_HANDLE;
     }
 
 public:
@@ -148,21 +143,14 @@ public:
 
     void Destroy()
     {
-        if (ImageView != VK_NULL_HANDLE)
-        {
-            LogicalDevice.destroyImageView(ImageView);
-            ImageView = VK_NULL_HANDLE;
-        }
-        if (Image != VK_NULL_HANDLE)
-        {
-            LogicalDevice.destroyImage(Image);
-            Image = VK_NULL_HANDLE;
-        }
-        if (ImageMemory != VK_NULL_HANDLE)
-        {
-            LogicalDevice.freeMemory(ImageMemory);
-            ImageMemory = VK_NULL_HANDLE;
-        }
+        LogicalDevice.destroyImageView(ImageView);
+        ImageView = VK_NULL_HANDLE;
+
+        LogicalDevice.destroyImage(Image);
+        Image = VK_NULL_HANDLE;
+
+        LogicalDevice.freeMemory(ImageMemory);
+        ImageMemory = VK_NULL_HANDLE;
     }
 
 public:

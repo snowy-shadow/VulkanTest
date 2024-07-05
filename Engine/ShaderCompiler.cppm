@@ -20,7 +20,7 @@ export module VT.ShaderCompiler;
 
 import VT.File;
 
-export namespace VT::Shader::GLSL
+export namespace VT::GLSL
 {
 
 /* =========================================================
@@ -49,9 +49,9 @@ public:
 private:
     shaderc::Compiler m_Compiler;
 };
-} // namespace VT::Shader::GLSL
+} // namespace VT::GLSL
 
-export namespace VT::Shader::DXC
+export namespace VT::HLSL
 {
 /* =========================================================
  *                      DXC_Compiler
@@ -78,7 +78,7 @@ class VT_ENGINE_EXPORT Compiler
 public:
     Compiler();
 
-    [[nodiscard]] std::vector<std::byte> CompileSpv(ShaderFileInfo&) const;
+    [[nodiscard]] std::vector<std::byte> CompileSpv(const ShaderFileInfo&) const;
 
     Compiler(const Compiler&)                    = delete;
     Compiler& operator=(const Compiler&) = delete;

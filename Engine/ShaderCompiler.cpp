@@ -21,7 +21,7 @@ module;
 module VT.ShaderCompiler;
 import VT.Log;
 
-namespace VT::Shader::GLSL
+namespace VT::GLSL
 {
 /* =========================================================
  *                      GLSL_Compiler
@@ -29,7 +29,8 @@ namespace VT::Shader::GLSL
  */
 std::vector<uint32_t> Compiler::CompileSpv(ShaderFileInfo FileInfo)
 {
-    const auto Src{ FileInfo.FileDir / FileInfo.FileName };
+    std::filesystem::path Src {FileInfo.FileDir};
+    Src /= FileInfo.FileName;
     const auto File = File::ReadFile(Src);
     std::string Source {File.cbegin(), File.cend()};
 
@@ -43,9 +44,9 @@ std::vector<uint32_t> Compiler::CompileSpv(ShaderFileInfo FileInfo)
 
     return {Module.cbegin(), Module.cend()};
 }
-} // namespace VT::Shader::GLSL
+} // namespace VT::GLSL
 
-namespace VT::Shader::DXC
+namespace VT::HLSL
 {
 /* =========================================================
  *                      DXC_Compiler
@@ -67,30 +68,37 @@ Compiler::Compiler()
 }
 
 // must receive a CComPtr<IDxcBlob>, or dangling pointer
-std::vector<std::byte> Compiler::CompileSpv(ShaderFileInfo& File) const
+std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
 {
-    // parse data
-    const std::filesystem::path Src{ File.FileDir / File.FileName };
+    // parse path
+    std::filesystem::path Src {File.FileDir};
+    Src /= File.FileName; 
 
-    File.CL_Args.emplace_back(Src.wstring().c_str());
+    // Set up args
+    std::vector<LPCWSTR> Args;
+    Args.reserve(File.CL_Args.size() + 1);
+    Args.insert(Args.begin(), File.CL_Args.begin(), File.CL_Args.end());
+    Args.push_back(Src.wstring().c_str());
+
+    UINT32 Encoding = File.Encoding;
 
     // load file
     CComPtr<IDxcBlobEncoding> SourceBlob;
-    HRESULT HRes = m_DXC_Utils->LoadFile(Src.wstring().c_str(), static_cast<UINT32*>(&File.Encoding), &SourceBlob);
-    if (FAILED(HRes))
-    {
-        throw std::runtime_error("Could not load shader file : " + Src.string());
-    }
+    HRESULT HRes = m_DXC_Utils->LoadFile(Src.wstring().c_str(), &Encoding, &SourceBlob);
+    VT_CORE_ASSERT(SUCCEEDED(HRes), "Could not load shader file : {0}", Src.string());
+  
 
     DxcBuffer SrcBuff {
-        .Ptr = SourceBlob->GetBufferPointer(), .Size = SourceBlob->GetBufferSize(), .Encoding = File.Encoding};
+        .Ptr      = SourceBlob->GetBufferPointer(),
+        .Size     = SourceBlob->GetBufferSize(),
+        .Encoding = Encoding};
 
     // compile
     CComPtr<IDxcResult> CompileResult {nullptr};
     HRes = m_Compiler->Compile(
         &SrcBuff,
-        static_cast<LPCWSTR*>(File.CL_Args.data()),
-        static_cast<uint32_t>(File.CL_Args.size()),
+        static_cast<LPCWSTR*>(Args.data()),
+        static_cast<uint32_t>(Args.size()),
         nullptr,
         IID_PPV_ARGS(&CompileResult));
 

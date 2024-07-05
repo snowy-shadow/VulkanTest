@@ -76,7 +76,7 @@ bool Context::BeginFrame()
         (void)m_RenderPass.Begin(CmdBuffer, m_FrameBuffer[ImageIndex].Get(), Scissor, ClearColor);
     }
 
-    (void)m_GraphicsPipeline.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+    m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
     vk::Buffer VertexBuffer = m_VertexBuffer.Get();
     vk::DeviceSize VertexBufferOffsetSize[] {0};
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
@@ -445,9 +445,11 @@ void Context::Init()
      *         Vertex && Index buffer
      * =====================================
      */
+
+    BufferLayout VertexLayout {ShaderDataType::eFloat2, ShaderDataType::eFloat3};
+    BufferLayout IndexLayout {ShaderDataType::eInt};
     {
         const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
-
 
         std::vector<std::array<float, 5>> VertexData {
             {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
@@ -457,9 +459,6 @@ void Context::Init()
         };
 
         std::vector IndexData {0, 1, 2, 0, 3, 1};
-
-        BufferLayout VertexLayout {ShaderDataType::eFloat2, ShaderDataType::eFloat3};
-        BufferLayout IndexLayout {ShaderDataType::eInt};
 
         vk::BufferCreateInfo VertexBufferInfo {
             .size  = VertexLayout.GetSize() * VertexData.size(),
@@ -507,43 +506,19 @@ void Context::Init()
 
     {
         // Shader files
-        std::array<Shader::DXC::ShaderFileInfo, 2> ShaderFiles {
+        std::array<HLSL::ShaderFileInfo, 2> ShaderFiles {
             {{{.FileDir = "Src/Shader", .FileName = "Vertex.hlsl"},
 {L"-spirv", L"-E main", L"-T vs_6_3"},
 vk::ShaderStageFlagBits::eVertex,
-Shader::DXC::DXC_FileEncodingACP},
+HLSL::DXC_FileEncodingACP},
 
              {{.FileDir = "Src/Shader", .FileName = "Fragment.hlsl"},
              {L"-spirv", L"-E main", L"-T ps_6_3"},
              vk::ShaderStageFlagBits::eFragment,
-             Shader::DXC::DXC_FileEncodingACP}}
+             HLSL::DXC_FileEncodingACP}}
         };
-
-        std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfo(ShaderFiles.size());
-
-        Shader::DXC::Compiler ShaderCompiler;
-
-        for (std::size_t i = 0; i < ShaderFiles.size(); i++)
-        {
-            auto Spv = ShaderCompiler.CompileSpv(ShaderFiles[i]);
-
-            const auto [Result, Module] = LogicalDevice.createShaderModule(
-                {.codeSize = Spv.size(), .pCode = reinterpret_cast<uint32_t*>(Spv.data())});
-            VK_CHECK(Result, vk::Result::eSuccess, "Failed to create shader module");
-
-            ShaderStageInfo[i].stage  = ShaderFiles[i].Stage;
-            ShaderStageInfo[i].module = Module;
-            ShaderStageInfo[i].pName  = "main";
-        }
-
-        // Created graphics pipeline
-        m_GraphicsPipeline.Create(ShaderStageInfo, {}, m_RenderPass.Get(), LogicalDevice);
-
-        // clean up Shader stage
-        for (const auto& ShaderStage : ShaderStageInfo)
-        {
-            LogicalDevice.destroyShaderModule(ShaderStage.module);
-        }
+       
+        m_TriangleShader.Create(ShaderFiles, VertexLayout, m_RenderPass.Get(), LogicalDevice);
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");

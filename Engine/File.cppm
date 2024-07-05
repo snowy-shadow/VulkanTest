@@ -13,7 +13,7 @@ export namespace VT::File
 {
 struct VT_ENGINE_EXPORT FileInfo
 {
-    std::filesystem::path FileDir;
+    std::string FileDir;
     std::string FileName;
 };
 
