@@ -44,11 +44,10 @@ class Buffer : public VT::Buffer
     private:
         vk::BufferCreateInfo m_Info;
         VT::BufferLayout m_Layout;
-        vk::Buffer m_Buffer;
-        vk::DeviceMemory m_BufferMemory;
+        vk::Buffer m_Buffer {VK_NULL_HANDLE};
+        vk::DeviceMemory m_BufferMemory {VK_NULL_HANDLE};
 
         vk::Device m_LogicalDevice;
-
-	};
+    };
 
     } // namespace VT::Vulkan

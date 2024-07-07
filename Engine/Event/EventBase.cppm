@@ -60,7 +60,7 @@ protected:
     bool m_Handled {false};
 };
 
-class EventDispatcher
+class VT_ENGINE_EXPORT EventDispatcher
 {
 public:
     EventDispatcher(Event& E) : m_Event(E) {}
@@ -79,7 +79,7 @@ public:
         return false;
     }
 
-    virtual ~EventDispatcher() {}
+    virtual ~EventDispatcher() = default;
 
 private:
     Event& m_Event;

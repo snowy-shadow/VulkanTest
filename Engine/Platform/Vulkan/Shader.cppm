@@ -6,6 +6,8 @@ export module VT.Platform.Vulkan.Shader;
 import VT.Platform.Vulkan.Pipeline;
 import VT.ShaderCompiler;
 import VT.Buffer;
+import VT.Camera;
+import VT.Platform.Vulkan.Buffer;
 
 export namespace VT::Vulkan
 {
@@ -14,17 +16,35 @@ class Shader
 public:
     void Create(
         std::span<const HLSL::ShaderFileInfo> Shaders,
-        BufferLayout BufferLayout,
+        BufferLayout UniformBufferLayout,
+        BufferLayout VertexBufferLayout,
         vk::RenderPass Renderpass,
+        vk::PhysicalDevice PhysicalDevice,
         vk::Device LogicalDevice);
 
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
-    void Destroy() { m_Pipeline.Destroy(); }
+    void UpdateCameraTransform(vk::CommandBuffer CommandBuffer, CameraTransform Transform);
 
-    ~Shader() { Destroy(); }
+    void Destroy();
+
+public:
+    Shader()                         = default;
+    Shader& operator=(Shader& Other) = delete;
+    Shader& operator=(Shader&& Other) noexcept = delete;
+    Shader(Shader&& Other) noexcept            = delete;
+    Shader(Shader& Other) = delete;
+    ~Shader();
+
 private:
     Pipeline m_Pipeline;
+    Buffer m_UBO_Buffer;
+
+    vk::DescriptorPool m_DescriptorPool;
+    vk::DescriptorSetLayout m_DescriptorLayout;
+    vk::DescriptorSet m_DescriptorSet;
+
+    vk::Device m_LogicalDevice;
 };
 
 } // namespace VT::Vulkan

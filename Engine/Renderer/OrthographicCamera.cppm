@@ -3,34 +3,25 @@ module;
 #include <glm/glm.hpp>
 export module VT.OrthographicCamera;
 
-import Camera3D;
+import VT.Camera;
 
-namespace VT
+export namespace VT
 {
-class VT_ENGINE_EXPORT OrthographicCamera final : public Camera,
+class VT_ENGINE_EXPORT OrthographicCamera final : public Camera
 {
 public:
-    OrthographicCamera() = default;
-    OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV = 90);
+    OrthographicCamera(float Left = -1, float Right = 1, float Top = 1, float Bottom = -1, unsigned int FOV = 90);
 
-    glm::mat4 GetProjection() override;
-    glm::mat4 GetView() override;
-    glm::mat4 GetViewProjection() override;
+    virtual glm::mat4 GetProjection() override;
+    virtual glm::mat4 GetView() override;
+    virtual glm::mat4 GetViewProjection() override;
 
-    Camera3D(glm::vec3 TranslationXYZ, glm::vec3 RotationXYZ) :
-        m_TranslationXYZ(TranslationXYZ), m_RotationXYZ(RotationXYZ)
-    {
-    }
+    virtual CameraTransform GetTransform() override;
 
     void SetTranslationXYZ(glm::vec3 TranslationXYZ)
     {
         m_TranslationXYZ = TranslationXYZ;
         m_ValueModified  = true;
-    }
-    void ApplyTranslationXYZ(glm::vec3 TranslationXYZ)
-    {
-        m_TranslationXYZ += TranslationXYZ;
-        m_ValueModified = true;
     }
 
     void SetRotationXYZ(glm::vec3 RotationXYZ)
@@ -43,6 +34,12 @@ public:
         m_RotationXYZ += RotationXYZ;
         m_ValueModified = true;
     }
+    void ApplyTranslationXYZ(glm::vec3 TranslationXYZ)
+    {
+        m_TranslationXYZ += TranslationXYZ;
+        m_ValueModified = true;
+    }
+
 
     constexpr glm::vec3 GetTranslation_XYZ() const { return m_TranslationXYZ; }
     constexpr glm::vec3 GetRotationRadians_XYZ() const { return m_RotationXYZ; }

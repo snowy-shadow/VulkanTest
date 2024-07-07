@@ -1,6 +1,3 @@
-module;
-#include <memory>
-
 export module Application;
 import VulkanTest;
 

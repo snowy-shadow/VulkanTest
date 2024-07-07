@@ -10,8 +10,10 @@ target_sources(${PROJECT_NAME}
 		Renderer.cppm
 
 		Camera.cppm
+		OrthographicCamera.cppm
 
 	PRIVATE
 		RendererContext.cpp
 		Renderer.cpp
+		OrthographicCamera.cpp
 )

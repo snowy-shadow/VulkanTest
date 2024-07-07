@@ -21,6 +21,7 @@ import VT.Util;
 import VT.Window;
 import VT.Event;
 import VT.Buffer;
+import VT.Camera;
 
 export namespace VT::Vulkan
 {
@@ -48,6 +49,7 @@ private:
 
 private:
     Shared<Window> m_Window;
+    Uniq<Camera> m_Camera;
 
     // Device
     Native::Instance m_Instance;
@@ -76,6 +78,7 @@ private:
     // Synchronization
     vk::Semaphore m_ImageAvailable, m_RenderFinished;
     Fence m_DrawFence;
+    bool bUpdateCameraTransform {false};
 
 private:
     uint32_t m_MaxFrameCount {};

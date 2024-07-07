@@ -132,7 +132,6 @@ public:
 
     VT_ENGINE_EXPORT constexpr std::vector<BufferElement> GetElements() const { return m_Elements; }
     VT_ENGINE_EXPORT constexpr uint32_t GetStride() const { return m_Stride; }
-    VT_ENGINE_EXPORT constexpr uint32_t GetSize() const { return m_Size; }
 
     VT_ENGINE_EXPORT std::vector<BufferElement>::iterator begin() { return m_Elements.begin(); }
     VT_ENGINE_EXPORT std::vector<BufferElement>::iterator end() { return m_Elements.end(); }
@@ -158,11 +157,9 @@ private:
             E.Offset = Offset;
             Offset += E.Size;
             m_Stride += E.Size;
-            m_Size += E.Size;
         }
     }
     std::vector<BufferElement> m_Elements;
-    uint32_t m_Size {0};
     uint32_t m_Stride;
 };
 /* ====================================

@@ -5,9 +5,8 @@ export module VT.Platform.Vulkan.Pipeline;
 
 export namespace VT::Vulkan
 {
-class Pipeline
+struct Pipeline
 {
-public:
     void Create(
         const std::vector<vk::PipelineShaderStageCreateInfo>& Shaders,
         vk::PipelineLayoutCreateInfo PipelineLayout,
@@ -19,7 +18,7 @@ public:
     void Destroy();
     ~Pipeline();
 
-private:
+
     vk::Pipeline m_Pipeline;
     vk::PipelineLayout m_Layout;
 

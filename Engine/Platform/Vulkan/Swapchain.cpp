@@ -187,9 +187,11 @@ void Swapchain::CreateResources()
         for (size_t i = 0; i < Images.size(); i++)
         {
             ImageViewInfo.image            = Images[i];
-            const auto [Result, ImageView] = m_LogicalDevice.createImageView(ImageViewInfo);
 
+            vk::ImageView ImageView;
+            std::tie(Result, ImageView) = m_LogicalDevice.createImageView(ImageViewInfo);
             VK_CHECK(Result, vk::Result::eSuccess, "Failed to create image view {}", std::to_string(i));
+
             m_ImageView[i] = ImageView;
         }
     }

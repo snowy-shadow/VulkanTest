@@ -10,5 +10,5 @@ public:
     void OnAttach() override {}
     void OnDetach() override {}
     void OnUpdate(const VT::Timestep&) override { VT_INFO("Layer update"); }
-    void OnEvent(VT::Event& E) override {} // VT_INFO("Layer Event : {}", E); }
+    void OnEvent(VT::Event& E) override { (void)E; } // VT_INFO("Layer Event : {}", E); }
 };

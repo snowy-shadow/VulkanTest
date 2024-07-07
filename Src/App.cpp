@@ -1,11 +1,8 @@
 module;
-#include <memory>
 #include <functional>
 #include "EngineMacro.h"
 
 module Application;
-
-import VulkanTest;
 
 import ImageLayer;
 

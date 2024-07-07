@@ -9,10 +9,11 @@ module VT.Platform.Vulkan.Context;
 
 import VT.Log;
 import VT.ShaderCompiler;
+import VT.OrthographicCamera;
 
 namespace VT::Vulkan
 {
-Context::Context(Shared<Window> Window) : m_Window(Window) {}
+Context::Context(Shared<Window> Window) : m_Window(Window), m_Camera(new OrthographicCamera) {}
 
 bool Context::BeginFrame()
 {
@@ -77,6 +78,12 @@ bool Context::BeginFrame()
     }
 
     m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+    if (bUpdateCameraTransform)
+    {
+        m_TriangleShader.UpdateCameraTransform(CmdBuffer, m_Camera->GetTransform());
+        bUpdateCameraTransform = false;
+        VT_CORE_TRACE("Camera transform updated");
+    }
     vk::Buffer VertexBuffer = m_VertexBuffer.Get();
     vk::DeviceSize VertexBufferOffsetSize[] {0};
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
@@ -84,7 +91,6 @@ bool Context::BeginFrame()
 
     // Draw
     CmdBuffer.drawIndexed(6, 1, 0, 0, 0);
-
 
     return true;
 }
@@ -161,6 +167,17 @@ void Context::OnEvent(Event& Event)
             Resize(Dimension[0], Dimension[1]);
             break;
         }
+
+        case EventType::eKeyPress:
+        {
+            bUpdateCameraTransform = true;
+        }
+        break;
+        case EventType::eMouseMove:
+        {
+            bUpdateCameraTransform = true;
+        }
+        break;
 
         default :
             break;
@@ -461,17 +478,16 @@ void Context::Init()
         std::vector IndexData {0, 1, 2, 0, 3, 1};
 
         vk::BufferCreateInfo VertexBufferInfo {
-            .size  = VertexLayout.GetSize() * VertexData.size(),
+            .size  = VertexLayout.GetStride() * VertexData.size(),
             .usage = vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
                 vk::BufferUsageFlagBits::eTransferDst,
             .sharingMode = vk::SharingMode::eExclusive};
 
         m_VertexBuffer.Create(VertexBufferInfo, LogicalDevice);
-
         m_VertexBuffer.BindMem(0, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
         vk::BufferCreateInfo IndexBufferInfo {
-            .size  = IndexLayout.GetSize() * IndexData.size(),
+            .size  = IndexLayout.GetStride() * IndexData.size(),
             .usage = vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferSrc |
                 vk::BufferUsageFlagBits::eTransferDst,
             .sharingMode = vk::SharingMode::eExclusive};
@@ -479,20 +495,19 @@ void Context::Init()
         m_IndexBuffer.Create(IndexBufferInfo, LogicalDevice);
         m_IndexBuffer.BindMem(0, PD_MemProperty, vk::MemoryPropertyFlagBits::eDeviceLocal);
 
-
         VT_CORE_TRACE("Index and Vertex Buffer Created");
 
         UploadData(
             m_VertexBuffer.Get(),
             VertexData.data(),
-            VertexData.size() * sizeof(VertexData[0]),
+            static_cast<uint32_t>(VertexData.size() * sizeof(VertexData[0])),
             0,
             m_GraphicQ,
             m_DrawFence.Get());
         UploadData(
             m_IndexBuffer.Get(),
             IndexData.data(),
-            IndexData.size() * sizeof(IndexData[0]),
+            static_cast<uint32_t>(IndexData.size() * sizeof(IndexData[0])),
             0,
             m_GraphicQ,
             m_DrawFence.Get());
@@ -517,8 +532,16 @@ HLSL::DXC_FileEncodingACP},
              vk::ShaderStageFlagBits::eFragment,
              HLSL::DXC_FileEncodingACP}}
         };
-       
-        m_TriangleShader.Create(ShaderFiles, VertexLayout, m_RenderPass.Get(), LogicalDevice);
+
+        BufferLayout CameraTransformLayout {ShaderDataType::eMat4, ShaderDataType::eMat4, ShaderDataType::eMat4};
+
+        m_TriangleShader.Create(
+            ShaderFiles,
+            CameraTransformLayout,
+            VertexLayout,
+            m_RenderPass.Get(),
+            m_PhysicalDevice.Get(),
+            LogicalDevice);
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");
