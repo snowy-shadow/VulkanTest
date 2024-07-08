@@ -116,8 +116,7 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
 
         if (SUCCEEDED(HRes) && Error)
         {
-            throw std::runtime_error(
-                std::string("Compilation failed : ") + static_cast<const char*>(Error->GetBufferPointer()));
+            VT_CORE_ERROR("Compilation failed : {}", static_cast<const char*>(Error->GetBufferPointer()));
         }
     }
 

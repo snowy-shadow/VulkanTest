@@ -13,7 +13,9 @@ import VT.OrthographicCamera;
 
 namespace VT::Vulkan
 {
-Context::Context(Shared<Window> Window) : m_Window(Window), m_Camera(new OrthographicCamera) {}
+Context::Context(Shared<Window> Window) :
+    m_Window(Window), m_Camera(new OrthographicCamera(0, m_Window->GetWidth(), 0, m_Window->GetHeight()))
+{}
 
 bool Context::BeginFrame()
 {
@@ -27,7 +29,11 @@ bool Context::BeginFrame()
 
     if (m_ScheduleResize)
     {
-        Resize(m_Window->GetWidth(), m_Window->GetHeight());
+        uint32_t Width  = m_Window->GetWidth();
+        uint32_t Height = m_Window->GetHeight();
+
+        Resize(Width, Height);
+        m_Camera->Resize(0, Width, 0, Height);
         m_ScheduleResize = false;
     }
     // Swapchain Image index
@@ -77,13 +83,15 @@ bool Context::BeginFrame()
         (void)m_RenderPass.Begin(CmdBuffer, m_FrameBuffer[ImageIndex].Get(), Scissor, ClearColor);
     }
 
-    m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
-    if (bUpdateCameraTransform)
+
+    if (bm_UpdateCameraTransform)
     {
-        m_TriangleShader.UpdateCameraTransform(CmdBuffer, m_Camera->GetTransform());
-        bUpdateCameraTransform = false;
-        VT_CORE_TRACE("Camera transform updated");
+        m_TriangleShader.UploadUniform(CmdBuffer, m_Camera->GetTransform());
+        bm_UpdateCameraTransform = false;
+        // VT_CORE_TRACE("Camera transform updated");
     }
+    m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+
     vk::Buffer VertexBuffer = m_VertexBuffer.Get();
     vk::DeviceSize VertexBufferOffsetSize[] {0};
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
@@ -158,6 +166,7 @@ bool Context::EndFrame()
 
 void Context::OnEvent(Event& Event)
 {
+    m_Camera->OnEvent(Event);
     switch (Event.GetEventType())
     {
         case EventType::eWindowResize :
@@ -170,12 +179,12 @@ void Context::OnEvent(Event& Event)
 
         case EventType::eKeyPress:
         {
-            bUpdateCameraTransform = true;
+            bm_UpdateCameraTransform = true;
         }
         break;
         case EventType::eMouseMove:
         {
-            bUpdateCameraTransform = true;
+            bm_UpdateCameraTransform = true;
         }
         break;
 
@@ -475,6 +484,7 @@ void Context::Init()
              {0.5f, -0.5f, 0.0f, 0.0f, 1.0f}}
         };
 
+        // drawing clockwise
         std::vector IndexData {0, 1, 2, 0, 3, 1};
 
         vk::BufferCreateInfo VertexBufferInfo {
@@ -534,14 +544,57 @@ HLSL::DXC_FileEncodingACP},
         };
 
         BufferLayout CameraTransformLayout {ShaderDataType::eMat4, ShaderDataType::eMat4, ShaderDataType::eMat4};
+        const uint32_t ImageCount = m_Swapchain.GetInfo().minImageCount;
 
         m_TriangleShader.Create(
             ShaderFiles,
+            ImageCount,
             CameraTransformLayout,
             VertexLayout,
             m_RenderPass.Get(),
             m_PhysicalDevice.Get(),
             LogicalDevice);
+
+        // const auto Transform = m_Camera->GetTransform();
+
+        /*{
+            vk::CommandBufferAllocateInfo CommandBufferInfo {
+                .commandPool        = m_CmdPool,
+                .level              = vk::CommandBufferLevel::ePrimary,
+                .commandBufferCount = 1};
+
+            VK_CHECK(m_GraphicQ.waitIdle(), vk::Result::eSuccess, "upload uniform failed to wait on Queue");
+
+            auto [Result, UploadCmdBuffer] = LogicalDevice.allocateCommandBuffers(CommandBufferInfo);
+            VK_CHECK(Result, vk::Result::eSuccess, "Failed to create buffer copy command buffer");
+
+            const auto CmdBuffer = UploadCmdBuffer.front();
+            Result               = CmdBuffer.begin({.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit});
+            VK_CHECK(Result, vk::Result::eSuccess, "Copy buffer command buffer failed to begin");
+
+            for (int i = 0; i < ImageCount; i++)
+            {
+                m_TriangleShader.UploadUniform(CmdBuffer, Transform, i);
+            }
+
+            VK_CHECK(CmdBuffer.end(), vk::Result::eSuccess, "Copy buffer command buffer failed to end");
+
+            // Queue submit
+            {
+                vk::SubmitInfo RenderSubmit {.commandBufferCount = 1, .pCommandBuffers = &CmdBuffer};
+
+                VK_CHECK(
+                    m_GraphicQ.submit(RenderSubmit, VK_NULL_HANDLE),
+                    vk::Result::eSuccess,
+                    "Failed to submit to graphic queue");
+                // end Queue submit
+            }
+
+            VK_CHECK(m_GraphicQ.waitIdle(), vk::Result::eSuccess, "End Copy buffer failed to wait on Queue");
+
+            // Free the command buffer.
+            LogicalDevice.freeCommandBuffers(m_CmdPool, CmdBuffer);
+        }*/
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");

@@ -4,17 +4,20 @@ module;
 export module VT.OrthographicCamera;
 
 import VT.Camera;
+import VT.Event;
 
 export namespace VT
 {
 class VT_ENGINE_EXPORT OrthographicCamera final : public Camera
 {
 public:
-    OrthographicCamera(float Left = -1, float Right = 1, float Top = 1, float Bottom = -1, unsigned int FOV = 90);
+    OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV = 90);
 
     virtual glm::mat4 GetProjection() override;
     virtual glm::mat4 GetView() override;
     virtual glm::mat4 GetViewProjection() override;
+    virtual void Resize(float Left, float Right, float Top, float Bottom) override;
+    virtual void OnEvent(Event& Event) override;
 
     virtual CameraTransform GetTransform() override;
 
@@ -48,9 +51,9 @@ private:
     void ComputeViewMatrix();
 
 private:
-    glm::mat4 m_ProjectionMatrix {};
-    glm::mat4 m_ViewMatrix {};
-    glm::mat4 m_ViewProjectionMatrix {};
+    glm::mat4 m_ProjectionMatrix {1.f};
+    glm::mat4 m_ViewMatrix {1.f};
+    glm::mat4 m_ViewProjectionMatrix {1.f};
 
     glm::vec3 m_TranslationXYZ {0.f};
     // RADIANS

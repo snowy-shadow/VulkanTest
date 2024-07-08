@@ -103,8 +103,6 @@ void Buffer::CopyTo(vk::Buffer Dest, vk::Queue Queue, vk::CommandPool CmdPool, v
 
     // Queue submit
     {
-
-        vk::PipelineStageFlags RenderWaitMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
         vk::SubmitInfo RenderSubmit {.commandBufferCount = 1, .pCommandBuffers = &Buffer};
 
         VK_CHECK(Queue.submit(RenderSubmit, VK_NULL_HANDLE), vk::Result::eSuccess, "Failed to submit to graphic queue");

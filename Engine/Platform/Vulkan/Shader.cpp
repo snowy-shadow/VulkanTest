@@ -1,6 +1,8 @@
 module;
 #include "Vulkan.h"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
 module VT.Platform.Vulkan.Shader;
 import VT.Log;
 
@@ -8,6 +10,7 @@ namespace VT::Vulkan
 {
 void Shader::Create(
     std::span<const HLSL::ShaderFileInfo> Shaders,
+    uint32_t MaxDescriptorSets,
     BufferLayout UniformBufferLayout,
     BufferLayout VertexBufferLayout,
     vk::RenderPass Renderpass,
@@ -17,6 +20,8 @@ void Shader::Create(
     m_LogicalDevice = LogicalDevice;
     // Descriptor set
     {
+        m_MaxDescriptorSets = MaxDescriptorSets;
+
         vk::DescriptorSetLayoutBinding DescriptorLayoutBinding {
             .binding            = 0,
             .descriptorType     = vk::DescriptorType::eUniformBuffer,
@@ -34,13 +39,14 @@ void Shader::Create(
         std::tie(Result, m_DescriptorLayout) = LogicalDevice.createDescriptorSetLayout(DescriptorLayoutInfo);
         VK_CHECK(Result, vk::Result::eSuccess, "Failed to create descriptor set layout");
 
+
         vk::DescriptorPoolSize PoolSize {
             .type            = vk::DescriptorType::eUniformBuffer,
-            .descriptorCount = 3,
+            .descriptorCount = m_MaxDescriptorSets,
         };
 
         vk::DescriptorPoolCreateInfo PoolInfo {
-            .maxSets       = 3,
+            .maxSets       = m_MaxDescriptorSets,
             .poolSizeCount = 1,
             .pPoolSizes    = &PoolSize,
         };
@@ -63,13 +69,11 @@ void Shader::Create(
         vk::DescriptorSetLayout pDescriptorSetLayout[] {m_DescriptorLayout, m_DescriptorLayout, m_DescriptorLayout};
         vk::DescriptorSetAllocateInfo DescriptorSetAllocInfo {
             .descriptorPool     = m_DescriptorPool,
-            .descriptorSetCount = 3,
+            .descriptorSetCount = m_MaxDescriptorSets,
             .pSetLayouts        = pDescriptorSetLayout,
         };
 
-        std::vector<vk::DescriptorSet> DSs;
-        std::tie(Result, DSs) = LogicalDevice.allocateDescriptorSets(DescriptorSetAllocInfo);
-        m_DescriptorSet       = DSs.front();
+        std::tie(Result, m_DescriptorSet) = LogicalDevice.allocateDescriptorSets(DescriptorSetAllocInfo);
     }
     VT_CORE_TRACE("Descriptor set created");
 
@@ -104,24 +108,22 @@ void Shader::Create(
         {{// binding 0
           .binding = 0,
           // pos, norm, tex coord
-          .stride    = UniformBufferLayout.GetStride(),
+          .stride    = VertexBufferLayout.GetStride(),
           .inputRate = vk::VertexInputRate::eVertex}}};
 
 
     std::array<vk::VertexInputAttributeDescription, 2> VertexAttributes {
         {
          // pos, 2 floats
-         {.location = 0,
+         {
          .binding  = VertexInputBindings[0].binding,
          .format   = vk::Format::eR32G32Sfloat,
-         .offset   = 0
          },
 
          // color, 3 floats
-         {.location = 1,
+    {
          .binding  = VertexInputBindings[0].binding,
     .format  = vk::Format::eR32G32B32Sfloat,
-         .offset   = sizeof(float) * 2
     },
          //// tex coord, 2 floats
          //{
@@ -132,14 +134,12 @@ void Shader::Create(
          //},
         }
     };
-    // const auto VertexElements = VertexBufferLayout.GetElements();
-    // for (int i = 0; i < VertexElements.size(); i++)
-    //{
-    //     VertexAttributes[i].location = i;
-    //     VertexAttributes[i].offset   = VertexElements[i].Offset;
-    // }
-
-    // const auto& SwapchainInfo{ m_DependencyGraph.get<Swapchain>("SwapChain").getSwapchainCreateInfo().imageExtent};
+    const auto VertexElements = VertexBufferLayout.GetElements();
+    for (int i = 0; i < VertexElements.size(); i++)
+    {
+        VertexAttributes[i].location = i;
+        VertexAttributes[i].offset   = VertexElements[i].Offset;
+    }
 
     vk::PipelineVertexInputStateCreateInfo VertexInputStateInfo {
         .vertexBindingDescriptionCount   = static_cast<uint32_t>(VertexInputBindings.size()),
@@ -158,10 +158,27 @@ void Shader::Create(
 }
 void Shader::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint)
 {
+    CommandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics,
+        m_Pipeline.m_Layout,
+        0,
+        1,
+        &m_DescriptorSet[m_CurrentDescriptorSet],
+        0,
+        nullptr);
+
     m_Pipeline.Bind(CommandBuffer, BindPoint);
+   
 }
-void Shader::UpdateCameraTransform(vk::CommandBuffer CommandBuffer, CameraTransform Transform)
+void Shader::UploadUniform(
+    vk::CommandBuffer CommandBuffer, CameraTransform Transform)
 {
+    m_CurrentDescriptorSet = (m_CurrentDescriptorSet + 1) % m_MaxDescriptorSets;
+
+    VT_CORE_INFO(
+        "Projection {}\n View {}",
+        glm::to_string(Transform.ProjectionMatrix),
+        glm::to_string(Transform.ViewMatrix));
     uint32_t DataSize = sizeof(Transform);
     uint32_t Offset   = 0;
 
@@ -176,7 +193,7 @@ void Shader::UpdateCameraTransform(vk::CommandBuffer CommandBuffer, CameraTransf
 
     vk::WriteDescriptorSet WriteDescriptorSet
     {
-        .dstSet          = m_DescriptorSet,
+        .dstSet          = m_DescriptorSet[m_CurrentDescriptorSet],
         .dstBinding      = 0,
         .dstArrayElement = 0,
         .descriptorCount = 1,
@@ -185,10 +202,8 @@ void Shader::UpdateCameraTransform(vk::CommandBuffer CommandBuffer, CameraTransf
     };
 
     m_LogicalDevice.updateDescriptorSets(1, &WriteDescriptorSet, 0, nullptr);
-    CommandBuffer
-        .bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_Pipeline.m_Layout, 0, 1, &m_DescriptorSet, 0, nullptr);
 
-    VT_CORE_TRACE("Descriptor set info updated");
+    // VT_CORE_TRACE("Descriptor set info updated");
 }
 void Shader::Destroy()
 {

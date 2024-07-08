@@ -4,19 +4,14 @@ struct VertexIn
     [[vk::location(1)]] float3 Color : COLOR0;
 };
 
-struct MVP
+struct ModelViewProjection
 {
     float4x4 Model;
     float4x4 View;
     float4x4 Projection;
-};
+}; 
 
-/* 
-cbuffer UBO : register(b0, space0)
-{
-    MVPMVP;
-};
-*/
+ConstantBuffer<ModelViewProjection> UBO : register(b0);
 
 struct FragmentIn
 {
@@ -28,8 +23,10 @@ FragmentIn main(VertexIn In)
 {
     FragmentIn Out;
 
-    Out.Position = float4(In.Position, 0.0, 1.0);
-    // Out.Position = MVP.Projection * MVP.View * MVP.Model * float4(In.Position, 0.0, 1.0);
+    Out.Position = mul(UBO.Projection, mul(UBO.View, float4(In.Position, 0.0, 1.0)));
+    // Out.Position = mul(float4(In.Position, 0.0, 1.0), mul(UBO.View, UBO.Projection));
+    
+    // Out.Position = mul(UBO.Projection, mul(UBO.View, mul(UBO.Model, float4(In.Position, 1.0, 1.0))));
     Out.Color = In.Color;
 
     return Out;

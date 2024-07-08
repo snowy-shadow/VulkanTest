@@ -78,7 +78,7 @@ private:
     // Synchronization
     vk::Semaphore m_ImageAvailable, m_RenderFinished;
     Fence m_DrawFence;
-    bool bUpdateCameraTransform {false};
+    bool bm_UpdateCameraTransform {false};
 
 private:
     uint32_t m_MaxFrameCount {};

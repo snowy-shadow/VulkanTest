@@ -12,6 +12,10 @@ public:
 
     vk::Device Get() const { return m_LogicalDevice; }
 
+    // TODO : Implement
+    std::vector<vk::Buffer> BeginCommand() {}
+    void EndCmdBuffer() {}
+
 public:
     LogicalDevice()                                 = default;
     LogicalDevice(const LogicalDevice&)             = delete;

@@ -16,6 +16,7 @@ class Shader
 public:
     void Create(
         std::span<const HLSL::ShaderFileInfo> Shaders,
+        uint32_t MaxDescriptorSets,
         BufferLayout UniformBufferLayout,
         BufferLayout VertexBufferLayout,
         vk::RenderPass Renderpass,
@@ -24,7 +25,7 @@ public:
 
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
-    void UpdateCameraTransform(vk::CommandBuffer CommandBuffer, CameraTransform Transform);
+    void UploadUniform(vk::CommandBuffer CommandBuffer, CameraTransform Transform);
 
     void Destroy();
 
@@ -42,7 +43,9 @@ private:
 
     vk::DescriptorPool m_DescriptorPool;
     vk::DescriptorSetLayout m_DescriptorLayout;
-    vk::DescriptorSet m_DescriptorSet;
+    std::vector<vk::DescriptorSet> m_DescriptorSet;
+    uint32_t m_CurrentDescriptorSet {0};
+    uint32_t m_MaxDescriptorSets;
 
     vk::Device m_LogicalDevice;
 };
