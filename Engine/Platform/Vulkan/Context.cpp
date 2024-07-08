@@ -33,7 +33,7 @@ bool Context::BeginFrame()
         uint32_t Height = m_Window->GetHeight();
 
         Resize(Width, Height);
-        m_Camera->Resize(0, Width, 0, Height);
+      
         m_ScheduleResize = false;
     }
     // Swapchain Image index
@@ -84,12 +84,6 @@ bool Context::BeginFrame()
     }
 
 
-    if (bm_UpdateCameraTransform)
-    {
-        m_TriangleShader.UploadUniform(CmdBuffer, m_Camera->GetTransform());
-        bm_UpdateCameraTransform = false;
-        // VT_CORE_TRACE("Camera transform updated");
-    }
     m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
 
     vk::Buffer VertexBuffer = m_VertexBuffer.Get();
@@ -167,6 +161,7 @@ bool Context::EndFrame()
 void Context::OnEvent(Event& Event)
 {
     m_Camera->OnEvent(Event);
+
     switch (Event.GetEventType())
     {
         case EventType::eWindowResize :
@@ -176,15 +171,14 @@ void Context::OnEvent(Event& Event)
             Resize(Dimension[0], Dimension[1]);
             break;
         }
-
         case EventType::eKeyPress:
         {
-            bm_UpdateCameraTransform = true;
+            m_TriangleShader.UploadUniform(m_Camera->GetTransform());
         }
         break;
         case EventType::eMouseMove:
         {
-            bm_UpdateCameraTransform = true;
+            // m_TriangleShader.UploadUniform(m_Camera->GetTransform());
         }
         break;
 
@@ -595,6 +589,8 @@ HLSL::DXC_FileEncodingACP},
             // Free the command buffer.
             LogicalDevice.freeCommandBuffers(m_CmdPool, CmdBuffer);
         }*/
+
+        m_TriangleShader.UploadUniform(m_Camera->GetTransform());
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");
@@ -626,6 +622,8 @@ void Context::Resize(uint32_t Width, uint32_t Height)
 
     DestroyResources();
     CreateResources();
+
+    m_Camera->Resize(0, Width, 0, Height);
 }
 
 

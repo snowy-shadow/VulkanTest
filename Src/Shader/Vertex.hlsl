@@ -6,9 +6,9 @@ struct VertexIn
 
 struct ModelViewProjection
 {
-    float4x4 Model;
-    float4x4 View;
     float4x4 Projection;
+    float4x4 View;
+    float4x4 Model;
 }; 
 
 ConstantBuffer<ModelViewProjection> UBO : register(b0);
@@ -23,8 +23,9 @@ FragmentIn main(VertexIn In)
 {
     FragmentIn Out;
 
-    Out.Position = mul(UBO.Projection, mul(UBO.View, float4(In.Position, 0.0, 1.0)));
-    // Out.Position = mul(float4(In.Position, 0.0, 1.0), mul(UBO.View, UBO.Projection));
+    Out.Position = mul(UBO.View, float4(In.Position, 0.0, 1.0));
+    // Out.Position = mul(UBO.Projection, mul(UBO.View, float4(In.Position, 0.0, 1.0)));
+    // Out.Position = mul(mul(float4(In.Position, 0.0, 1.0), UBO.View), UBO.Projection);
     
     // Out.Position = mul(UBO.Projection, mul(UBO.View, mul(UBO.Model, float4(In.Position, 1.0, 1.0))));
     Out.Color = In.Color;

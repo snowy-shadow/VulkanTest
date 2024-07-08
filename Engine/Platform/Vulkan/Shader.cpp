@@ -170,8 +170,7 @@ void Shader::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoi
     m_Pipeline.Bind(CommandBuffer, BindPoint);
    
 }
-void Shader::UploadUniform(
-    vk::CommandBuffer CommandBuffer, CameraTransform Transform)
+void Shader::UploadUniform(CameraTransform Transform)
 {
     m_CurrentDescriptorSet = (m_CurrentDescriptorSet + 1) % m_MaxDescriptorSets;
 

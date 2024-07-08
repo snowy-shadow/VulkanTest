@@ -2,7 +2,6 @@ module;
 #include "EngineMacro.h"
 #include "GLFW/glfw3.h"
 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 module VT.OrthographicCamera;
@@ -12,7 +11,7 @@ import VT.Log;
 namespace VT
 {
 OrthographicCamera::OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV) :
-    m_ProjectionMatrix(glm::ortho(Left, Right, Bottom, Top))
+    m_ProjectionMatrix(glm::ortho(0.0f, 1.0f, 1.0f, 0.0f))
 {}
 
 glm::mat4 OrthographicCamera::GetProjection() { return m_ProjectionMatrix; }
@@ -38,7 +37,8 @@ glm::mat4 OrthographicCamera::GetViewProjection()
 
 void OrthographicCamera::Resize(float Left, float Right, float Top, float Bottom)
 {
-    m_ProjectionMatrix = glm::ortho(Left, Right, Bottom, Top, 0.f, 1.f);
+    VT_CORE_TRACE("OrthographicCamera::Resize({0}, {1}, {2}, {3})", Left, Right, Top, Bottom);
+    m_ProjectionMatrix = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f);
     ComputeViewMatrix();
 }
 
@@ -81,10 +81,10 @@ void OrthographicCamera::OnEvent(Event& Event)
 CameraTransform OrthographicCamera::GetTransform()
 {
     if (m_ValueModified)
-    {
-        ComputeViewMatrix();
-        m_ValueModified = false;
-    }
+       {
+           ComputeViewMatrix();
+           m_ValueModified = false;
+       }
     return {m_ProjectionMatrix, m_ViewMatrix, m_ViewProjectionMatrix};
 }
 
@@ -94,7 +94,7 @@ void OrthographicCamera::ComputeViewMatrix()
     const float Y = m_RotationXYZ[1];
     const float Z = m_RotationXYZ[2];
 
-    m_ViewMatrix = glm::inverse(glm::translate(glm::mat4(1.f), m_TranslationXYZ)); /**
+    m_ViewMatrix = glm::translate(glm::mat4(1.f), m_TranslationXYZ); /**
         (glm::rotate(glm::mat4(1.f), X, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.f), Y, glm::vec3(0, 1, 0)) *
          glm::rotate(glm::mat4(1.f), Z, glm::vec3(0, 0, 1)));*/
 

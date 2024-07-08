@@ -43,7 +43,6 @@ public:
         m_ValueModified = true;
     }
 
-
     constexpr glm::vec3 GetTranslation_XYZ() const { return m_TranslationXYZ; }
     constexpr glm::vec3 GetRotationRadians_XYZ() const { return m_RotationXYZ; }
 

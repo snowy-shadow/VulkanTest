@@ -25,7 +25,7 @@ public:
 
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
-    void UploadUniform(vk::CommandBuffer CommandBuffer, CameraTransform Transform);
+    void UploadUniform(CameraTransform Transform);
 
     void Destroy();
 
