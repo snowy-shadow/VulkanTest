@@ -11,8 +11,10 @@ import VT.Log;
 namespace VT
 {
 OrthographicCamera::OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV) :
-    m_ProjectionMatrix(glm::ortho(0.0f, 1.0f, 1.0f, 0.0f))
-{}
+    m_ProjectionMatrix(glm::perspective<float>(glm::radians(45.f), 1280 / 720, 0.1f, 1000.0f))
+{
+    // m_ProjectionMatrix[1][1] *= -1;
+}
 
 glm::mat4 OrthographicCamera::GetProjection() { return m_ProjectionMatrix; }
 
@@ -38,7 +40,8 @@ glm::mat4 OrthographicCamera::GetViewProjection()
 void OrthographicCamera::Resize(float Left, float Right, float Top, float Bottom)
 {
     VT_CORE_TRACE("OrthographicCamera::Resize({0}, {1}, {2}, {3})", Left, Right, Top, Bottom);
-    m_ProjectionMatrix = glm::ortho(0.0f, 1.0f, 1.0f, 0.0f);
+    m_ProjectionMatrix = glm::perspective<float>(glm::radians(45.f), 1280 / 720, 0.1f, 1000.0f);
+    // m_ProjectionMatrix[1][1] *= -1;
     ComputeViewMatrix();
 }
 
@@ -57,11 +60,11 @@ void OrthographicCamera::OnEvent(Event& Event)
             auto& E = dynamic_cast<KeyPressEvent&>(Event);
             if (E.GetKeyCode() == GLFW_KEY_W)
             {
-                ApplyTranslationXYZ(glm::vec3(0.f, -0.5f, 0.f));
+                ApplyTranslationXYZ(glm::vec3(0.f, 0.f, 0.5f));
             }
             if (E.GetKeyCode() == GLFW_KEY_S)
             {
-                ApplyTranslationXYZ(glm::vec3(0.f, 0.5f, 0.f));
+                ApplyTranslationXYZ(glm::vec3(0.f, 0.f, -0.5f));
             }
             if (E.GetKeyCode() == GLFW_KEY_A)
             {

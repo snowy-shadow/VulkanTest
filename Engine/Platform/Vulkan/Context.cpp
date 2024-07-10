@@ -472,7 +472,8 @@ void Context::Init()
         const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
 
         std::vector<std::array<float, 5>> VertexData {
-            {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
+            {
+             {0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
              {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
              {0.0f, 0.5f, 1.0f, 0.0f, 0.0f},
              {0.5f, -0.5f, 0.0f, 0.0f, 1.0f}}

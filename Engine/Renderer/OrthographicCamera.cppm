@@ -58,6 +58,6 @@ private:
     // RADIANS
     glm::vec3 m_RotationXYZ {0.f};
 
-    bool m_ValueModified {false};
+    bool m_ValueModified {true};
 };
 } // namespace VT
