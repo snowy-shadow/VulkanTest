@@ -1,9 +1,10 @@
 module;
 #include <GLFW/glfw3.h>
-
-#include <vulkan/vulkan.hpp>
+#include <glm/glm.hpp>
 
 #include "Vulkan.h"
+
+#include <glm/ext/matrix_transform.hpp>
 
 module VT.Platform.Vulkan.Context;
 
@@ -13,11 +14,12 @@ import VT.OrthographicCamera;
 
 namespace VT::Vulkan
 {
-Context::Context(Shared<Window> Window) :
+RendererContext::RendererContext(Shared<Window> Window) :
     m_Window(Window), m_Camera(new OrthographicCamera(0, m_Window->GetWidth(), 0, m_Window->GetHeight()))
-{}
+{
+}
 
-bool Context::BeginFrame()
+bool RendererContext::BeginFrame()
 {
 	vk::Device LogicalDevice = m_LogicalDevice.Get();
 
@@ -86,6 +88,11 @@ bool Context::BeginFrame()
 
     m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
 
+    static float i = 0.5f;
+    i += 0.3f;
+    glm::mat4 Model = glm::rotate(glm::mat4(1.f), glm::radians(i), glm::vec3(1, 0, 0));
+    m_TriangleShader.UploadPushConstant(CmdBuffer, Model);
+
     vk::Buffer VertexBuffer = m_VertexBuffer.Get();
     vk::DeviceSize VertexBufferOffsetSize[] {0};
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
@@ -97,7 +104,7 @@ bool Context::BeginFrame()
     return true;
 }
 
-bool Context::EndFrame()
+bool RendererContext::EndFrame()
 {
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
 
@@ -158,7 +165,7 @@ bool Context::EndFrame()
     return true;
 }
 
-void Context::OnEvent(Event& Event)
+void RendererContext::OnEvent(Event& Event)
 {
     m_Camera->OnEvent(Event);
 
@@ -187,7 +194,7 @@ void Context::OnEvent(Event& Event)
     }
 }
 
-void Context::Init()
+void RendererContext::Init()
 {
 	VT_CORE_TRACE("Vulkan context init");
 	/* ===============================================
@@ -472,8 +479,7 @@ void Context::Init()
         const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
 
         std::vector<std::array<float, 5>> VertexData {
-            {
-             {0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
+            {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
              {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
              {0.0f, 0.5f, 1.0f, 0.0f, 0.0f},
              {0.5f, -0.5f, 0.0f, 0.0f, 1.0f}}
@@ -597,7 +603,7 @@ HLSL::DXC_FileEncodingACP},
     VT_CORE_TRACE("Graphics Pipline Created");
 }
 
-Context::~Context()
+RendererContext::~RendererContext()
 {
 	vk::Device LogicalDevice = m_LogicalDevice.Get();
 
@@ -616,7 +622,7 @@ Context::~Context()
  * ==================================================================
  */
 
-void Context::Resize(uint32_t Width, uint32_t Height)
+void RendererContext::Resize(uint32_t Width, uint32_t Height)
 {
     m_Swapchain.Resize(Width, Height);
     m_MaxFrameCount = m_Swapchain.GetMaxFrameCount();
@@ -627,8 +633,8 @@ void Context::Resize(uint32_t Width, uint32_t Height)
     m_Camera->Resize(0, Width, 0, Height);
 }
 
-
-void Context::UploadData(vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Offset, vk::Queue Queue, vk::Fence Fence)
+void RendererContext::UploadData(
+    vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Offset, vk::Queue Queue, vk::Fence Fence)
     const
 {
     vk::BufferCreateInfo StagingBufferInfo {
@@ -650,7 +656,7 @@ void Context::UploadData(vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Of
     StagingBuffer.CopyTo(Dest, Queue, m_CmdPool, Region);
 }
 
-void Context::CreateResources()
+void RendererContext::CreateResources()
 {
     /* ===============================================
      *          Create command buffer
@@ -692,7 +698,7 @@ void Context::CreateResources()
     VT_CORE_TRACE("Frame buffers created");
 }
 
-void Context::DestroyResources()
+void RendererContext::DestroyResources()
 {
     m_LogicalDevice.Get().freeCommandBuffers(m_CmdPool, m_DrawBuffer);
     for (auto& FB : m_FrameBuffer) { FB.Destroy(); }

@@ -37,7 +37,8 @@ target_sources(${PROJECT_NAME}
 		Window.cpp
 		Input.cpp
 		ShaderCompiler.cpp
- "Platform/Vulkan/Util.cppm")
+        Platform/Vulkan/Util.cppm
+)
 
 add_subdirectory(Event)
 add_subdirectory(Layer)

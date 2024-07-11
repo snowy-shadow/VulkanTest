@@ -6,12 +6,17 @@ struct VertexIn
 
 struct ModelViewProjection
 {
-    float4x4 Projection;
-    float4x4 View;
-    float4x4 Model;
+    matrix<float, 4, 4> Projection;
+    matrix<float, 4, 4> View;
+    matrix<float, 4, 4> Model;
 }; 
-
 ConstantBuffer<ModelViewProjection> UBO : register(b0);
+
+struct PushConstant
+{
+    matrix<float, 4, 4> Model;
+};
+[[vk::push_constant]] PushConstant PC;
 
 struct FragmentIn
 {
@@ -23,12 +28,8 @@ FragmentIn main(VertexIn In)
 {
     FragmentIn Out;
 
-    // Out.Position = mul(UBO.View, float4(In.Position, 0.5, 1.0));
-    Out.Position = mul(UBO.Projection, mul(UBO.View, float4(In.Position, -1.0, 1.0)));
-    // Out.Position = mul(mul(float4(In.Position, 1.0, 1.0), UBO.View), UBO.Projection);
-    
-    // Out.Position = mul(UBO.Projection, mul(UBO.View, mul(UBO.Model, float4(In.Position, 1.0, 1.0))));
+    Out.Position = mul(UBO.Projection, mul(UBO.View, mul(PC.Model, float4(In.Position, -1.0, 1.0))));
     Out.Color = In.Color;
 
     return Out;
-};
+}

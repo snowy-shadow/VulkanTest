@@ -1,5 +1,6 @@
 module;
 #include "Vulkan.h"
+#include <glm/glm.hpp>
 
 export module VT.Platform.Vulkan.Shader;
 
@@ -26,6 +27,7 @@ public:
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
     void UploadUniform(CameraTransform Transform);
+    void UploadPushConstant(vk::CommandBuffer CmdBuffer, glm::mat4 Model);
 
     void Destroy();
 

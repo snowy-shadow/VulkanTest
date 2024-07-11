@@ -25,11 +25,11 @@ import VT.Camera;
 
 export namespace VT::Vulkan
 {
-class Context final : public RendererContext
+class RendererContext final : public VT::RendererContext
 {
 public:
-    Context(Shared<Window> Window);
-    ~Context() override;
+    RendererContext(Shared<Window> Window);
+    ~RendererContext() override;
 
 public:
     virtual bool BeginFrame() override;

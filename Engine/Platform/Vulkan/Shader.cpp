@@ -77,11 +77,18 @@ void Shader::Create(
     }
     VT_CORE_TRACE("Descriptor set created");
 
+    // Push constant
+    vk::PushConstantRange PushConstantInfo {
+        .stageFlags = vk::ShaderStageFlagBits::eVertex,
+        .offset     = 0,
+        .size       = sizeof(glm::mat4),
+    };
+
     vk::PipelineLayoutCreateInfo PipelineLayout {
         .setLayoutCount         = 1,
         .pSetLayouts            = &m_DescriptorLayout,
-        .pushConstantRangeCount = 0,
-        .pPushConstantRanges    = nullptr,
+        .pushConstantRangeCount = 1,
+        .pPushConstantRanges    = &PushConstantInfo,
     };
 
     // Shader modules
@@ -203,6 +210,10 @@ void Shader::UploadUniform(CameraTransform Transform)
     m_LogicalDevice.updateDescriptorSets(1, &WriteDescriptorSet, 0, nullptr);
 
     // VT_CORE_TRACE("Descriptor set info updated");
+}
+void Shader::UploadPushConstant(vk::CommandBuffer CmdBuffer, glm::mat4 Model)
+{
+    CmdBuffer.pushConstants(m_Pipeline.m_Layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &Model);
 }
 void Shader::Destroy()
 {

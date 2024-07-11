@@ -12,8 +12,7 @@ Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Cr
     m_Window->SetEventCallBack(std::bind(&Application::OnEvent, this, std::placeholders::_1));
     m_LayerStack.PushLayer(new ImageLayer());
 
-    m_RendererContext.reset(VT::RendererContext::Create(VT::RendererOption::API::eVulkan, m_Window));
-    m_RendererContext->Init();
+    m_Renderer.reset(new VT::Renderer(VT::RendererOption::API::eVulkan, m_Window));
 }
 
 void Application::Run()
@@ -22,8 +21,9 @@ void Application::Run()
     {
         m_Window->OnUpdate();
         //  auto [MouseX, MouseY] = m_Input->GetMouseXY();
-        m_RendererContext->BeginFrame();
-        m_RendererContext->EndFrame();
+        m_Renderer->BeginScene();
+        m_Renderer->EndScene();
+        m_Renderer->Submit();
         // VT_TRACE("{0}, {1}", MouseX, MouseY);
     }
 }
@@ -35,7 +35,7 @@ void Application::OnEvent(VT::Event& E)
         return;
     }
 
-    m_RendererContext->OnEvent(E);
+    m_Renderer->OnEvent(E);
 
     for (auto Layer : m_LayerStack)
     {

@@ -4,20 +4,22 @@ target_sources(${PROJECT_NAME}
 	FILES
 		Attachment.cppm
 		Swapchain.cppm
-		Context.cppm
+		"RendererContext.cppm"
 		Device.cppm
 		"Synchronization.cppm"
 		Pipeline.cppm
 		Buffer.cppm
 		Util.cppm
 		Shader.cppm
+
+		RendererContext.cppm
 	PRIVATE
-		Context.cpp
 		Swapchain.cpp
 		"Vulkan.h"
 		"Pipeline.cpp"
 		Buffer.cpp
 		Shader.cpp
+		RendererContext.cpp
 )
 
 add_subdirectory(Native)
