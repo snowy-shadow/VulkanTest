@@ -1,17 +1,17 @@
 module;
 #include "VT_Export"
 #include <glm/glm.hpp>
-export module VT.OrthographicCamera;
+export module VT.ProjectionCamera;
 
 import VT.Camera;
 import VT.Event;
 
 export namespace VT
 {
-class VT_ENGINE_EXPORT OrthographicCamera final : public Camera
+class VT_ENGINE_EXPORT ProjectionCamera final : public Camera
 {
 public:
-    OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV = 90);
+    ProjectionCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV = 90);
 
     virtual glm::mat4 GetProjection() override;
     virtual glm::mat4 GetView() override;

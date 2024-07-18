@@ -6,14 +6,14 @@ export module VT.Platform.Windows.Window;
 
 import VT.Window;
 import VT.Event;
-import VT.RendererOption;
+import VT.RendererType;
 
 export namespace VT::Windows
 {
 class Window final : public VT::Window
 {
 public:
-    Window(RendererOption::API API, const VT::WindowProperties& Properties);
+    Window(RendererType::API API, const VT::WindowProperties& Properties);
     void OnUpdate() override;
 
     unsigned int GetWidth() const override;

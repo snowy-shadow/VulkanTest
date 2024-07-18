@@ -35,7 +35,7 @@ std::vector<uint32_t> Compiler::CompileSpv(ShaderFileInfo FileInfo)
     std::string Source {File.cbegin(), File.cend()};
 
     const shaderc::SpvCompilationResult Module {
-        m_Compiler.CompileGlslToSpv(Source, FileInfo.ShaderType, FileInfo.FileName.c_str(), FileInfo.CompileOptions)};
+        m_Compiler.CompileGlslToSpv(Source, FileInfo.ShaderType, FileInfo.FileName, FileInfo.CompileOptions)};
 
     if (Module.GetCompilationStatus() != shaderc_compilation_status_success)
     {
@@ -72,13 +72,10 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
 {
     // parse path
     std::filesystem::path Src {File.FileDir};
-    Src /= File.FileName; 
+    Src /= File.FileName;
 
-    // Set up args
-    std::vector<LPCWSTR> Args;
-    Args.reserve(File.CL_Args.size() + 1);
-    Args.insert(Args.begin(), File.CL_Args.begin(), File.CL_Args.end());
-    Args.push_back(Src.wstring().c_str());
+    // Set up commandline args
+    std::array Args {File.pCL_Args, Src.wstring().c_str()};
 
     UINT32 Encoding = File.Encoding;
 
@@ -86,7 +83,6 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
     CComPtr<IDxcBlobEncoding> SourceBlob;
     HRESULT HRes = m_DXC_Utils->LoadFile(Src.wstring().c_str(), &Encoding, &SourceBlob);
     VT_CORE_ASSERT(SUCCEEDED(HRes), "Could not load shader file : {0}", Src.string());
-  
 
     DxcBuffer SrcBuff {
         .Ptr      = SourceBlob->GetBufferPointer(),

@@ -4,7 +4,7 @@ module VT.Renderer;
 
 namespace VT
 {
-Renderer::Renderer(RendererOption::API Type, Shared<Window> Window) : m_API(CreateAPI(Type, std::move(Window)))
+Renderer::Renderer(RendererType::API Type, Shared<Window> Window) : m_API(CreateAPI(Type, std::move(Window)))
 {
     m_API->Init();
 }
@@ -17,18 +17,25 @@ void Renderer::BeginScene() // Shared<Camera> Camera)
 }
 void Renderer::EndScene() { m_API->EndFrame(); } // m_API->EndScene(); }
 
+Uniq<Texture> Renderer::CreateTexture(const TextureCreateInfo& TextureInfo)
+{
+    return m_API->CreateTexture(TextureInfo);
+}
+
 void Renderer::BeginRenderPass() {}
 void Renderer::EndRenderPass() {}
 void Renderer::Submit() {}
 
+void Renderer::OnUpdate(const Timestep& Time) { m_API->OnUpdate(Time); }
+
 void Renderer::OnEvent(Event& E) { return m_API->OnEvent(E); }
 
-void Renderer::SetRendererAPI(RendererOption::API Type, Shared<Window> Window)
+void Renderer::SetRendererAPI(RendererType::API Type, Shared<Window> Window)
 {
     m_API = CreateAPI(Type, std::move(Window));
 }
 
-Uniq<RendererContext> Renderer::CreateAPI(RendererOption::API Type, Shared<Window> Window)
+Uniq<RendererContext> Renderer::CreateAPI(RendererType::API Type, Shared<Window> Window)
 {
     return Uniq<RendererContext>(RendererContext::Create(Type, std::move(Window)));
 } // namespace VT

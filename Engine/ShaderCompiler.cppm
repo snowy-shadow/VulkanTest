@@ -68,7 +68,8 @@ enum FileEncoding : uint32_t
 
 struct VT_ENGINE_EXPORT ShaderFileInfo : File::FileInfo
 {
-    std::vector<LPCWSTR> CL_Args;
+    LPCWSTR pCL_Args;
+    uint32_t CL_ArgSize;
     vk::ShaderStageFlagBits Stage;
     uint32_t Encoding = DXC_FileEncodingUTF8;
 };

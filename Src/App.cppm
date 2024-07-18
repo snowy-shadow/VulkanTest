@@ -19,6 +19,7 @@ private:
     VT::Uniq<VT::Renderer> m_Renderer;
 
     VT::LayerStack m_LayerStack;
+    VT::Timepoint m_TimePoint;
 
     bool m_Running {true};
 };

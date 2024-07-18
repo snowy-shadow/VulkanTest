@@ -28,7 +28,7 @@ FragmentIn main(VertexIn In)
 {
     FragmentIn Out;
 
-    Out.Position = mul(UBO.Projection, mul(UBO.View, mul(PC.Model, float4(In.Position, -1.0, 1.0))));
+    Out.Position = mul(UBO.Projection, mul(UBO.View, mul(PC.Model, float4(In.Position, 1.0, 1.0))));
     Out.Color = In.Color;
 
     return Out;

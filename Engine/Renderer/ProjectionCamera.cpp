@@ -4,21 +4,21 @@ module;
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-module VT.OrthographicCamera;
+module VT.ProjectionCamera;
 
 import VT.Log;
 
 namespace VT
 {
-OrthographicCamera::OrthographicCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV) :
+ProjectionCamera::ProjectionCamera(float Left, float Right, float Top, float Bottom, unsigned int FOV) :
     m_ProjectionMatrix(glm::perspective<float>(glm::radians(45.f), 1280 / 720, 0.1f, 1000.0f))
 {
     // m_ProjectionMatrix[1][1] *= -1;
 }
 
-glm::mat4 OrthographicCamera::GetProjection() { return m_ProjectionMatrix; }
+glm::mat4 ProjectionCamera::GetProjection() { return m_ProjectionMatrix; }
 
-glm::mat4 OrthographicCamera::GetView()
+glm::mat4 ProjectionCamera::GetView()
 {
     if (m_ValueModified)
     {
@@ -27,7 +27,7 @@ glm::mat4 OrthographicCamera::GetView()
     }
     return m_ViewMatrix;
 }
-glm::mat4 OrthographicCamera::GetViewProjection()
+glm::mat4 ProjectionCamera::GetViewProjection()
 {
     if (m_ValueModified)
     {
@@ -37,15 +37,21 @@ glm::mat4 OrthographicCamera::GetViewProjection()
     return m_ViewProjectionMatrix;
 }
 
-void OrthographicCamera::Resize(float Left, float Right, float Top, float Bottom)
+void ProjectionCamera::Resize(float Left, float Right, float Top, float Bottom)
 {
-    VT_CORE_TRACE("OrthographicCamera::Resize({0}, {1}, {2}, {3})", Left, Right, Top, Bottom);
-    m_ProjectionMatrix = glm::perspective<float>(glm::radians(45.f), 1280 / 720, 0.1f, 1000.0f);
+    VT_CORE_TRACE("OrthographicCamera::Resize({0}, {1}, {2}, {3}) aspect ratio : {4}",
+                  Left,
+                  Right,
+                  Top,
+                  Bottom,
+                  abs(Left - Right) / abs(Top - Bottom));
+    m_ProjectionMatrix =
+        glm::perspective<float>(glm::radians(45.f), abs(Left - Right) / abs(Top - Bottom), 0.1f, 1000.0f);
     // m_ProjectionMatrix[1][1] *= -1;
     ComputeViewMatrix();
 }
 
-void OrthographicCamera::OnEvent(Event& Event)
+void ProjectionCamera::OnEvent(Event& Event)
 {
     switch (Event.GetEventType())
     {
@@ -81,7 +87,7 @@ void OrthographicCamera::OnEvent(Event& Event)
     }
 }
 
-CameraTransform OrthographicCamera::GetTransform()
+CameraTransform ProjectionCamera::GetTransform()
 {
     if (m_ValueModified)
        {
@@ -91,7 +97,7 @@ CameraTransform OrthographicCamera::GetTransform()
     return {m_ProjectionMatrix, m_ViewMatrix, m_ViewProjectionMatrix};
 }
 
-void OrthographicCamera::ComputeViewMatrix()
+void ProjectionCamera::ComputeViewMatrix()
 {
     const float X = m_RotationXYZ[0];
     const float Y = m_RotationXYZ[1];
@@ -100,6 +106,8 @@ void OrthographicCamera::ComputeViewMatrix()
     m_ViewMatrix = glm::translate(glm::mat4(1.f), m_TranslationXYZ); /**
         (glm::rotate(glm::mat4(1.f), X, glm::vec3(1, 0, 0)) * glm::rotate(glm::mat4(1.f), Y, glm::vec3(0, 1, 0)) *
          glm::rotate(glm::mat4(1.f), Z, glm::vec3(0, 0, 1)));*/
+
+    m_ViewMatrix = glm::inverse(m_ViewMatrix);
 
     m_ViewProjectionMatrix = m_ProjectionMatrix * m_ViewMatrix;
 }

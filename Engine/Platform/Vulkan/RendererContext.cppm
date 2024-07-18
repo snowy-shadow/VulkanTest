@@ -16,12 +16,15 @@ import VT.Platform.Vulkan.Pipeline;
 import VT.Platform.Vulkan.Buffer;
 import VT.Platform.Vulkan.Shader;
 
+import VT.RendererType;
 import VT.RendererContext;
 import VT.Util;
 import VT.Window;
 import VT.Event;
 import VT.Buffer;
 import VT.Camera;
+import VT.Texture;
+import VT.Timestep;
 
 export namespace VT::Vulkan
 {
@@ -35,6 +38,11 @@ public:
     virtual bool BeginFrame() override;
     virtual bool EndFrame() override;
 
+    virtual Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo) override;
+    void UploadView(RendererType::UniformCameraData Data);
+    void UploadGeometry(RendererType::GeometryRenderData Data);
+
+    virtual void OnUpdate(const Timestep& Time) override;
     virtual void OnEvent(Event& Event) override;
 
     virtual void Init() override;
@@ -72,16 +80,16 @@ private:
 
     // Images && buffers
     std::vector<FrameBuffer> m_FrameBuffer;
-    Buffer m_VertexBuffer;
-    Buffer m_IndexBuffer;
+    VulkanBuffer m_VertexBuffer;
+    VulkanBuffer m_IndexBuffer;
 
     // Synchronization
-    vk::Semaphore m_ImageAvailable, m_RenderFinished;
     Fence m_DrawFence;
     bool bm_UpdateCameraTransform {false};
 
 private:
     uint32_t m_MaxFrameCount {};
     uint32_t m_CurrentFrameCount {0};
+    Timestep m_DeltaTime;
 };
 } // namespace VT::Vulkan

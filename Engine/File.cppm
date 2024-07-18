@@ -13,8 +13,8 @@ export namespace VT::File
 {
 struct VT_ENGINE_EXPORT FileInfo
 {
-    std::string FileDir;
-    std::string FileName;
+    const char* FileDir;
+    const char* FileName;
 };
 
 [[nodiscard]]

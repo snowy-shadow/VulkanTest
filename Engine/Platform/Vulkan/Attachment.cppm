@@ -5,7 +5,7 @@ export module VT.Platform.Vulkan.Attachment;
 
 import VT.Log;
 import VT.Platform.Vulkan.Native.PhysicalDevice;
-import VT.Platform.Vulkan.Util;
+import VT.Platform.Vulkan.Image;
 
 export namespace VT::Vulkan
 {
@@ -40,7 +40,8 @@ public:
     FrameBuffer& operator=(FrameBuffer& Other) = delete;
 
     FrameBuffer(FrameBuffer&& Other) :
-        m_FramebufferInfo(Other.m_FramebufferInfo), m_FrameBuffer(Other.m_FrameBuffer),
+        m_FramebufferInfo(Other.m_FramebufferInfo),
+        m_FrameBuffer(Other.m_FrameBuffer),
         m_LogicalDevice(Other.m_LogicalDevice)
     {
         Other.m_FrameBuffer = VK_NULL_HANDLE;
@@ -63,20 +64,16 @@ private:
     vk::Device m_LogicalDevice;
 };
 
-
 class DepthStencil
 {
 public:
-    vk::Image Image;
-    vk::ImageView ImageView;
-    vk::DeviceMemory ImageMemory;
+    VulkanImage ImageResource;
 
-    void Create(
-        vk::Extent2D ImageExtent,
-        vk::SampleCountFlagBits NumSample,
-        vk::Format DepthFormat,
-        const vk::PhysicalDeviceMemoryProperties MemProperties,
-        vk::Device Device)
+    void Create(vk::Extent2D ImageExtent,
+                vk::SampleCountFlagBits NumSample,
+                vk::Format DepthFormat,
+                const vk::PhysicalDeviceMemoryProperties MemProperties,
+                vk::Device Device)
     {
         LogicalDevice = Device;
 
@@ -102,56 +99,25 @@ public:
             .sharingMode   = vk::SharingMode::eExclusive,
             .initialLayout = vk::ImageLayout::eUndefined};
 
-        vk::Result Result;
-
-        std::tie(Result, Image) = LogicalDevice.createImage(ImageInfo);
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create depth image");
-
-        // Memory
-        const auto MemReq = LogicalDevice.getImageMemoryRequirements(Image);
-
-        const auto [Found, MemIndex] =
-            FindMemoryTypeIndex(MemProperties, MemReq.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
-
-        VT_CORE_ASSERT(Found, "Failed to find depth memory type");
-
-        vk::MemoryAllocateInfo MemAllocInfo {.allocationSize = MemReq.size, .memoryTypeIndex = MemIndex};
-
-        std::tie(Result, ImageMemory) = LogicalDevice.allocateMemory(MemAllocInfo);
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to allocate depth memory");
-
-        // Image bind to mem
-        Result = LogicalDevice.bindImageMemory(Image, ImageMemory, 0);
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to bind depth image memory");
+        ImageResource.CreateImage(ImageInfo, LogicalDevice);
+        ImageResource.AllocateMem(MemProperties);
+        ImageResource.MemBind(0);
 
         // ImageView
         vk::ImageViewCreateInfo ImageViewInfo {
-            .image    = Image,
+            .image    = ImageResource.Image,
             .viewType = vk::ImageViewType::e2D,
             .format   = DepthFormat,
-            .subresourceRange {
-                               .aspectMask     = vk::ImageAspectFlagBits::eDepth,
+            .subresourceRange {.aspectMask     = vk::ImageAspectFlagBits::eDepth,
                                .baseMipLevel   = 0,
                                .levelCount     = 1,
                                .baseArrayLayer = 0,
                                .layerCount     = 1}
         };
-
-        std::tie(Result, ImageView) = LogicalDevice.createImageView(ImageViewInfo);
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create depth image view");
+        ImageResource.CreateView(ImageViewInfo);
     }
 
-    void Destroy()
-    {
-        LogicalDevice.destroyImageView(ImageView);
-        ImageView = VK_NULL_HANDLE;
-
-        LogicalDevice.destroyImage(Image);
-        Image = VK_NULL_HANDLE;
-
-        LogicalDevice.freeMemory(ImageMemory);
-        ImageMemory = VK_NULL_HANDLE;
-    }
+    void Destroy() { ImageResource.Destroy(); }
 
 public:
     DepthStencil()                                = default;

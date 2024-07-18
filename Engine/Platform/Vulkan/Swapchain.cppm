@@ -17,11 +17,11 @@ public:
 	void Init(
 		Window& Window,
 		vk::Device LogicalDevice,
-		Native::PhysicalDevice& PhysicalDevice,
+              const Native::PhysicalDevice& PhysicalDevice,
 		vk::SurfaceKHR Surface,
 		uint32_t MaxFrameCount);
 
-    std::pair<bool, uint32_t> AcquireNextImage(vk::Semaphore Semaphore);
+    std::pair<bool, uint32_t> AcquireNextImage(uint64_t Timeout);
 
 	void Resize(uint32_t Width, uint32_t Height);
 
@@ -31,8 +31,6 @@ public:
     uint32_t GetCurrentImageIndex() const;
     uint32_t GetMaxFrameCount() const;
 
-
-
 public:
 	Swapchain()                             = default;
 	Swapchain(const Swapchain&)             = delete;
@@ -40,6 +38,10 @@ public:
 	Swapchain& operator=(const Swapchain&)  = delete;
 	Swapchain& operator=(const Swapchain&&) = delete;
 	~Swapchain();
+
+public:
+    vk::Semaphore ImageAvailableSemaphore;
+    vk::Semaphore RenderFinishedSemaphore;
 
 private:
     void CreateResources();
@@ -53,7 +55,7 @@ private:
 	DepthStencil m_DepthStencil;
     uint32_t m_CurrentImageIndex;
 
-    Native::PhysicalDevice* m_PhysicalDevice;
+    const Native::PhysicalDevice* m_PhysicalDevice;
 	vk::Device m_LogicalDevice;
 	vk::SurfaceKHR m_Surface;
 };

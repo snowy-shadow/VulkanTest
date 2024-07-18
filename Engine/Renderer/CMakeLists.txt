@@ -4,16 +4,18 @@ target_sources(${PROJECT_NAME}
 	FILES
 		RendererContext.cppm
 
-		Buffer.cppm
+		"Buffer.cppm"
 
-		RendererOption.cppm
+		"RendererType.cppm"
 		Renderer.cppm
 
 		Camera.cppm
-		OrthographicCamera.cppm
+		"ProjectionCamera.cppm"
 
 	PRIVATE
 		RendererContext.cpp
 		Renderer.cpp
-		OrthographicCamera.cpp
+		"ProjectionCamera.cpp"
 )
+
+add_subdirectory(Resource)

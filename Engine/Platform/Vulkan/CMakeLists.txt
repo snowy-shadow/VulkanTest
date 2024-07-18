@@ -8,18 +8,25 @@ target_sources(${PROJECT_NAME}
 		Device.cppm
 		"Synchronization.cppm"
 		Pipeline.cppm
-		Buffer.cppm
+		"VulkanBuffer.cppm"
+		DescriptorSet.cppm
 		Util.cppm
 		Shader.cppm
+		VulkanImage.cppm
+		VulkanTexture.cppm
 
 		RendererContext.cppm
+
 	PRIVATE
 		Swapchain.cpp
 		"Vulkan.h"
 		"Pipeline.cpp"
-		Buffer.cpp
+		VulkanBuffer.cpp
+				DescriptorSet.cpp
 		Shader.cpp
+		VulkanImage.cpp
 		RendererContext.cpp
+		VulkanTexture.cpp
 )
 
 add_subdirectory(Native)

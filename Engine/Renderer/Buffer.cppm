@@ -172,8 +172,7 @@ public:
     virtual void Bind() const   = 0;
     virtual void UnBind() const = 0;
 
-    virtual void SetLayout(BufferLayout)             = 0;
-    virtual constexpr BufferLayout GetLayout() const = 0;
+    BufferLayout BufferLayout;
 
     virtual ~Buffer() = default;
 

@@ -2,10 +2,12 @@ module;
 #include "VT_Export"
 export module VT.RendererContext;
 
-import VT.RendererOption;
+import VT.RendererType;
 import VT.Event;
 import VT.Window;
 import VT.Util;
+import VT.Texture;
+import VT.Timestep;
 
 export namespace VT
 {
@@ -17,9 +19,12 @@ public:
     virtual bool BeginFrame() = 0;
     virtual bool EndFrame() = 0;
 
+    virtual Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo) = 0;
+
+    virtual void OnUpdate(const Timestep& Time) = 0;
     virtual void OnEvent(Event& Event) = 0;
 
-    static RendererContext* Create(RendererOption::API API, Shared<Window> Window);
+    static RendererContext* Create(RendererType::API API, Shared<Window> Window);
     virtual ~RendererContext() = default;
 };
 } // namespace VT

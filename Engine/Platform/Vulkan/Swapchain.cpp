@@ -7,93 +7,98 @@ import VT.Log;
 
 namespace VT::Vulkan
 {
-void Swapchain::Init(
-	Window& Window,
-	vk::Device LogicalDevice,
-	Native::PhysicalDevice& PhysicalDevice,
-	vk::SurfaceKHR Surface,
-	uint32_t MaxFrameCount)
+void Swapchain::Init(Window& Window,
+                     vk::Device LogicalDevice,
+                     const Native::PhysicalDevice& PhysicalDevice,
+                     vk::SurfaceKHR Surface,
+                     uint32_t MaxFrameCount)
 {
-	m_PhysicalDevice = &PhysicalDevice;
-	m_LogicalDevice  = LogicalDevice;
-	m_Surface        = Surface;
+    m_PhysicalDevice = &PhysicalDevice;
+    m_LogicalDevice  = LogicalDevice;
+    m_Surface        = Surface;
 
     /* ===============================================
      *          Create Swapchain
      * ===============================================
      */
-	{
-		m_Swapchain.Init(m_LogicalDevice);
+    {
+        m_Swapchain.Init(m_LogicalDevice);
 
-		vk::SwapchainCreateInfoKHR SwapchainInfo{ .imageUsage = vk::ImageUsageFlagBits::eColorAttachment };
+        vk::SwapchainCreateInfoKHR SwapchainInfo {.imageUsage = vk::ImageUsageFlagBits::eColorAttachment};
 
-		{
-			const auto [R, SF] = m_PhysicalDevice->Get().getSurfaceFormatsKHR(m_Surface);
+        {
+            const auto [R, SF] = m_PhysicalDevice->Get().getSurfaceFormatsKHR(m_Surface);
 
-			VK_CHECK(R, vk::Result::eSuccess, "Failed to query surface format");
+            VK_CHECK(R, vk::Result::eSuccess, "Failed to query surface format");
 
-			const auto [Result, Surfaceformat] =
-				m_Swapchain.FindSurfaceFormat(
-					{ { { vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear } } },
-					SF);
+            const auto [Result, Surfaceformat] =
+                m_Swapchain.FindSurfaceFormat({{{vk::Format::eB8G8R8A8Srgb, vk::ColorSpaceKHR::eSrgbNonlinear}}}, SF);
 
-			VT_CORE_ASSERT(Result, "Could not find required surface format");
-			SwapchainInfo.imageFormat     = Surfaceformat.format;
-			SwapchainInfo.imageColorSpace = Surfaceformat.colorSpace;
-		}
+            VT_CORE_ASSERT(Result, "Could not find required surface format");
+            SwapchainInfo.imageFormat     = Surfaceformat.format;
+            SwapchainInfo.imageColorSpace = Surfaceformat.colorSpace;
+        }
 
-		{
-			const auto [R, PM] = m_PhysicalDevice->Get().getSurfacePresentModesKHR(m_Surface);
-			VK_CHECK(R, vk::Result::eSuccess, "Failed to query present mode");
+        {
+            const auto [R, PM] = m_PhysicalDevice->Get().getSurfacePresentModesKHR(m_Surface);
+            VK_CHECK(R, vk::Result::eSuccess, "Failed to query present mode");
 
-			const auto [Result, PresentMode] = m_Swapchain.FindPresentMode({ vk::PresentModeKHR::eFifo }, PM);
+            const auto [Result, PresentMode] = m_Swapchain.FindPresentMode({vk::PresentModeKHR::eFifo}, PM);
 
-			VT_CORE_ASSERT(Result, "Could not find required present mode");
-			SwapchainInfo.presentMode = PresentMode;
-		}
+            VT_CORE_ASSERT(Result, "Could not find required present mode");
+            SwapchainInfo.presentMode = PresentMode;
+        }
 
-		Native::Swapchain::Capabilities SwapchainQueries{
-			.minImageCount = MaxFrameCount,
-            .imageExtent = { Window.GetWidth(), Window.GetHeight() },
-			.arrayLayers = 1,
-			.surfaceTransform = { vk::SurfaceTransformFlagBitsKHR::eIdentity },
-			.compositeAlpha = { vk::CompositeAlphaFlagBitsKHR::eOpaque },
-		};
+        Native::Swapchain::Capabilities SwapchainQueries {
+            .minImageCount    = MaxFrameCount,
+            .imageExtent      = {Window.GetWidth(), Window.GetHeight()},
+            .arrayLayers      = 1,
+            .surfaceTransform = {vk::SurfaceTransformFlagBitsKHR::eIdentity},
+            .compositeAlpha   = {vk::CompositeAlphaFlagBitsKHR::eOpaque},
+        };
 
-		auto [Result, SwapchainCreateInfo] =
-			m_Swapchain.QueryCapabilities(SwapchainInfo, SwapchainQueries, PhysicalDevice.Get(), m_Surface);
+        auto [Result, SwapchainCreateInfo] =
+            m_Swapchain.QueryCapabilities(SwapchainInfo, SwapchainQueries, PhysicalDevice.Get(), m_Surface);
 
-		VT_CORE_ASSERT(Result, "Failed to find appropriate swapchain settings");
+        VT_CORE_ASSERT(Result, "Failed to find appropriate swapchain settings");
 
-		if (!m_PhysicalDevice->GraphicsQueueCanPresent())
-		{
-			uint32_t QueueFamilyIndices[]{
-				m_PhysicalDevice->GetGraphicsQueue().queueFamilyIndex,
-				m_PhysicalDevice->GetPresentQueue().queueFamilyIndex
-			};
+        if (!m_PhysicalDevice->GraphicsQueueCanPresent())
+        {
+            uint32_t QueueFamilyIndices[] {m_PhysicalDevice->GetGraphicsQueue().queueFamilyIndex,
+                                           m_PhysicalDevice->GetPresentQueue().queueFamilyIndex};
 
-			SwapchainCreateInfo.imageSharingMode      = vk::SharingMode::eConcurrent;
-			SwapchainCreateInfo.queueFamilyIndexCount = 2;
-			SwapchainCreateInfo.pQueueFamilyIndices   = QueueFamilyIndices;
-		}
+            SwapchainCreateInfo.imageSharingMode      = vk::SharingMode::eConcurrent;
+            SwapchainCreateInfo.queueFamilyIndexCount = 2;
+            SwapchainCreateInfo.pQueueFamilyIndices   = QueueFamilyIndices;
+        }
 
-		m_Swapchain.CreateSwapchain(SwapchainCreateInfo, m_LogicalDevice);
-	}
-	VT_CORE_TRACE("Vulkan swapchain created");
+        m_Swapchain.CreateSwapchain(SwapchainCreateInfo, m_LogicalDevice);
+    }
+    VT_CORE_TRACE("Vulkan swapchain created");
 
     CreateResources();
+
+    /* ===============================================
+     *          Semaphores
+     * ===============================================
+     */
+    {
+        vk::Result Result;
+        std::tie(Result, ImageAvailableSemaphore) = m_LogicalDevice.createSemaphore({});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create image available semaphore");
+
+        std::tie(Result, RenderFinishedSemaphore) = m_LogicalDevice.createSemaphore({});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create render finish semaphore");
+    }
 }
 
-std::pair<bool, uint32_t> Swapchain::AcquireNextImage(vk::Semaphore Semaphore)
+std::pair<bool, uint32_t> Swapchain::AcquireNextImage(uint64_t Timeout)
 {
-	const auto [Result, ImageIndex] = m_LogicalDevice.acquireNextImageKHR(
-		m_Swapchain.Get(),
-		std::numeric_limits<uint64_t>::max(),
-		Semaphore,
-		VK_NULL_HANDLE);
+    const auto [Result, ImageIndex] =
+        m_LogicalDevice.acquireNextImageKHR(m_Swapchain.Get(), Timeout, ImageAvailableSemaphore, VK_NULL_HANDLE);
 
     m_CurrentImageIndex = ImageIndex;
-    return { Result == vk::Result::eSuccess, ImageIndex };
+    return {Result == vk::Result::eSuccess, ImageIndex};
 }
 
 vk::SwapchainKHR Swapchain::Get() const { return m_Swapchain.Get(); }
@@ -105,7 +110,7 @@ std::vector<std::vector<vk::ImageView>> Swapchain::GetImageView() const
     std::vector<std::vector<vk::ImageView>> ImageView(m_ImageView.size());
     for (size_t i = 0; i < m_ImageView.size(); i++)
     {
-        ImageView[i] = { m_ImageView[i], m_DepthStencil.ImageView };
+        ImageView[i] = {m_ImageView[i], m_DepthStencil.ImageResource.ImageView};
     }
 
     return ImageView;
@@ -115,15 +120,15 @@ uint32_t Swapchain::GetMaxFrameCount() const { return m_Swapchain.GetInfo().minI
 
 void Swapchain::Resize(uint32_t Width, uint32_t Height)
 {
-	auto Info = m_Swapchain.GetInfo();
+    auto Info = m_Swapchain.GetInfo();
 
-	Info.imageExtent = { Width, Height };
+    Info.imageExtent = {Width, Height};
 
-	// update surface capabilities, else it will complain
-	// cast to void, ignore output - warn unused variable
-	(void)m_PhysicalDevice->Get().getSurfaceCapabilitiesKHR(m_Surface);
+    // update surface capabilities, else it will complain
+    // cast to void, ignore output - warn unused variable
+    (void) m_PhysicalDevice->Get().getSurfaceCapabilitiesKHR(m_Surface);
 
-	m_Swapchain.RecreateSwapchain(Info, m_LogicalDevice);
+    m_Swapchain.RecreateSwapchain(Info, m_LogicalDevice);
 
     DestroyResources();
     CreateResources();
@@ -132,6 +137,8 @@ void Swapchain::Resize(uint32_t Width, uint32_t Height)
 Swapchain::~Swapchain()
 {
     DestroyResources();
+    m_LogicalDevice.destroySemaphore(ImageAvailableSemaphore);
+    m_LogicalDevice.destroySemaphore(RenderFinishedSemaphore);
 }
 
 /** ===============================================
@@ -147,18 +154,17 @@ void Swapchain::CreateResources()
      */
     {
         auto [Result, DepthFormat] = m_PhysicalDevice->FindSupportedFormat(
-            { vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+            {vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint},
             vk::ImageTiling::eOptimal,
             vk::FormatFeatureFlagBits::eDepthStencilAttachment);
 
         VT_CORE_ASSERT(Result, "Failed to find depth format");
 
-        m_DepthStencil.Create(
-            m_Swapchain.GetInfo().imageExtent,
-            vk::SampleCountFlagBits::e1,
-            DepthFormat,
-            m_PhysicalDevice->Get().getMemoryProperties(),
-            m_LogicalDevice);
+        m_DepthStencil.Create(m_Swapchain.GetInfo().imageExtent,
+                              vk::SampleCountFlagBits::e1,
+                              DepthFormat,
+                              m_PhysicalDevice->Get().getMemoryProperties(),
+                              m_LogicalDevice);
     }
     VT_CORE_TRACE("Depth resource created");
     /* ===============================================
@@ -171,22 +177,22 @@ void Swapchain::CreateResources()
 
         m_ImageView.resize(Images.size());
 
-        vk::ImageViewCreateInfo ImageViewInfo{
-            .viewType = vk::ImageViewType::e2D,
-            .format = m_Swapchain.GetInfo().imageFormat,
-            .components = { vk::ComponentSwizzle::eIdentity },
+        vk::ImageViewCreateInfo ImageViewInfo {
+            .viewType   = vk::ImageViewType::e2D,
+            .format     = m_Swapchain.GetInfo().imageFormat,
+            .components = {vk::ComponentSwizzle::eIdentity},
             .subresourceRange =
-            {
-                .aspectMask = vk::ImageAspectFlagBits::eColor,
-                .baseMipLevel = 0,
-                .levelCount = 1,
-                .baseArrayLayer = 0,
-                .layerCount = 1,
-            },
+                {
+                           .aspectMask     = vk::ImageAspectFlagBits::eColor,
+                           .baseMipLevel   = 0,
+                           .levelCount     = 1,
+                           .baseArrayLayer = 0,
+                           .layerCount     = 1,
+                           },
         };
         for (size_t i = 0; i < Images.size(); i++)
         {
-            ImageViewInfo.image            = Images[i];
+            ImageViewInfo.image = Images[i];
 
             vk::ImageView ImageView;
             std::tie(Result, ImageView) = m_LogicalDevice.createImageView(ImageViewInfo);
@@ -195,12 +201,16 @@ void Swapchain::CreateResources()
             m_ImageView[i] = ImageView;
         }
     }
+
     m_Initalized = true;
 }
 
 void Swapchain::DestroyResources()
 {
-    if (!m_Initalized) { return; }
+    if (!m_Initalized)
+    {
+        return;
+    }
     m_DepthStencil.Destroy();
 
     for (const auto& ImageView : m_ImageView)
