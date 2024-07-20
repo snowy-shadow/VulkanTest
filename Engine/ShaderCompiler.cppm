@@ -15,7 +15,6 @@ module;
 // provides cross platform CComPtr if not WIN32
 #include <dxc/dxcapi.h>
 
-
 export module VT.ShaderCompiler;
 
 import VT.File;
@@ -69,7 +68,6 @@ enum FileEncoding : uint32_t
 struct VT_ENGINE_EXPORT ShaderFileInfo : File::FileInfo
 {
     LPCWSTR pCL_Args;
-    uint32_t CL_ArgSize;
     vk::ShaderStageFlagBits Stage;
     uint32_t Encoding = DXC_FileEncodingUTF8;
 };
@@ -81,12 +79,13 @@ public:
 
     [[nodiscard]] std::vector<std::byte> CompileSpv(const ShaderFileInfo&) const;
 
-    Compiler(const Compiler&)                    = delete;
+    Compiler(const Compiler&)            = delete;
     Compiler& operator=(const Compiler&) = delete;
-    ~Compiler()                                  = default;
+    ~Compiler()                          = default;
 
 private:
+    CComPtr<IDxcLibrary> m_Library    = nullptr;
     CComPtr<IDxcCompiler3> m_Compiler = nullptr;
-    CComPtr<IDxcUtils> m_DXC_Utils        = nullptr;
+    CComPtr<IDxcUtils> m_DXC_Utils    = nullptr;
 };
-}
+} // namespace VT::HLSL

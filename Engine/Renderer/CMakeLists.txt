@@ -2,13 +2,10 @@ target_sources(${PROJECT_NAME}
 	PUBLIC
 	FILE_SET CXX_MODULES
 	FILES
-		RendererContext.cppm
-
-		"Buffer.cppm"
-
-		"RendererType.cppm"
+		RendererType.cppm
 		Renderer.cppm
-
+		RendererContext.cppm
+		"Buffer.cppm"
 		Camera.cppm
 		"ProjectionCamera.cppm"
 
@@ -18,4 +15,4 @@ target_sources(${PROJECT_NAME}
 		"ProjectionCamera.cpp"
 )
 
-add_subdirectory(Resource)
+# add_subdirectory(Resource)

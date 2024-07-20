@@ -5,21 +5,42 @@ module;
 #include <glm/glm.hpp>
 export module VT.RendererType;
 
-import VT.Texture;
-
 export namespace VT
 {
-using ID                               = uint32_t;
-static constexpr ID InvalidID          = -1;
-static constexpr uint32_t InvalidIndex = -1;
-}
+using ID                             = uint32_t;
+constexpr ID InvalidID               = (ID) -1;
+constexpr uint32_t InvalidIndex      = (ID) -1;
+constexpr uint32_t TextureInvalideID = (ID) -1;
 
-export namespace VT::RendererType
-{
-enum class VT_ENGINE_EXPORT API
+enum class VT_ENGINE_EXPORT GraphicsAPI
 {
     eNone,
     eVulkan
+};
+
+struct VT_ENGINE_EXPORT TextureCreateInfo
+{
+    ID ID;
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t ChannelCount;
+    uint32_t Generation;
+    uint32_t DataSize;
+    void* pData;
+    bool Transparent;
+};
+
+class VT_ENGINE_EXPORT Texture
+{
+public:
+    ID ID;
+    uint32_t Width;
+    uint32_t Height;
+    uint32_t ChannelCount;
+    uint32_t Generation;
+    bool Transparent;
+
+    virtual ~Texture() = default;
 };
 
 struct VT_ENGINE_EXPORT RenderPacket
@@ -45,4 +66,4 @@ struct VT_ENGINE_EXPORT GeometryRenderData
     Texture* pTextures;
 };
 
-} // namespace VT::RendererType
+} // namespace VT

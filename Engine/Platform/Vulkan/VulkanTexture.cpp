@@ -7,7 +7,7 @@ import VT.Log;
 
 namespace VT::Vulkan
 {
-void VulkanTexture::Create(const TextureCreateInfo& TextureInfo,
+VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
                            const vk::PhysicalDeviceMemoryProperties& MemProperties,
                            vk::CommandBuffer CmdBuffer,
                            vk::Device Device)
@@ -97,12 +97,10 @@ void VulkanTexture::Create(const TextureCreateInfo& TextureInfo,
     this->Generation++;
 }
 
-void VulkanTexture::Destroy()
+VulkanTexture::~VulkanTexture()
 {
     VK_CHECK(LogicalDevice.waitIdle(), vk::Result::eSuccess, "Failed to wait device idle");
     Image.Destroy();
     LogicalDevice.destroySampler(Sampler);
-    Sampler = VK_NULL_HANDLE;
 }
-VulkanTexture::~VulkanTexture() { Destroy(); }
 } // namespace VT::Vulkan

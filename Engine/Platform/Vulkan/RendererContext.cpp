@@ -82,25 +82,23 @@ bool RendererContext::BeginFrame()
 
     m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
 
-    static float i = 0.5f;
-    i += 0.3f;
-    glm::mat4 Model = glm::rotate(glm::mat4(1.f), glm::radians(i), glm::vec3(0, 0, 1));
-    m_TriangleShader.UploadPushConstant(Model, CmdBuffer);
-
     vk::Buffer VertexBuffer = m_VertexBuffer.Buffer;
     vk::DeviceSize VertexBufferOffsetSize[] {0};
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
     CmdBuffer.bindIndexBuffer(m_IndexBuffer.Buffer, 0, vk::IndexType::eUint32);
 
-    // Draw
-    CmdBuffer.drawIndexed(6, 1, 0, 0, 0);
+    m_bFrameBegin = true;
 
     return true;
 }
 
 bool RendererContext::EndFrame()
 {
+    m_bFrameBegin                = false;
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
+
+    // Draw
+    CmdBuffer.drawIndexed(6, 1, 0, 0, 0);
 
     m_RenderPass.End(CmdBuffer);
 
@@ -160,23 +158,23 @@ bool RendererContext::EndFrame()
 
 Uniq<Texture> RendererContext::CreateTexture(const TextureCreateInfo& TextureInfo)
 {
-    Uniq<VulkanTexture> TextureObj = CreateUniq<VulkanTexture>();
-
     const auto LogicalDevice = m_LogicalDevice.Get();
     auto CmdBuffer           = VulkanBuffer::BeginSingleTimeCommand(m_CmdPool, LogicalDevice);
 
-    TextureObj->Create(TextureInfo, m_PhysicalDevice.Get().getMemoryProperties(), CmdBuffer, LogicalDevice);
+    VulkanTexture* TextureObj =
+        new VulkanTexture(TextureInfo, m_PhysicalDevice.Get().getMemoryProperties(), CmdBuffer, LogicalDevice);
 
     VulkanBuffer::EndSingleTimeCommand(CmdBuffer, m_CmdPool, m_GraphicQ, LogicalDevice);
 
-    return TextureObj;
+    return Uniq<Texture>(TextureObj);
 }
 
-void RendererContext::UploadView(RendererType::UniforomCameraData Data) { m_TriangleShader.UploadCameraView(Data); }
+void RendererContext::UploadView(UniformCameraData Data) { m_TriangleShader.UploadCameraView(Data); }
 
-void RendererContext::UploadGeometry(RendererType::GeometryRenderData Data)
+void RendererContext::UploadGeometry(GeometryRenderData Data)
 {
-    // m_TriangleShader.UploadGeometry(Data);
+    VT_CORE_ASSERT(m_bFrameBegin, "Cannot uplaod geometry without beginning scene first");
+    m_TriangleShader.UploadGeometry(Data, m_DrawBuffer[m_CurrentFrameCount], m_DeltaTime);
 }
 
 void RendererContext::OnUpdate(const Timestep& Time) { m_DeltaTime = Time; }
@@ -196,7 +194,9 @@ void RendererContext::OnEvent(Event& Event)
         }
         case EventType::eKeyPress:
         {
-            UploadView({m_Camera->GetTransform()});
+            const auto D = m_Camera->GetTransform();
+            UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
+            UploadView(Data);
         }
         break;
         case EventType::eMouseMove:
@@ -517,17 +517,15 @@ void RendererContext::Init()
         VertexShader.FileDir    = "Src/Shader";
         VertexShader.FileName   = "Vertex.hlsl";
         VertexShader.pCL_Args   = L"-spirv -E main -T vs_6_3";
-        VertexShader.CL_ArgSize = sizeof(VertexShader.pCL_Args);
         VertexShader.Stage      = vk::ShaderStageFlagBits::eVertex;
         VertexShader.Encoding   = HLSL::DXC_FileEncodingACP;
 
         HLSL::ShaderFileInfo FragmentShader;
-        VertexShader.FileDir    = "Src/Shader";
-        VertexShader.FileName   = "Fragment.hlsl";
-        VertexShader.pCL_Args   = L"-spirv -E main -T ps_6_3";
-        VertexShader.CL_ArgSize = sizeof(VertexShader.pCL_Args);
-        VertexShader.Stage      = vk::ShaderStageFlagBits::eFragment;
-        VertexShader.Encoding   = HLSL::DXC_FileEncodingACP;
+        FragmentShader.FileDir    = "Src/Shader";
+        FragmentShader.FileName   = "Fragment.hlsl";
+        FragmentShader.pCL_Args   = L"-spirv -E main -T ps_6_3";
+        FragmentShader.Stage      = vk::ShaderStageFlagBits::eFragment;
+        FragmentShader.Encoding   = HLSL::DXC_FileEncodingACP;
 
         std::array ShaderFiles {VertexShader, FragmentShader};
 
@@ -583,7 +581,9 @@ void RendererContext::Init()
             LogicalDevice.freeCommandBuffers(m_CmdPool, CmdBuffer);
         }*/
 
-        m_TriangleShader.UploadUniform(m_Camera->GetTransform());
+        const auto D = m_Camera->GetTransform();
+        UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
+        m_TriangleShader.UploadCameraView(Data);
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");
@@ -614,7 +614,10 @@ void RendererContext::Resize(uint32_t Width, uint32_t Height)
     CreateResources();
 
     m_Camera->Resize(0, Width, 0, Height);
-    m_TriangleShader.UploadUniform(m_Camera->GetTransform());
+
+    const auto D = m_Camera->GetTransform();
+    UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
+    m_TriangleShader.UploadCameraView(Data);
 }
 
 void RendererContext::UploadData(

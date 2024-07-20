@@ -18,11 +18,11 @@ class Timestep
 public:
     inline double VT_ENGINE_EXPORT Second() const
     {
-        return chrono::duration_cast<Duration<double, chrono::seconds>>(m_Timestep).count();
+        return chrono::duration<double, chrono::seconds::period>(m_Timestep).count();
     }
     inline double VT_ENGINE_EXPORT MilliSecond() const
     {
-        return chrono::duration_cast<Duration<double, chrono::milliseconds>>(m_Timestep).count();
+        return chrono::duration<double, chrono::milliseconds::period>(m_Timestep).count();
     }
 
     Timestep static inline VT_ENGINE_EXPORT abs(const Timestep& Timestep) { return chrono::abs(Timestep.m_Timestep); }

@@ -22,11 +22,12 @@ target_sources(${PROJECT_NAME}
 		"Vulkan.h"
 		"Pipeline.cpp"
 		VulkanBuffer.cpp
-				DescriptorSet.cpp
+		DescriptorSet.cpp
 		Shader.cpp
 		VulkanImage.cpp
-		RendererContext.cpp
 		VulkanTexture.cpp
+
+		RendererContext.cpp
 )
 
 add_subdirectory(Native)

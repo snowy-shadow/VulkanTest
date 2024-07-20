@@ -140,12 +140,12 @@ public:
     VT_ENGINE_EXPORT std::vector<BufferElement>::const_iterator cend() const { return m_Elements.cend(); }
 
 public:
-    BufferLayout() = default;
-    BufferLayout(const BufferLayout&)                = default;
-    BufferLayout& operator=(const BufferLayout&)     = default;
-    BufferLayout(BufferLayout&&) noexcept            = default;
-    BufferLayout& operator=(BufferLayout&&) noexcept = default;
-    ~BufferLayout()                                  = default;
+    VT_ENGINE_EXPORT BufferLayout()                                   = default;
+    VT_ENGINE_EXPORT BufferLayout(const BufferLayout&)                = default;
+    VT_ENGINE_EXPORT BufferLayout& operator=(const BufferLayout&)     = default;
+    VT_ENGINE_EXPORT BufferLayout(BufferLayout&&) noexcept            = default;
+    VT_ENGINE_EXPORT BufferLayout& operator=(BufferLayout&&) noexcept = default;
+    VT_ENGINE_EXPORT ~BufferLayout()                                  = default;
 
 private:
     constexpr void ComputeOffsetAndStride()

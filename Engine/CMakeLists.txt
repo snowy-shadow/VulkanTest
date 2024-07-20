@@ -42,8 +42,8 @@ target_sources(${PROJECT_NAME}
 
 add_subdirectory(Event)
 add_subdirectory(Layer)
-add_subdirectory(Platform)
 add_subdirectory(Renderer)
+add_subdirectory(Platform)
 add_subdirectory(Util)
 
 #Libs
@@ -76,7 +76,6 @@ set_target_properties(${PROJECT_NAME}
 	VERSION 0.1
 
 	RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}
-
 )
 target_compile_definitions(${PROJECT_NAME}
 	PRIVATE

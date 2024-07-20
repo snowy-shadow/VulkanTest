@@ -20,7 +20,7 @@ static void GLFWErrorCallBack(int Error, const char* Description)
     VT_CORE_ERROR("GLFW Error ({0}) : {1}", Error, Description);
 }
 
-Window::Window(RendererType::API API, const WindowProperties& Properties) : m_Data(Properties, true, {})
+Window::Window(GraphicsAPI API, const WindowProperties& Properties) : m_Data(Properties, true, {})
 {
     if (!VT::s_GLFW_Initialized)
     {
@@ -33,7 +33,7 @@ Window::Window(RendererType::API API, const WindowProperties& Properties) : m_Da
         VT::s_GLFW_Initialized = Result == GLFW_TRUE;
     }
 
-    if (API == RendererType::API::eVulkan)
+    if (API == GraphicsAPI::eVulkan)
     {
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     }

@@ -2,15 +2,15 @@ module;
 #include "Vulkan.h"
 export module VT.Platform.Vulkan.Texture;
 
-import VT.Texture;
+import VT.RendererType;
 import VT.Platform.Vulkan.Image;
+import VT.Camera;
 
 export namespace VT::Vulkan
 {
-static constexpr uint32_t TextureInvalideID = -1;
-
-struct VulkanTexture : VT::Texture
+class VulkanTexture : public Texture
 {
+public:
     /**
      * Create vulkan texture
      * @param TextureInfo Texture info
@@ -18,14 +18,12 @@ struct VulkanTexture : VT::Texture
      * @param CmdBuffer Buffer used to copy data to image
      * @param Device Logical device
      */
-    void Create(const TextureCreateInfo& TextureInfo,
+    VulkanTexture(const TextureCreateInfo& TextureInfo,
                 const vk::PhysicalDeviceMemoryProperties& MemProperties,
                 vk::CommandBuffer CmdBuffer,
                 vk::Device Device);
-    void Destroy();
 
-public:
-    ~VulkanTexture();
+    virtual ~VulkanTexture() override;
 
 public:
     VulkanImage Image;

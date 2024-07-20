@@ -5,7 +5,7 @@ import VT.Platform;
 namespace VT
 {
 
-Window* Window::Create(WindowAPI WindowAPI, RendererType::API RendererAPI, const WindowProperties& Properties)
+Window* Window::Create(WindowAPI WindowAPI, GraphicsAPI RendererAPI, const WindowProperties& Properties)
 {
     switch (WindowAPI)
     {

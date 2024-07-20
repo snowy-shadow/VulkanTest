@@ -6,8 +6,6 @@ module;
 module VT.Platform.Vulkan.Shader;
 import VT.Log;
 
-import VT.Texture;
-
 namespace VT::Vulkan
 {
 void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
@@ -68,11 +66,12 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
         vk::DescriptorSetLayout pDescriptorSetLayout[] {m_DescriptorLayout, m_DescriptorLayout, m_DescriptorLayout};
         vk::DescriptorSetAllocateInfo DescriptorSetAllocInfo {
             .descriptorPool     = m_DescriptorPool,
-            .descriptorSetCount = 3,
+            .descriptorSetCount = MaxDescriptorSets,
             .pSetLayouts        = pDescriptorSetLayout,
         };
 
         std::tie(Result, m_DescriptorSet) = LogicalDevice.allocateDescriptorSets(DescriptorSetAllocInfo);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to allocate descriptor set");
     }
     VT_CORE_TRACE("Descriptor set created");
 
@@ -123,7 +122,7 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
         VK_CHECK(Result, vk::Result::eSuccess, "Failed to create descriptor pool");
 
         m_ObjectUniformBuffer.Create(
-            {.size  = sizeof(RendererType::UniformObjectData),
+            {.size  = sizeof(UniformObjectData),
              .usage = vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eTransferDst},
             LogicalDevice);
         m_ObjectUniformBuffer.BindMem(0,
@@ -137,7 +136,7 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
     vk::PushConstantRange PushConstantInfo {
         .stageFlags = vk::ShaderStageFlagBits::eVertex,
         .offset     = 0,
-        .size       = sizeof(RendererType::GeometryRenderData::Model),
+        .size       = sizeof(GeometryRenderData::Model),
     };
 
     std::array DescriptorArray {m_DescriptorLayout, m_ObjectDescriptorLayout};
@@ -227,7 +226,7 @@ void Shader::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoi
 
     m_Pipeline.Bind(CommandBuffer, BindPoint);
 }
-void Shader::UploadCameraView(const RendererType::UniformCameraData& Data)
+void Shader::UploadCameraView(const UniformCameraData& Data)
 {
     m_CurrentDescriptorSet = (m_CurrentDescriptorSet + 1) % m_DescriptorSet.size();
 
@@ -256,7 +255,7 @@ void Shader::UploadCameraView(const RendererType::UniformCameraData& Data)
     m_LogicalDevice.updateDescriptorSets(1, &WriteDescriptorSet, 0, nullptr);
     m_bDescriptorRebind = true;
 }
-void Shader::UploadPushConstant(const RendererType::GeometryRenderData& Data,
+void Shader::UploadGeometry(const GeometryRenderData& Data,
                                 vk::CommandBuffer CmdBuffer,
                                 const Timestep& Timestep)
 {
@@ -264,9 +263,9 @@ void Shader::UploadPushConstant(const RendererType::GeometryRenderData& Data,
 
     ObjectState& Obj = m_ObjectState[Data.ID];
 
-    uint32_t Size   = sizeof(RendererType::UniformObjectData);
-    uint32_t Offset = sizeof(RendererType::UniformObjectData) * Data.ID;
-    RendererType::UniformObjectData UniformObject;
+    uint32_t Size   = sizeof(UniformObjectData);
+    uint32_t Offset = sizeof(UniformObjectData) * Data.ID;
+    UniformObjectData UniformObject;
 
     static float Accumulator = 0.f;
     Accumulator += Timestep.MilliSecond();
@@ -333,7 +332,7 @@ uint32_t Shader::CreateObject()
 }
 void Shader::ReleaseObject(uint32_t ID)
 {
-    VT_CORE_ASSERT(ID <= m_CurrentObjectUniformBufferIndex);
+    VT_CORE_ASSERT(ID <= m_CurrentObjectUniformBufferIndex, "Invalid ID");
 
     auto& Object = m_ObjectState[ID];
     m_LogicalDevice.freeDescriptorSets(m_ObjectDescriptorPool, Object.DescriptorSet);

@@ -29,10 +29,9 @@ enum class WindowAPI
 class VT_ENGINE_EXPORT Window
 {
 public:
-    static Window* Create(
-        WindowAPI WindowAPI                = WindowAPI::eGLFWwindow,
-                          RendererType::API RendererAPI      = RendererType::API::eVulkan,
-        const WindowProperties& Properties = WindowProperties {});
+    static Window* Create(WindowAPI WindowAPI                = WindowAPI::eGLFWwindow,
+                          GraphicsAPI RendererAPI            = GraphicsAPI::eVulkan,
+                          const WindowProperties& Properties = WindowProperties {});
 
     virtual void OnUpdate() = 0;
 

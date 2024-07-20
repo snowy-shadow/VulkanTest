@@ -23,7 +23,6 @@ import VT.Window;
 import VT.Event;
 import VT.Buffer;
 import VT.Camera;
-import VT.Texture;
 import VT.Timestep;
 
 export namespace VT::Vulkan
@@ -39,8 +38,8 @@ public:
     virtual bool EndFrame() override;
 
     virtual Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo) override;
-    void UploadView(RendererType::UniformCameraData Data);
-    void UploadGeometry(RendererType::GeometryRenderData Data);
+    virtual void UploadView(UniformCameraData Data) override;
+    virtual void UploadGeometry(GeometryRenderData Data) override;
 
     virtual void OnUpdate(const Timestep& Time) override;
     virtual void OnEvent(Event& Event) override;
@@ -76,6 +75,8 @@ private:
     vk::Queue m_GraphicQ;
     vk::Queue m_PresentQ;
     std::vector<vk::CommandBuffer> m_DrawBuffer;
+    vk::CommandBuffer m_CurrentDrawBuffer;
+    bool m_bFrameBegin {false};
 
 
     // Images && buffers

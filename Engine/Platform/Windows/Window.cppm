@@ -13,7 +13,7 @@ export namespace VT::Windows
 class Window final : public VT::Window
 {
 public:
-    Window(RendererType::API API, const VT::WindowProperties& Properties);
+    Window(GraphicsAPI API, const VT::WindowProperties& Properties);
     void OnUpdate() override;
 
     unsigned int GetWidth() const override;

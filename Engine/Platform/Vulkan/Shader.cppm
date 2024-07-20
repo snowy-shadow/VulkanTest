@@ -48,8 +48,8 @@ public:
 
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
-    void UploadCameraView(const RendererType::UniformCameraData& Data);
-    void UploadPushConstant(const RendererType::GeometryRenderData& Data,
+    void UploadCameraView(const UniformCameraData& Data);
+    void UploadGeometry(const GeometryRenderData& Data,
                             vk::CommandBuffer CmdBuffer,
                             const Timestep& Timestep);
 
