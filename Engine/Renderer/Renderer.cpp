@@ -13,7 +13,7 @@ void Renderer::BeginFrame() // Shared<Camera> Camera)
 {
     // (void) Camera;
     m_API->BeginFrame();
-    VT::GeometryRenderData Data;
+    VT::GeometryRenderData Data {};
 
     m_API->UploadGeometry(Data);
 

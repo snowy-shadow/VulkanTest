@@ -74,6 +74,7 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
 
     // Tokenize string to list of cli arguments
     std::vector<LPCWSTR> Args;
+    Args.reserve(100);
     {
         /**
          * Finds how many characters until delim
@@ -98,7 +99,7 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
         const auto StrCpy = [](LPWSTR Str, uint32_t Count, LPCWSTR Src)
         {
             int i = 0;
-            for (; i < Count || Src[i] == L'\0'; i++)
+            for (; i < Count && Src[i] != L'\0'; i++)
             {
                 Str[i] = Src[i];
             }
@@ -117,14 +118,15 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
             Ptr = Pos + 1;
             Pos = FindDelim(Ptr, L' ');
         }
+
         // Copy last segment of string
-        size_t Amount = Pos - Ptr;
-        LPWSTR Str    = new WCHAR[Amount + 1];
+        const size_t Amount = Pos - Ptr;
+        LPWSTR Str          = new WCHAR[Amount + 1];
         StrCpy(Str, Amount, Ptr);
         Args.push_back(Str);
 
         // Append file name
-        Args.push_back(Src.wstring().c_str());
+        Args.push_back((LPCWSTR) Src.wstring().c_str());
     }
 
     UINT32 Encoding = File.Encoding;
@@ -140,7 +142,7 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
     // compile
     CComPtr<IDxcResult> CompileResult;
     HRes = m_Compiler->Compile(
-            &SrcBuff, Args.data(), static_cast<uint32_t>(Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
+        &SrcBuff, Args.data(), static_cast<uint32_t>(Args.size()), nullptr, IID_PPV_ARGS(&CompileResult));
     // Free all string except last : Last string is owned by std::filesystem::path Src
     for (int i = 0; i < Args.size() - 1; i++)
     {
