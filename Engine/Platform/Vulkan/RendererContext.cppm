@@ -76,8 +76,6 @@ private:
     vk::Queue m_PresentQ;
     std::vector<vk::CommandBuffer> m_DrawBuffer;
     vk::CommandBuffer m_CurrentDrawBuffer;
-    bool m_bFrameBegin {false};
-
 
     // Images && buffers
     std::vector<FrameBuffer> m_FrameBuffer;

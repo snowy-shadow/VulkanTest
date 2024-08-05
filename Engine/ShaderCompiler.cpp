@@ -96,10 +96,11 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
             return pStr;
         };
 
+        // Count must be valid, no checks are perfromed
         const auto StrCpy = [](LPWSTR Str, uint32_t Count, LPCWSTR Src)
         {
             int i = 0;
-            for (; i < Count && Src[i] != L'\0'; i++)
+            for (; i < Count; i++)
             {
                 Str[i] = Src[i];
             }

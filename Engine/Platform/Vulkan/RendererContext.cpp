@@ -87,14 +87,11 @@ bool RendererContext::BeginFrame()
     CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
     CmdBuffer.bindIndexBuffer(m_IndexBuffer.Buffer, 0, vk::IndexType::eUint32);
 
-    m_bFrameBegin = true;
-
     return true;
 }
 
 bool RendererContext::EndFrame()
 {
-    m_bFrameBegin                = false;
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
 
     // Draw
@@ -173,7 +170,6 @@ void RendererContext::UploadView(UniformCameraData Data) { m_TriangleShader.Uplo
 
 void RendererContext::UploadGeometry(GeometryRenderData Data)
 {
-    VT_CORE_ASSERT(m_bFrameBegin, "Cannot uplaod geometry without beginning scene first");
     m_TriangleShader.UploadGeometry(Data, m_DrawBuffer[m_CurrentFrameCount], m_DeltaTime);
 }
 
@@ -403,21 +399,21 @@ void RendererContext::Init()
         // FIX : Renderpass should reference swapchain images
         std::vector<vk::AttachmentDescription> Attachment {
             {{.format         = m_Swapchain.GetInfo().imageFormat,
-.samples        = vk::SampleCountFlagBits::e1,
-.loadOp         = vk::AttachmentLoadOp::eClear,
-.storeOp        = vk::AttachmentStoreOp::eStore,
-.stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
-.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-.initialLayout  = vk::ImageLayout::eUndefined,
-.finalLayout    = vk::ImageLayout::ePresentSrcKHR},
+              .samples        = vk::SampleCountFlagBits::e1,
+              .loadOp         = vk::AttachmentLoadOp::eClear,
+              .storeOp        = vk::AttachmentStoreOp::eStore,
+              .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+              .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+              .initialLayout  = vk::ImageLayout::eUndefined,
+              .finalLayout    = vk::ImageLayout::ePresentSrcKHR},
              {.format         = DepthFormat,
-             .samples        = vk::SampleCountFlagBits::e1,
-             .loadOp         = vk::AttachmentLoadOp::eClear,
-             .storeOp        = vk::AttachmentStoreOp::eDontCare,
-             .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
-             .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-             .initialLayout  = vk::ImageLayout::eUndefined,
-             .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal}}
+              .samples        = vk::SampleCountFlagBits::e1,
+              .loadOp         = vk::AttachmentLoadOp::eClear,
+              .storeOp        = vk::AttachmentStoreOp::eDontCare,
+              .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+              .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+              .initialLayout  = vk::ImageLayout::eUndefined,
+              .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal}}
         };
 
         std::vector<vk::AttachmentReference> ColorAttachmentReference {
@@ -514,18 +510,18 @@ void RendererContext::Init()
     {
         // Shader files
         HLSL::ShaderFileInfo VertexShader;
-        VertexShader.FileDir    = "Src/Shader";
-        VertexShader.FileName   = "Vertex.hlsl";
-        VertexShader.pCL_Args   = L"-spirv -E main -T vs_6_3";
-        VertexShader.Stage      = vk::ShaderStageFlagBits::eVertex;
-        VertexShader.Encoding   = HLSL::DXC_FileEncodingACP;
+        VertexShader.FileDir  = "Src/Shader";
+        VertexShader.FileName = "Vertex.hlsl";
+        VertexShader.pCL_Args = L"-spirv -E main -T vs_6_3";
+        VertexShader.Stage    = vk::ShaderStageFlagBits::eVertex;
+        VertexShader.Encoding = HLSL::DXC_FileEncodingACP;
 
         HLSL::ShaderFileInfo FragmentShader;
-        FragmentShader.FileDir    = "Src/Shader";
-        FragmentShader.FileName   = "Fragment.hlsl";
-        FragmentShader.pCL_Args   = L"-spirv -E main -T ps_6_3";
-        FragmentShader.Stage      = vk::ShaderStageFlagBits::eFragment;
-        FragmentShader.Encoding   = HLSL::DXC_FileEncodingACP;
+        FragmentShader.FileDir  = "Src/Shader";
+        FragmentShader.FileName = "Fragment.hlsl";
+        FragmentShader.pCL_Args = L"-spirv -E main -T ps_6_3";
+        FragmentShader.Stage    = vk::ShaderStageFlagBits::eFragment;
+        FragmentShader.Encoding = HLSL::DXC_FileEncodingACP;
 
         std::array ShaderFiles {VertexShader, FragmentShader};
 

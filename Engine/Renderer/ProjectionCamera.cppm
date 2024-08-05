@@ -21,31 +21,6 @@ public:
 
     virtual CameraTransform GetTransform() override;
 
-    void SetTranslationXYZ(glm::vec3 TranslationXYZ)
-    {
-        m_TranslationXYZ = TranslationXYZ;
-        m_ValueModified  = true;
-    }
-
-    void SetRotationXYZ(glm::vec3 RotationXYZ)
-    {
-        m_RotationXYZ   = RotationXYZ;
-        m_ValueModified = true;
-    }
-    void ApplyRotationXYZ(glm::vec3 RotationXYZ)
-    {
-        m_RotationXYZ += RotationXYZ;
-        m_ValueModified = true;
-    }
-    void ApplyTranslationXYZ(glm::vec3 TranslationXYZ)
-    {
-        m_TranslationXYZ += TranslationXYZ;
-        m_ValueModified = true;
-    }
-
-    constexpr glm::vec3 GetTranslation_XYZ() const { return m_TranslationXYZ; }
-    constexpr glm::vec3 GetRotationRadians_XYZ() const { return m_RotationXYZ; }
-
 private:
     void ComputeViewMatrix();
 
@@ -53,10 +28,6 @@ private:
     glm::mat4 m_ProjectionMatrix {1.f};
     glm::mat4 m_ViewMatrix {1.f};
     glm::mat4 m_ViewProjectionMatrix {1.f};
-
-    glm::vec3 m_TranslationXYZ {0.f};
-    // RADIANS
-    glm::vec3 m_RotationXYZ {0.f};
 
     bool m_ValueModified {true};
 };

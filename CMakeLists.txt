@@ -8,7 +8,6 @@ if (POLICY CMP0141)
 endif()
 
 project ("VulkanTest" VERSION 0.1 LANGUAGES CXX)
-
 # Custom libraries
 if(APPLE)
   set(GLFW_PATH "/opt/homebrew")
