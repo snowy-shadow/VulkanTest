@@ -13,3 +13,7 @@ CMakeSettings.json
 *.exe
 *.dll
 *.lib
+*.idb
+
+# cmake generated, changes with OS
+VT_Export
