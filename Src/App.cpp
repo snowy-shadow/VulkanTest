@@ -13,6 +13,12 @@ Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Cr
     m_LayerStack.PushLayer(new ImageLayer());
 
     m_Renderer.reset(new VT::Renderer(VT::GraphicsAPI::eVulkan, m_Window));
+
+    m_Camera.reset(new VT::ProjectionCamera(m_Window->GetWidth(), m_Window->GetHeight()));
+    m_CameraController.reset(new VT::CameraController);
+    m_CameraController->BindInput(m_Input.get());
+
+    m_Renderer->UploadView({.ProjectionMatrix = m_Camera->GetProjection(), .ViewMatrix = m_Camera->GetView()});
 }
 
 void Application::Run()
@@ -21,15 +27,22 @@ void Application::Run()
     {
         //  auto [MouseX, MouseY] = m_Input->GetMouseXY();
         const VT::Timestep TimeDelta = VT::Timestep::abs(m_TimePoint.Tick(VT::Timepoint::Now()));
-        m_Renderer->OnUpdate(TimeDelta);
-        m_Renderer->BeginFrame();
+        OnUpdate(TimeDelta);
 
-        m_Renderer->EndFrame();
+        m_Renderer->BeginScene();
+
+        m_Renderer->EndScene();
         m_Renderer->Submit();
 
         m_Window->OnUpdate();
         // VT_TRACE("{0}, {1}", MouseX, MouseY);
     }
+}
+
+void Application::OnUpdate(const VT::Timestep& Ts)
+{
+    m_Renderer->OnUpdate(Ts);
+    m_CameraController->OnUpdate(Ts);
 }
 
 void Application::OnEvent(VT::Event& E)
@@ -48,6 +61,15 @@ void Application::OnEvent(VT::Event& E)
         {
             break;
         }
+    }
+
+    // update camera
+    if (E.IsInCategory(VT::EventCategoryInput))
+    {
+        m_Camera->SetTranslation(m_CameraController->GetTranslation());
+        m_Camera->SetRotation(m_CameraController->GetTranslation());
+        m_Renderer->UploadView(
+            {.ProjectionMatrix = m_Camera->GetProjection(), .ViewMatrix = m_Camera->GetView()});
     }
 
     // VT_TRACE("{}", E);

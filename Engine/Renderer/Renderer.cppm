@@ -17,12 +17,16 @@ class Renderer
 public:
     VT_ENGINE_EXPORT Renderer(GraphicsAPI Type = GraphicsAPI::eVulkan, Shared<Window> Window = nullptr);
 
-    VT_ENGINE_EXPORT void BeginScene(); // Shared<Camera> Camera);
+    VT_ENGINE_EXPORT void BeginScene(); // (Shared<Camera> Camera);
     VT_ENGINE_EXPORT void EndScene();
 
     VT_ENGINE_EXPORT void BeginRenderPass();
     VT_ENGINE_EXPORT void EndRenderPass();
 
+    VT_ENGINE_EXPORT void UploadView(UniformCameraData Data);
+
+    VT_ENGINE_EXPORT void UploadGeometry(GeometryRenderData Data);
+   
     VT_ENGINE_EXPORT Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo);
 
     VT_ENGINE_EXPORT void Submit();
@@ -33,7 +37,7 @@ public:
     VT_ENGINE_EXPORT void SetRendererAPI(GraphicsAPI Type, Shared<Window> Window);
 
 private:
-    inline static Uniq<RendererContext> CreateAPI(GraphicsAPI Type, Shared<Window> Window);
+    static Uniq<RendererContext> CreateAPI(GraphicsAPI Type, Shared<Window> Window);
 
 private:
     Uniq<RendererContext> m_API;

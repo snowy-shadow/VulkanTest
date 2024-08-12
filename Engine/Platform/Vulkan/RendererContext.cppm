@@ -44,11 +44,11 @@ public:
     virtual void OnUpdate(const Timestep& Time) override;
     virtual void OnEvent(Event& Event) override;
 
+    void Resize(uint32_t Width, uint32_t Height);
+
     virtual void Init() override;
 
 private:
-    void Resize(uint32_t Width, uint32_t Height);
-
     void UploadData(vk::Buffer Dest, void* Data, uint32_t Size, uint32_t Offset, vk::Queue, vk::Fence) const;
 
     void CreateResources();
@@ -56,7 +56,6 @@ private:
 
 private:
     Shared<Window> m_Window;
-    Uniq<Camera> m_Camera;
 
     // Device
     Native::Instance m_Instance;

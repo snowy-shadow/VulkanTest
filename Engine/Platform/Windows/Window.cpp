@@ -7,6 +7,7 @@ module VT.Platform.Windows.Window;
 import VT.Event;
 import VT.Log;
 import VT.RendererType;
+import VT.Platform.GLFW.Key;
 
 namespace VT
 {
@@ -86,20 +87,20 @@ Window::Window(GraphicsAPI API, const WindowProperties& Properties) : m_Data(Pro
             {
                 case GLFW_PRESS:
                 {
-                    VT::KeyPressEvent E {Key};
+                    VT::KeyPressEvent E {GLFW::FromKeyCode(Key)};
                     Data.EventCallBack(E);
                     break;
                 }
 
                 case GLFW_REPEAT:
                 {
-                    VT::KeyPressEvent E {Key, 1};
+                    VT::KeyPressEvent E {GLFW::FromKeyCode(Key), 1};
                     Data.EventCallBack(E);
                     break;
                 }
                 case GLFW_RELEASE:
                 {
-                    VT::KeyReleaseEvent E {Key};
+                    VT::KeyReleaseEvent E {GLFW::FromKeyCode(Key)};
                     Data.EventCallBack(E);
                     break;
                 }

@@ -31,6 +31,7 @@ target_sources(${PROJECT_NAME}
 		Timestep.cppm
 		ShaderCompiler.cppm
 		File.cppm
+		Key.cppm
 
 	PRIVATE
 		Engine.cpp

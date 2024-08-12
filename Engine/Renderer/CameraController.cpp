@@ -1,32 +1,87 @@
 module;
 #include <glm/glm.hpp>
+#include "EngineMacro.h"
 module VT.CameraController;
+
+import VT.Log;
 
 namespace VT
 {
-void CameraController::Left(float Unit);
-void CameraControlle::Right(float Unit);
-void CameraControlle::Up(float Unit);
-void CameraControlle::Down(float Unit);
-void CameraController::SetTranslation(glm::vec3 TranslationXYZ)
+void CameraController::BindInput(const Input* Input) { m_Input = Input; }
+
+void CameraController::OnUpdate(Timestep Ts)
 {
-    m_Translation   = Translation;
-    m_ValueModified = true;
+    if (m_Input->IsKeyPressed(Key::W))
+    {
+        Up(static_cast<float>(Ts.Second()) * 0.5f);
+    }
+    if (m_Input->IsKeyPressed(Key::S))
+    {
+        Down(static_cast<float>(Ts.Second()) * 0.5f);
+    }
+
+    if (m_Input->IsKeyPressed(Key::A))
+    {
+        Left(static_cast<float>(Ts.Second()) * 0.5f);
+    }
+    if (m_Input->IsKeyPressed(Key::D))
+    {
+
+        Right(static_cast<float>(Ts.Second()) * 0.5f);
+    }
 }
 
-void CameraController::SetRotation(glm::vec3 Rotation)
+void CameraController::OnEvent(Event& E)
 {
-    m_Rotation      = Rotation;
-    m_ValueModified = true;
+    //switch (Event.GetEventType())
+    //{
+    //     case EventType::eWindowResize:
+    //    {
+    //         auto& E = dynamic_cast<WindowResizeEvent&>(Event);
+    //         Resize(0.f, E.GetWidth(), E.GetHeight(), 0.f);
+    //         break;
+    //     }
+    //}
 }
-void CameraControlle::ApplyRotation(glm::vec3 Rotation)
+
+void CameraController::Left(float Unit)
 {
-    m_Rotation += Rotation;
-    m_ValueModified = true;
+    ApplyTranslation(glm::vec3(Unit, 0.f, 0.f));
+    VT_CORE_TRACE("Translation applied");
 }
-void CameraControlle::ApplyTranslation(glm::vec3 Translation)
+
+void CameraController::Right(float Unit)
 {
-    m_Translation += Translation;
-    m_ValueModified = true;
+    ApplyTranslation(glm::vec3(-Unit, 0.f, 0.f));
+    VT_CORE_TRACE("Translation applied");
 }
+void CameraController::Up(float Unit)
+{
+    ApplyTranslation(glm::vec3(0.f, -Unit, 0.f));
+    VT_CORE_TRACE("Translation applied");
+}
+void CameraController::Down(float Unit)
+{
+    ApplyTranslation(glm::vec3(0.f, Unit, 0.f));
+    VT_CORE_TRACE("Translation applied");
+}
+
+void CameraController::SetTranslation(glm::vec3 XYZ)
+{
+    m_Translation   = XYZ;
+}
+
+void CameraController::SetRotation(glm::vec3 XYZ)
+{
+    m_Rotation      = XYZ;
+}
+void CameraController::ApplyRotation(glm::vec3 XYZ)
+{
+    m_Rotation += XYZ;
+}
+void CameraController::ApplyTranslation(glm::vec3 XYZ)
+{
+    m_Translation += XYZ;
+}
+
 } // namespace VT

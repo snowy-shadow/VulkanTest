@@ -8,11 +8,13 @@ target_sources(${PROJECT_NAME}
 		"Buffer.cppm"
 		Camera.cppm
 		"ProjectionCamera.cppm"
+		CameraController.cppm
 
 	PRIVATE
 		RendererContext.cpp
 		Renderer.cpp
 		"ProjectionCamera.cpp"
+				CameraController.cpp
 )
 
 # add_subdirectory(Resource)

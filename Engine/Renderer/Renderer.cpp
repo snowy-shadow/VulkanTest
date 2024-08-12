@@ -1,6 +1,9 @@
 module;
 #include <memory>
+#include "EngineMacro.h"
 module VT.Renderer;
+
+import VT.Log;
 
 namespace VT
 {
@@ -9,11 +12,11 @@ Renderer::Renderer(GraphicsAPI Type, Shared<Window> Window) : m_API(CreateAPI(Ty
     m_API->Init();
 }
 
-void Renderer::BeginScene() // Shared<Camera> Camera)
+void Renderer::BeginScene() // (Shared<Camera> Camera)
 {
     // (void) Camera;
     m_API->BeginFrame();
-    m_FrameBegan = true;
+    m_FrameBegun = true;
     VT::GeometryRenderData Data {};
 
     m_API->UploadGeometry(Data);
@@ -22,7 +25,7 @@ void Renderer::BeginScene() // Shared<Camera> Camera)
 }
 void Renderer::EndScene()
 {
-    m_FrameBegan = false;
+    m_FrameBegun = false;
     m_API->EndFrame();
 } // m_API->EndScene(); }
 
@@ -31,8 +34,14 @@ Uniq<Texture> Renderer::CreateTexture(const TextureCreateInfo& TextureInfo)
     return m_API->CreateTexture(TextureInfo);
 }
 
-void Renderer::BeginRenderPass() { VT_CORE_ASSERT(m_FrameBegun, "No frame in progress") }
-void Renderer::EndRenderPass() void Renderer::BeginRenderPass() { VT_CORE_ASSERT(m_FrameBegun, "No frame in progress") }
+void Renderer::UploadView(UniformCameraData Data) { m_API->UploadView(Data); }
+
+void Renderer::UploadGeometry(GeometryRenderData Data) {
+    m_API->UploadGeometry(Data);
+}
+
+void Renderer::BeginRenderPass() { VT_CORE_ASSERT(m_FrameBegun, "No frame in progress"); }
+void Renderer::EndRenderPass() {}
 
 void Renderer::Submit() {}
 
@@ -42,8 +51,8 @@ void Renderer::OnEvent(Event& E) { return m_API->OnEvent(E); }
 
 void Renderer::SetRendererAPI(GraphicsAPI Type, Shared<Window> Window) { m_API = CreateAPI(Type, std::move(Window)); }
 
-Uniq<RendererContext> Renderer::CreateAPI(GraphicsAPI Type, Shared<Window> Window)
+Uniq<RendererContext> inline Renderer::CreateAPI(GraphicsAPI Type, Shared<Window> Window)
 {
     return Uniq<RendererContext>(RendererContext::Create(Type, std::move(Window)));
-} // namespace VT
+}
 } // namespace VT

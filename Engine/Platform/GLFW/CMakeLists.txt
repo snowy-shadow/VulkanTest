@@ -3,6 +3,7 @@ target_sources(${PROJECT_NAME}
 	FILE_SET CXX_MODULES
 	FILES
 		Input.cppm
+		Key.cppm
 	PRIVATE
 		Input.cpp
 )

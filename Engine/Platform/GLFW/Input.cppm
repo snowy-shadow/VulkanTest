@@ -13,9 +13,9 @@ class Input final : public VT::Input
 public:
     Input(void* Window);
 
-    bool IsKeyPressed(int KeyCode) override;
-    bool IsMouseButtonPressed(int Button) override;
-    std::pair<float, float> GetMouseXY() override;
+    bool IsKeyPressed(Key KeyCode) const override;
+    bool IsMouseButtonPressed(Key Button) const override;
+    std::pair<float, float> GetMouseXY() const override;
 
 private:
     GLFWwindow* m_Window;

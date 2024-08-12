@@ -12,10 +12,13 @@ public:
 private:
     bool OnWindowClose(VT::WindowCloseEvent&);
 
+    void OnUpdate(const VT::Timestep& Ts);
+
 private:
     VT::Shared<VT::Window> m_Window;
     VT::Uniq<VT::Input> m_Input;
     VT::Uniq<VT::ProjectionCamera> m_Camera;
+    VT::Uniq<VT::CameraController> m_CameraController;
 
     VT::Uniq<VT::Renderer> m_Renderer;
 

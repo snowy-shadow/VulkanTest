@@ -18,7 +18,7 @@ import VT.ProjectionCamera;
 namespace VT::Vulkan
 {
 RendererContext::RendererContext(Shared<Window> Window) :
-    m_Window(Window), m_Camera(new ProjectionCamera(0, m_Window->GetWidth(), 0, m_Window->GetHeight()))
+    m_Window(Window)
 {
 }
 
@@ -177,8 +177,6 @@ void RendererContext::OnUpdate(const Timestep& Time) { m_DeltaTime = Time; }
 
 void RendererContext::OnEvent(Event& Event)
 {
-    m_Camera->OnEvent(Event);
-
     switch (Event.GetEventType())
     {
         case EventType::eWindowResize:
@@ -188,19 +186,13 @@ void RendererContext::OnEvent(Event& Event)
             Resize(Dimension[0], Dimension[1]);
             break;
         }
-        case EventType::eKeyPress:
-        {
-            const auto D = m_Camera->GetTransform();
-            UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
-            UploadView(Data);
-        }
-        break;
-        case EventType::eMouseMove:
-        {
-            // m_TriangleShader.UploadUniform(m_Camera->GetTransform());
-        }
-        break;
-
+        //case EventType::eKeyPress:
+        //{
+        //    const auto D = m_Camera->GetTransform();
+        //    UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
+        //    UploadView(Data);
+        //}
+        //break;
         default:
             break;
     }
@@ -576,10 +568,6 @@ void RendererContext::Init()
             // Free the command buffer.
             LogicalDevice.freeCommandBuffers(m_CmdPool, CmdBuffer);
         }*/
-
-        const auto D = m_Camera->GetTransform();
-        UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
-        m_TriangleShader.UploadCameraView(Data);
     }
 
     VT_CORE_TRACE("Graphics Pipline Created");
@@ -608,12 +596,6 @@ void RendererContext::Resize(uint32_t Width, uint32_t Height)
 
     DestroyResources();
     CreateResources();
-
-    m_Camera->Resize(0, Width, 0, Height);
-
-    const auto D = m_Camera->GetTransform();
-    UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
-    m_TriangleShader.UploadCameraView(Data);
 }
 
 void RendererContext::UploadData(
