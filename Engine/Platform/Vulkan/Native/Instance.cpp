@@ -55,8 +55,6 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
     void* pUserData)
 {
     reinterpret_cast<Log*>(pUserData)->CoreLogger->error(
-        "Message ID : {0}\n Message : {1}",
-        pCallbackData->pMessageIdName,
         pCallbackData->pMessage);
 
     return vk::False;

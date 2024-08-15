@@ -82,8 +82,8 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
     {
         constexpr uint32_t LocalSamplerCount = 1;
 
-        std::array<vk::DescriptorType, MaxObjectDescriptor> DescriptorType {vk::DescriptorType::eUniformBuffer,
-                                                                            vk::DescriptorType::eCombinedImageSampler};
+        std::array<vk::DescriptorType, ObjectShaderDescriptorCount> DescriptorType {
+            vk::DescriptorType::eUniformBuffer, vk::DescriptorType::eCombinedImageSampler};
 
         std::array<vk::DescriptorSetLayoutBinding, ObjectShaderDescriptorCount> DescriptorLayoutBindings;
 
@@ -105,7 +105,6 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
         VK_CHECK(Result, vk::Result::eSuccess, "Failed to create descriptor set layout");
 
         std::array<vk::DescriptorPoolSize, 2> PoolSize;
-
         PoolSize[0].type            = vk::DescriptorType::eUniformBuffer;
         PoolSize[0].descriptorCount = MaxObjectDescriptor;
 
@@ -130,6 +129,19 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
                                       vk::MemoryPropertyFlagBits::eHostVisible |
                                           vk::MemoryPropertyFlagBits::eHostCoherent |
                                           vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+        // TODO : Remove temp descriptor allocation
+
+        // Allocate descriptor set
+        vk::DescriptorSetLayout pDescriptorSetLayout[] {m_ObjectDescriptorLayout, m_ObjectDescriptorLayout};
+        vk::DescriptorSetAllocateInfo DescriptorSetAllocInfo {
+            .descriptorPool     = m_ObjectDescriptorPool,
+            .descriptorSetCount = ObjectShaderDescriptorCount,
+            .pSetLayouts        = pDescriptorSetLayout,
+        };
+
+        std::tie(Result, m_ObjectState[0].DescriptorSet) = LogicalDevice.allocateDescriptorSets(DescriptorSetAllocInfo);
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to allocate descriptor set");
     }
 
     // Push constant
@@ -217,20 +229,22 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
 }
 void Shader::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint)
 {
-    if (m_bDescriptorRebind)
-    {
+   /* if (m_bDescriptorRebind)
+    {*/
         CommandBuffer.bindDescriptorSets(
             vk::PipelineBindPoint::eGraphics, m_Pipeline.m_Layout, 0, m_DescriptorSet[m_CurrentDescriptorSet], nullptr);
-        m_bDescriptorRebind = false;
-    }
-
+        //m_bDescriptorRebind = false;
+    //}
+        int i = 0;
+        CommandBuffer.pushConstants(
+            m_Pipeline.m_Layout, vk::ShaderStageFlagBits::eVertex, 0, 4, &i);
     m_Pipeline.Bind(CommandBuffer, BindPoint);
 }
 void Shader::UploadCameraView(const UniformCameraData& Data)
 {
     m_CurrentDescriptorSet = (m_CurrentDescriptorSet + 1) % m_DescriptorSet.size();
 
-    VT_CORE_INFO("Projection {}\n View {}", glm::to_string(Data.ProjectionMatrix), glm::to_string(Data.ViewMatrix));
+    // VT_CORE_INFO("Projection {}\n View {}", glm::to_string(Data.ProjectionMatrix), glm::to_string(Data.ViewMatrix));
 
     uint32_t DataSize = sizeof(Data);
     uint32_t Offset   = 0;
@@ -252,14 +266,15 @@ void Shader::UploadCameraView(const UniformCameraData& Data)
         .pBufferInfo     = &BufferInfo,
     };
 
+    // TODO : Fix this!!!!
+    m_LogicalDevice.waitIdle();
+
     m_LogicalDevice.updateDescriptorSets(1, &WriteDescriptorSet, 0, nullptr);
     m_bDescriptorRebind = true;
 }
-void Shader::UploadGeometry(const GeometryRenderData& Data,
-                                vk::CommandBuffer CmdBuffer,
-                                const Timestep& Timestep)
+void Shader::UploadGeometry(const GeometryRenderData& Data, vk::CommandBuffer CmdBuffer, const Timestep& Timestep)
 {
-    CmdBuffer.pushConstants(m_Pipeline.m_Layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(Data.Model), &Data.Model);
+    
 
     ObjectState& Obj = m_ObjectState[Data.ID];
 
@@ -277,7 +292,7 @@ void Shader::UploadGeometry(const GeometryRenderData& Data,
     // If descriptor have not been written
     if (Obj.CurrentDescriptorIndex == InvalidID)
     {
-        std::vector<vk::WriteDescriptorSet> WriteDescriptorSet;
+        Obj.CurrentDescriptorIndex = 0;
         vk::DescriptorSet ObjectDS = Obj.DescriptorSet[Obj.CurrentDescriptorIndex];
         vk::DescriptorBufferInfo BufferInfo {.buffer = m_ObjectUniformBuffer.Buffer, .offset = Offset, .range = Size};
 
@@ -288,14 +303,17 @@ void Shader::UploadGeometry(const GeometryRenderData& Data,
             .descriptorType  = vk::DescriptorType::eUniformBuffer,
             .pBufferInfo     = &BufferInfo,
         };
+        vk::WriteDescriptorSet WriteDescriptor2 {
+            .dstSet          = Obj.DescriptorSet[1],
+            .dstBinding      = 0,
+            .descriptorCount = 1,
+            .descriptorType  = vk::DescriptorType::eUniformBuffer,
+            .pBufferInfo     = &BufferInfo,
+        };
 
-        WriteDescriptorSet.push_back(WriteDescriptor);
-        m_LogicalDevice.updateDescriptorSets(WriteDescriptorSet, nullptr);
+        m_LogicalDevice.updateDescriptorSets({WriteDescriptor, WriteDescriptor2}, nullptr);
 
-        CmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_Pipeline.m_Layout, 0, ObjectDS, nullptr);
-        Obj.CurrentDescriptorIndex = 0;
     }
-
     // constexpr uint32_t SamplerCount = 1;
 
     // vk::DescriptorImageInfo ImageInfo;
@@ -307,6 +325,13 @@ void Shader::UploadGeometry(const GeometryRenderData& Data,
 
     //
     //}
+    // Bind the descriptor set to be updated, or in case the shader changed.
+    CmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                 m_Pipeline.m_Layout,
+                                 1,
+                                 Obj.DescriptorSet[Obj.CurrentDescriptorIndex],
+                                 nullptr);
+ Obj.CurrentDescriptorIndex = (Obj.CurrentDescriptorIndex + 1) % Obj.DescriptorSet.size();
 }
 uint32_t Shader::CreateObject()
 {

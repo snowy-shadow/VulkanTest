@@ -17,9 +17,21 @@ void Renderer::BeginScene() // (Shared<Camera> Camera)
     // (void) Camera;
     m_API->BeginFrame();
     m_FrameBegun = true;
-    VT::GeometryRenderData Data {};
 
-    m_API->UploadGeometry(Data);
+    static int i = 0;
+
+    if (i == 3)
+    {
+        VT::GeometryRenderData Data {};
+        Data.ID = 0;
+
+        m_API->UploadGeometry(Data);
+        i = 0;
+    }
+    else
+    {
+        i++;
+    }
 
     // m_API->BeginScene(Camera);
 }

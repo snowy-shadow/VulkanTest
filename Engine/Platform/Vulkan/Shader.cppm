@@ -28,7 +28,7 @@ struct DescriptorState
 struct ObjectState
 {
     std::vector<vk::DescriptorSet> DescriptorSet;
-    ID CurrentDescriptorIndex = InvalidID;
+    ID CurrentDescriptorIndex = 0;
     DescriptorState State[ObjectShaderDescriptorCount];
 };
 } // namespace VT::Vulkan
