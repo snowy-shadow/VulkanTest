@@ -18,21 +18,6 @@ void Renderer::BeginScene() // (Shared<Camera> Camera)
     m_API->BeginFrame();
     m_FrameBegun = true;
 
-    static int i = 0;
-
-    if (i == 3)
-    {
-        VT::GeometryRenderData Data {};
-        Data.ID = 0;
-
-        m_API->UploadGeometry(Data);
-        i = 0;
-    }
-    else
-    {
-        i++;
-    }
-
     // m_API->BeginScene(Camera);
 }
 void Renderer::EndScene()
@@ -41,16 +26,11 @@ void Renderer::EndScene()
     m_API->EndFrame();
 } // m_API->EndScene(); }
 
-Uniq<Texture> Renderer::CreateTexture(const TextureCreateInfo& TextureInfo)
-{
-    return m_API->CreateTexture(TextureInfo);
-}
+Texture* Renderer::CreateTexture(const TextureCreateInfo& TextureInfo) { return m_API->CreateTexture(TextureInfo); }
 
 void Renderer::UploadView(UniformCameraData Data) { m_API->UploadView(Data); }
 
-void Renderer::UploadGeometry(GeometryRenderData Data) {
-    m_API->UploadGeometry(Data);
-}
+void Renderer::UploadGeometry(GeometryRenderData Data) { m_API->UploadGeometry(Data); }
 
 void Renderer::BeginRenderPass() { VT_CORE_ASSERT(m_FrameBegun, "No frame in progress"); }
 void Renderer::EndRenderPass() {}

@@ -1,3 +1,5 @@
+module;
+#include <array>
 export module Application;
 import VulkanTest;
 
@@ -8,6 +10,8 @@ public:
     void Run();
 
     void OnEvent(VT::Event& E);
+
+    ~Application();
 
 private:
     bool OnWindowClose(VT::WindowCloseEvent&);
@@ -21,6 +25,11 @@ private:
     VT::Uniq<VT::CameraController> m_CameraController;
 
     VT::Uniq<VT::Renderer> m_Renderer;
+
+    std::array<VT::Texture*, 3> m_Textures;
+    uint32_t m_CurrentTexture = 0;
+    bool TextureSwitch        = true;
+
 
     VT::LayerStack m_LayerStack;
     VT::Timepoint m_TimePoint;

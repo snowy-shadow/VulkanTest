@@ -3,6 +3,7 @@ module;
 export module VT.RendererContext;
 
 import VT.RendererType;
+import VT.Texture;
 import VT.Event;
 import VT.Window;
 import VT.Util;
@@ -18,7 +19,7 @@ public:
     virtual bool BeginFrame() = 0;
     virtual bool EndFrame() = 0;
 
-    virtual Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo) = 0;
+    virtual Texture* CreateTexture(const TextureCreateInfo& TextureInfo) = 0;
     virtual void UploadView(UniformCameraData Data)                           = 0;
     virtual void UploadGeometry(GeometryRenderData Data)                      = 0;
 

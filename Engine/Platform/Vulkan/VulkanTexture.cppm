@@ -2,9 +2,10 @@ module;
 #include "Vulkan.h"
 export module VT.Platform.Vulkan.Texture;
 
-import VT.RendererType;
-import VT.Platform.Vulkan.Image;
 import VT.Camera;
+import VT.Texture;
+import VT.Platform.Vulkan.Image;
+import VT.Platform.Vulkan.Buffer;
 
 export namespace VT::Vulkan
 {
@@ -19,15 +20,23 @@ public:
      * @param Device Logical device
      */
     VulkanTexture(const TextureCreateInfo& TextureInfo,
-                const vk::PhysicalDeviceMemoryProperties& MemProperties,
-                vk::CommandBuffer CmdBuffer,
-                vk::Device Device);
+                  const vk::PhysicalDeviceMemoryProperties& MemProperties,
+                  vk::CommandBuffer CmdBuffer,
+                  vk::Device Device);
+
+    // Free redundant resources after constructor
+    void Trim();
 
     virtual ~VulkanTexture() override;
 
 public:
     VulkanImage Image;
     vk::Sampler Sampler;
+
+    // FIX : Remove hack
+    VulkanBuffer ImageBuffer;
+
+    // Handle
     vk::Device LogicalDevice;
 };
 } // namespace VT::Vulkan

@@ -157,16 +157,19 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
     }
 
     // Output error if compilation failed
+#ifdef VT_ENABLE_DEBUG
     if (FAILED(HRes) && CompileResult)
     {
         CComPtr<IDxcBlobEncoding> Error;
         HRes = CompileResult->GetErrorBuffer(&Error);
-
+      
         if (SUCCEEDED(HRes) && Error)
         {
-            VT_CORE_ERROR("HLSL Shader Compilation failed : {}", static_cast<const char*>(Error->GetBufferPointer()));
+            VT_CORE_CRITICAL(static_cast<const char*>(Error->GetBufferPointer()));
         }
+        VT_CORE_HALT("Shader compilation failed : {}", Src.string());
     }
+#endif
 
     // get spirv
     CComPtr<IDxcBlob> ShaderByteCode;

@@ -1,9 +1,24 @@
 # shared library
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
+target_compile_definitions(${PROJECT_NAME}
+	PRIVATE
+        SPDLOG_USE_STD_FORMAT
+
+		GLFW_INCLUDE_NONE
+		GLFW_INCLUDE_VULKAN
+)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 # spdlog
 set(SPDLOG_BUILD_EXAMPLE OFF)
 set(SPDLOG_BUILD_EXAMPLE_HO OFF)
+set(SPDLOG_FMT_EXTERNAL OFF)
+set(SPDLOG_FMT_EXTERNAL_HO OFF)
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(spdlog)
 

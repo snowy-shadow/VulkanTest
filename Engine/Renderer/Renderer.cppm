@@ -3,6 +3,7 @@ module;
 export module VT.Renderer;
 
 import VT.RendererType;
+import VT.Texture;
 import VT.RendererContext;
 import VT.Window;
 import VT.Event;
@@ -27,7 +28,7 @@ public:
 
     VT_ENGINE_EXPORT void UploadGeometry(GeometryRenderData Data);
    
-    VT_ENGINE_EXPORT Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo);
+    VT_ENGINE_EXPORT Texture* CreateTexture(const TextureCreateInfo& TextureInfo);
 
     VT_ENGINE_EXPORT void Submit();
 

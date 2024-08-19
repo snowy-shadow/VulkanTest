@@ -3,6 +3,6 @@
 	FILE_SET CXX_MODULES
 	FILES
 		Util.cppm
-)
+ "Function.cppm")
 
 add_subdirectory(DataStructure)

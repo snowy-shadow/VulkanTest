@@ -12,6 +12,7 @@ export import VT.Layer;
 export import VT.LayerStack;
 export import VT.Renderer;
 export import VT.RendererType;
+export import VT.Texture;
 export import VT.RendererContext;
 export import VT.Buffer;
 // export import VT.ShaderCompiler;

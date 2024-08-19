@@ -15,7 +15,7 @@ class VT_ENGINE_EXPORT CameraController
 {
 public:
     void BindInput(const Input* Input);
-    void OnUpdate(Timestep Ts);
+    bool OnUpdate(Timestep Ts);
     void OnEvent(Event& E);
 
     void Left(float Unit);

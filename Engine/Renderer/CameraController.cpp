@@ -9,79 +9,56 @@ namespace VT
 {
 void CameraController::BindInput(const Input* Input) { m_Input = Input; }
 
-void CameraController::OnUpdate(Timestep Ts)
+bool CameraController::OnUpdate(Timestep Ts)
 {
+    bool Updated = false;
     if (m_Input->IsKeyPressed(Key::W))
     {
-        Up(static_cast<float>(Ts.Second()) * 0.5f);
+        Up(static_cast<float>(Ts.Second()));
+        Updated = true;
     }
     if (m_Input->IsKeyPressed(Key::S))
     {
-        Down(static_cast<float>(Ts.Second()) * 0.5f);
+        Down(static_cast<float>(Ts.Second()));
+        Updated = true;
     }
 
     if (m_Input->IsKeyPressed(Key::A))
     {
-        Left(static_cast<float>(Ts.Second()) * 0.5f);
+        Left(static_cast<float>(Ts.Second()));
+        Updated = true;
     }
     if (m_Input->IsKeyPressed(Key::D))
     {
-
-        Right(static_cast<float>(Ts.Second()) * 0.5f);
+        Right(static_cast<float>(Ts.Second()));
+        Updated = true;
     }
+    return Updated;
 }
 
 void CameraController::OnEvent(Event& E)
 {
-    //switch (Event.GetEventType())
+    // switch (Event.GetEventType())
     //{
-    //     case EventType::eWindowResize:
-    //    {
-    //         auto& E = dynamic_cast<WindowResizeEvent&>(Event);
-    //         Resize(0.f, E.GetWidth(), E.GetHeight(), 0.f);
-    //         break;
-    //     }
-    //}
+    //      case EventType::eWindowResize:
+    //     {
+    //          auto& E = dynamic_cast<WindowResizeEvent&>(Event);
+    //          Resize(0.f, E.GetWidth(), E.GetHeight(), 0.f);
+    //          break;
+    //      }
+    // }
 }
 
-void CameraController::Left(float Unit)
-{
-    ApplyTranslation(glm::vec3(Unit, 0.f, 0.f));
-    VT_CORE_TRACE("Translation applied");
-}
+void CameraController::Left(float Unit) { ApplyTranslation(glm::vec3(Unit, 0.f, 0.f)); }
 
-void CameraController::Right(float Unit)
-{
-    ApplyTranslation(glm::vec3(-Unit, 0.f, 0.f));
-    VT_CORE_TRACE("Translation applied");
-}
-void CameraController::Up(float Unit)
-{
-    ApplyTranslation(glm::vec3(0.f, -Unit, 0.f));
-    VT_CORE_TRACE("Translation applied");
-}
-void CameraController::Down(float Unit)
-{
-    ApplyTranslation(glm::vec3(0.f, Unit, 0.f));
-    VT_CORE_TRACE("Translation applied");
-}
+void CameraController::Right(float Unit) { ApplyTranslation(glm::vec3(-Unit, 0.f, 0.f)); }
+void CameraController::Up(float Unit) { ApplyTranslation(glm::vec3(0.f, -Unit, 0.f)); }
+void CameraController::Down(float Unit) { ApplyTranslation(glm::vec3(0.f, Unit, 0.f)); }
 
-void CameraController::SetTranslation(glm::vec3 XYZ)
-{
-    m_Translation   = XYZ;
-}
+void CameraController::SetTranslation(glm::vec3 XYZ) { m_Translation = XYZ; }
 
-void CameraController::SetRotation(glm::vec3 XYZ)
-{
-    m_Rotation      = XYZ;
-}
-void CameraController::ApplyRotation(glm::vec3 XYZ)
-{
-    m_Rotation += XYZ;
-}
-void CameraController::ApplyTranslation(glm::vec3 XYZ)
-{
-    m_Translation += XYZ;
-}
+void CameraController::SetRotation(glm::vec3 XYZ) { m_Rotation = XYZ; }
+void CameraController::ApplyRotation(glm::vec3 XYZ) { m_Rotation += XYZ; }
+void CameraController::ApplyTranslation(glm::vec3 XYZ) { m_Translation += XYZ; }
 
 } // namespace VT

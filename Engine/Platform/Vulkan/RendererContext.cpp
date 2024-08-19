@@ -17,10 +17,7 @@ import VT.ProjectionCamera;
 
 namespace VT::Vulkan
 {
-RendererContext::RendererContext(Shared<Window> Window) :
-    m_Window(Window)
-{
-}
+RendererContext::RendererContext(Shared<Window> Window) : m_Window(Window) {}
 
 bool RendererContext::BeginFrame()
 {
@@ -80,12 +77,6 @@ bool RendererContext::BeginFrame()
         (void) m_RenderPass.Begin(CmdBuffer, m_FrameBuffer[ImageIndex].Get(), Scissor, ClearColor);
     }
 
-    m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
-
-    vk::Buffer VertexBuffer = m_VertexBuffer.Buffer;
-    vk::DeviceSize VertexBufferOffsetSize[] {0};
-    CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
-    CmdBuffer.bindIndexBuffer(m_IndexBuffer.Buffer, 0, vk::IndexType::eUint32);
 
     return true;
 }
@@ -93,6 +84,14 @@ bool RendererContext::BeginFrame()
 bool RendererContext::EndFrame()
 {
     vk::CommandBuffer& CmdBuffer = m_DrawBuffer[m_CurrentFrameCount];
+
+    m_TriangleShader.Bind(CmdBuffer, vk::PipelineBindPoint::eGraphics);
+
+    vk::Buffer VertexBuffer = m_VertexBuffer.Buffer;
+    vk::DeviceSize VertexBufferOffsetSize[] {0};
+    CmdBuffer.bindVertexBuffers(0, 1, &VertexBuffer, VertexBufferOffsetSize);
+    CmdBuffer.bindIndexBuffer(m_IndexBuffer.Buffer, 0, vk::IndexType::eUint32);
+
 
     // Draw
     CmdBuffer.drawIndexed(6, 1, 0, 0, 0);
@@ -153,7 +152,7 @@ bool RendererContext::EndFrame()
     return true;
 }
 
-Uniq<Texture> RendererContext::CreateTexture(const TextureCreateInfo& TextureInfo)
+Texture* RendererContext::CreateTexture(const TextureCreateInfo& TextureInfo)
 {
     const auto LogicalDevice = m_LogicalDevice.Get();
     auto CmdBuffer           = VulkanBuffer::BeginSingleTimeCommand(m_CmdPool, LogicalDevice);
@@ -162,8 +161,8 @@ Uniq<Texture> RendererContext::CreateTexture(const TextureCreateInfo& TextureInf
         new VulkanTexture(TextureInfo, m_PhysicalDevice.Get().getMemoryProperties(), CmdBuffer, LogicalDevice);
 
     VulkanBuffer::EndSingleTimeCommand(CmdBuffer, m_CmdPool, m_GraphicQ, LogicalDevice);
-
-    return Uniq<Texture>(TextureObj);
+    TextureObj->Trim();
+    return TextureObj;
 }
 
 void RendererContext::UploadView(UniformCameraData Data) { m_TriangleShader.UploadCameraView(Data); }
@@ -186,13 +185,13 @@ void RendererContext::OnEvent(Event& Event)
             Resize(Dimension[0], Dimension[1]);
             break;
         }
-        //case EventType::eKeyPress:
+        // case EventType::eKeyPress:
         //{
-        //    const auto D = m_Camera->GetTransform();
-        //    UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
-        //    UploadView(Data);
-        //}
-        //break;
+        //     const auto D = m_Camera->GetTransform();
+        //     UniformCameraData Data {.ProjectionMatrix = D.ProjectionMatrix, .ViewMatrix = D.ViewMatrix};
+        //     UploadView(Data);
+        // }
+        // break;
         default:
             break;
     }
@@ -297,7 +296,7 @@ void RendererContext::Init()
         }
 
         // create device;
-        m_LogicalDevice.Init(m_PhysicalDevice.CreateLogicalDevice(DeviceExtension));
+        m_LogicalDevice.Init(m_PhysicalDevice.CreateLogicalDevice(DeviceExtension, {.samplerAnisotropy = vk::True}));
     }
 
     VT_CORE_TRACE("Vulkan Logical Device created");
@@ -391,21 +390,21 @@ void RendererContext::Init()
         // FIX : Renderpass should reference swapchain images
         std::vector<vk::AttachmentDescription> Attachment {
             {{.format         = m_Swapchain.GetInfo().imageFormat,
-              .samples        = vk::SampleCountFlagBits::e1,
-              .loadOp         = vk::AttachmentLoadOp::eClear,
-              .storeOp        = vk::AttachmentStoreOp::eStore,
-              .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
-              .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-              .initialLayout  = vk::ImageLayout::eUndefined,
-              .finalLayout    = vk::ImageLayout::ePresentSrcKHR},
+.samples        = vk::SampleCountFlagBits::e1,
+.loadOp         = vk::AttachmentLoadOp::eClear,
+.storeOp        = vk::AttachmentStoreOp::eStore,
+.stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+.stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+.initialLayout  = vk::ImageLayout::eUndefined,
+.finalLayout    = vk::ImageLayout::ePresentSrcKHR},
              {.format         = DepthFormat,
-              .samples        = vk::SampleCountFlagBits::e1,
-              .loadOp         = vk::AttachmentLoadOp::eClear,
-              .storeOp        = vk::AttachmentStoreOp::eDontCare,
-              .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
-              .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
-              .initialLayout  = vk::ImageLayout::eUndefined,
-              .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal}}
+             .samples        = vk::SampleCountFlagBits::e1,
+             .loadOp         = vk::AttachmentLoadOp::eClear,
+             .storeOp        = vk::AttachmentStoreOp::eDontCare,
+             .stencilLoadOp  = vk::AttachmentLoadOp::eDontCare,
+             .stencilStoreOp = vk::AttachmentStoreOp::eDontCare,
+             .initialLayout  = vk::ImageLayout::eUndefined,
+             .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal}}
         };
 
         std::vector<vk::AttachmentReference> ColorAttachmentReference {
@@ -444,20 +443,26 @@ void RendererContext::Init()
      * =====================================
      */
 
-    BufferLayout VertexLayout {ShaderDataType::eFloat2, ShaderDataType::eFloat3};
+
+    // XYZ, Texture coordinates
+    BufferLayout VertexLayout {ShaderDataType::eFloat3, ShaderDataType::eFloat2};
     BufferLayout IndexLayout {ShaderDataType::eInt};
     {
         const auto PD_MemProperty = m_PhysicalDevice.Get().getMemoryProperties();
 
         std::vector<std::array<float, 5>> VertexData {
-            {{0.0f, -0.5f, 1.0f, 0.0f, 0.0f},
-             {0.5f, 0.5f, 0.0f, 1.0f, 0.0f},
-             {0.0f, 0.5f, 1.0f, 0.0f, 0.0f},
-             {0.5f, -0.5f, 0.0f, 0.0f, 1.0f}}
+            {// top left
+            {0.f, -0.5f, -1.5f, 0.f, 0.f},
+             // top right
+             {0.5f, -0.5f, -1.5f, 1.f, 0.f},
+             // bottom right
+             {0.5f, 0.5f, -1.5f, 1.f, 1.f},
+             // bottom left
+             {0.f, 0.5f, -1.5f, 0.f, 1.f}}
         };
 
         // drawing clockwise
-        std::vector IndexData {0, 1, 2, 0, 3, 1};
+        std::vector IndexData {0, 1, 2, 2, 3, 0};
 
         vk::BufferCreateInfo VertexBufferInfo {.size  = VertexLayout.GetStride() * VertexData.size(),
                                                .usage = vk::BufferUsageFlagBits::eVertexBuffer |

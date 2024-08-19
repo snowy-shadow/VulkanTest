@@ -5,6 +5,8 @@ module;
 #include <glm/glm.hpp>
 export module VT.RendererType;
 
+import VT.Texture;
+
 export namespace VT
 {
 using ID                             = uint32_t;
@@ -16,31 +18,6 @@ enum class VT_ENGINE_EXPORT GraphicsAPI
 {
     eNone,
     eVulkan
-};
-
-struct VT_ENGINE_EXPORT TextureCreateInfo
-{
-    ID ID;
-    uint32_t Width;
-    uint32_t Height;
-    uint32_t ChannelCount;
-    uint32_t Generation;
-    uint32_t DataSize;
-    void* pData;
-    bool Transparent;
-};
-
-class VT_ENGINE_EXPORT Texture
-{
-public:
-    ID ID;
-    uint32_t Width;
-    uint32_t Height;
-    uint32_t ChannelCount;
-    uint32_t Generation;
-    bool Transparent;
-
-    virtual ~Texture() = default;
 };
 
 struct VT_ENGINE_EXPORT RenderPacket
@@ -63,7 +40,7 @@ struct VT_ENGINE_EXPORT GeometryRenderData
     ID ID;
     glm::mat4 Model;
     uint32_t TextureCount;
-    Texture* pTextures;
+    Texture** pTexture;
 };
 
 } // namespace VT

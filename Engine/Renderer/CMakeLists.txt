@@ -9,6 +9,7 @@ target_sources(${PROJECT_NAME}
 		Camera.cppm
 		"ProjectionCamera.cppm"
 		CameraController.cppm
+		 "Texture.cppm"
 
 	PRIVATE
 		RendererContext.cpp

@@ -37,7 +37,7 @@ public:
     virtual bool BeginFrame() override;
     virtual bool EndFrame() override;
 
-    virtual Uniq<Texture> CreateTexture(const TextureCreateInfo& TextureInfo) override;
+    virtual Texture* CreateTexture(const TextureCreateInfo& TextureInfo) override;
     virtual void UploadView(UniformCameraData Data) override;
     virtual void UploadGeometry(GeometryRenderData Data) override;
 

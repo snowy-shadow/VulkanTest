@@ -5,6 +5,7 @@ module;
 #include <glm/gtx/string_cast.hpp>
 module VT.Platform.Vulkan.Shader;
 import VT.Log;
+import VT.Platform.Vulkan.Texture;
 
 namespace VT::Vulkan
 {
@@ -229,22 +230,26 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
 }
 void Shader::Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint)
 {
-   /* if (m_bDescriptorRebind)
-    {*/
-        CommandBuffer.bindDescriptorSets(
-            vk::PipelineBindPoint::eGraphics, m_Pipeline.m_Layout, 0, m_DescriptorSet[m_CurrentDescriptorSet], nullptr);
-        //m_bDescriptorRebind = false;
+    /* if (m_bDescriptorRebind)
+     {*/
+    CommandBuffer.bindDescriptorSets(
+        vk::PipelineBindPoint::eGraphics, m_Pipeline.m_Layout, 0, m_DescriptorSet[m_CurrentDescriptorSet], nullptr);
+
+    CommandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
+                                     m_Pipeline.m_Layout,
+                                     1,
+                                     m_ObjectState[0].DescriptorSet[m_ObjectState[0].CurrentDescriptorIndex],
+                                     nullptr);
+    // m_bDescriptorRebind = false;
     //}
-        int i = 0;
-        CommandBuffer.pushConstants(
-            m_Pipeline.m_Layout, vk::ShaderStageFlagBits::eVertex, 0, 4, &i);
+    glm::mat4 Identity = {1.f};
+    // VT_CORE_INFO("Model{}", glm::to_string(Identity));
+    CommandBuffer.pushConstants(m_Pipeline.m_Layout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::mat4), &Identity);
     m_Pipeline.Bind(CommandBuffer, BindPoint);
 }
 void Shader::UploadCameraView(const UniformCameraData& Data)
 {
     m_CurrentDescriptorSet = (m_CurrentDescriptorSet + 1) % m_DescriptorSet.size();
-
-    // VT_CORE_INFO("Projection {}\n View {}", glm::to_string(Data.ProjectionMatrix), glm::to_string(Data.ViewMatrix));
 
     uint32_t DataSize = sizeof(Data);
     uint32_t Offset   = 0;
@@ -266,72 +271,53 @@ void Shader::UploadCameraView(const UniformCameraData& Data)
         .pBufferInfo     = &BufferInfo,
     };
 
-    // TODO : Fix this!!!!
-    m_LogicalDevice.waitIdle();
-
     m_LogicalDevice.updateDescriptorSets(1, &WriteDescriptorSet, 0, nullptr);
     m_bDescriptorRebind = true;
 }
 void Shader::UploadGeometry(const GeometryRenderData& Data, vk::CommandBuffer CmdBuffer, const Timestep& Timestep)
 {
-    
-
-    ObjectState& Obj = m_ObjectState[Data.ID];
+    ObjectState& Obj = m_ObjectState[0];
 
     uint32_t Size   = sizeof(UniformObjectData);
-    uint32_t Offset = sizeof(UniformObjectData) * Data.ID;
+    uint32_t Offset = 0;
     UniformObjectData UniformObject;
 
     static float Accumulator = 0.f;
-    Accumulator += Timestep.MilliSecond();
-    float S                    = std::sin(Accumulator + 1.f) / 2.f;
+    Accumulator += Timestep.Second();
+    float S                    = (std::sin(Accumulator) + 1.f) / 2.f;
     UniformObject.DiffuseColor = glm::vec4(S, S, S, 1.f);
 
     m_ObjectUniformBuffer.LoadData(&UniformObject, Size, Offset);
 
     // If descriptor have not been written
-    if (Obj.CurrentDescriptorIndex == InvalidID)
+    if (Data.ID == 2)
     {
-        Obj.CurrentDescriptorIndex = 0;
+        Obj.CurrentDescriptorIndex = (Obj.CurrentDescriptorIndex + 1) % Obj.DescriptorSet.size();
         vk::DescriptorSet ObjectDS = Obj.DescriptorSet[Obj.CurrentDescriptorIndex];
         vk::DescriptorBufferInfo BufferInfo {.buffer = m_ObjectUniformBuffer.Buffer, .offset = Offset, .range = Size};
 
-        vk::WriteDescriptorSet WriteDescriptor {
-            .dstSet          = ObjectDS,
-            .dstBinding      = 0,
-            .descriptorCount = 1,
-            .descriptorType  = vk::DescriptorType::eUniformBuffer,
-            .pBufferInfo     = &BufferInfo,
-        };
-        vk::WriteDescriptorSet WriteDescriptor2 {
-            .dstSet          = Obj.DescriptorSet[1],
-            .dstBinding      = 0,
-            .descriptorCount = 1,
-            .descriptorType  = vk::DescriptorType::eUniformBuffer,
-            .pBufferInfo     = &BufferInfo,
-        };
+        vk::WriteDescriptorSet UBO_Descriptor {.dstSet          = ObjectDS,
+                                               .dstBinding      = 0,
+                                               .descriptorCount = 1,
+                                               .descriptorType  = vk::DescriptorType::eUniformBuffer,
+                                               .pBufferInfo     = &BufferInfo};
 
-        m_LogicalDevice.updateDescriptorSets({WriteDescriptor, WriteDescriptor2}, nullptr);
+        VulkanTexture* Tex = dynamic_cast<VulkanTexture*>(Data.pTexture[0]);
+        vk::DescriptorImageInfo ImageInfo {.sampler     = Tex->Sampler,
+                                           .imageView   = Tex->Image.ImageView,
+                                           .imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal};
 
+        vk::WriteDescriptorSet TextureDescriptor {.dstSet          = ObjectDS,
+                                                  .dstBinding      = 1,
+                                                  .descriptorCount = 1,
+                                                  .descriptorType  = vk::DescriptorType::eCombinedImageSampler,
+                                                  .pImageInfo      = &ImageInfo};
+
+        m_LogicalDevice.updateDescriptorSets({UBO_Descriptor, TextureDescriptor}, nullptr);
     }
-    // constexpr uint32_t SamplerCount = 1;
-
-    // vk::DescriptorImageInfo ImageInfo;
-
-    // for (uint32_t SamplerIndex = 0; SamplerIndex < SamplerCount; SamplerIndex++)
-    //{
-    //     Texture& Texture = Data.pTextures[SamplerIndex];
-    //     uint32_t& DescriptorGeneration = Obj.State[DescriptorIndex].Generation[ImageIndex];
-
-    //
-    //}
     // Bind the descriptor set to be updated, or in case the shader changed.
-    CmdBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics,
-                                 m_Pipeline.m_Layout,
-                                 1,
-                                 Obj.DescriptorSet[Obj.CurrentDescriptorIndex],
-                                 nullptr);
- Obj.CurrentDescriptorIndex = (Obj.CurrentDescriptorIndex + 1) % Obj.DescriptorSet.size();
+
+    
 }
 uint32_t Shader::CreateObject()
 {

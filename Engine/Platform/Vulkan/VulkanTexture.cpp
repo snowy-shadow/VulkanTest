@@ -1,21 +1,56 @@
 module;
 #include "Vulkan.h"
+#include "stb/stb_image.h"
+
 module VT.Platform.Vulkan.Texture;
 
-import VT.Platform.Vulkan.Buffer;
 import VT.Log;
+
+import VT.Function;
 
 namespace VT::Vulkan
 {
 VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
-                           const vk::PhysicalDeviceMemoryProperties& MemProperties,
-                           vk::CommandBuffer CmdBuffer,
-                           vk::Device Device)
+                             const vk::PhysicalDeviceMemoryProperties& MemProperties,
+                             vk::CommandBuffer CmdBuffer,
+                             vk::Device Device)
 {
-    this->Width        = TextureInfo.Width;
-    this->Height       = TextureInfo.Height;
-    this->ChannelCount = TextureInfo.ChannelCount;
-    this->Generation   = TextureInvalideID;
+    LogicalDevice   = Device;
+    /* ============================================
+     *            Read Image from file
+     * ============================================
+     */
+    bool FreeImage    = false;
+    std::byte* Data   = nullptr;
+    uint32_t DataSize = 0;
+
+    if (TextureInfo.File != "")
+    {
+        VT_CORE_ASSERT(TextureInfo.Width < (uint32_t) std::numeric_limits<int>::max() &&
+                           TextureInfo.Height < (uint32_t) std::numeric_limits<int>::max() &&
+                           TextureInfo.Channels < (uint32_t) std::numeric_limits<int>::max(),
+                       "Texture Width, Height or Channel too large");
+
+        // FIX : Only supports RGBA
+        int X, Y, C;
+        Data = LoadImage(TextureInfo.File, &X, &Y, &C, STBI_rgb_alpha); // alpha padding if no alpha
+
+        Width        = X;
+        Height       = Y;
+        Channels     = 4;
+        Transluscent = (C == STBI_grey_alpha || C == STBI_rgb_alpha);
+        DataSize     = Width * Height * 4;
+        FreeImage    = true;
+    }
+    else
+    {
+        Data         = TextureInfo.pData;
+        DataSize     = TextureInfo.DataSize;
+        Width        = TextureInfo.Width;
+        Height       = TextureInfo.Height;
+        Channels     = TextureInfo.Channels;
+        Transluscent = TextureInfo.Transluscent;
+    }
 
     /* ============================================
      *            Copy data to image
@@ -23,21 +58,21 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
      */
     {
         vk::BufferCreateInfo BufferInfo {
-            .size        = TextureInfo.Width * TextureInfo.Height * TextureInfo.ChannelCount,
+            .size        = DataSize,
             .usage       = vk::BufferUsageFlagBits::eTransferSrc,
             .sharingMode = vk::SharingMode::eExclusive,
         };
 
-        VulkanBuffer StagingBuffer;
-        StagingBuffer.Create(BufferInfo, Device);
-        StagingBuffer.BindMem(
+        ImageBuffer.Create(BufferInfo, LogicalDevice);
+        ImageBuffer.BindMem(
             0, MemProperties, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
-        StagingBuffer.LoadData(TextureInfo.pData, TextureInfo.DataSize, 0);
+        ImageBuffer.LoadData(Data, DataSize, 0);
 
+        // FIX : Crashes on vk::Format::eR8G8B8Unorm (no alpha)
         vk::ImageCreateInfo ImageInfo {
             .imageType     = vk::ImageType::e2D,
             .format        = vk::Format::eR8G8B8A8Unorm,
-            .extent        = vk::Extent3D {TextureInfo.Width, TextureInfo.Height, 1},
+            .extent        = vk::Extent3D {Width, Height, 1},
             .mipLevels     = 1,
             .arrayLayers   = 1,
             .samples       = vk::SampleCountFlagBits::e1,
@@ -46,12 +81,13 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
             .sharingMode   = vk::SharingMode::eExclusive,
             .initialLayout = vk::ImageLayout::eUndefined
         };
-        Image.CreateImage(ImageInfo, Device);
-
+        Image.CreateImage(ImageInfo, LogicalDevice);
+        Image.AllocateMem(MemProperties);
+        Image.MemBind(0);
         vk::ImageViewCreateInfo ImageViewInfo {
-            .image    = Image.Image,
-            .viewType = vk::ImageViewType::e2D,
-            .format   = vk::Format::eR8G8B8A8Unorm,
+            .image            = Image.Image,
+            .viewType         = vk::ImageViewType::e2D,
+            .format           = vk::Format::eR8G8B8A8Unorm,
             .subresourceRange = {.aspectMask     = vk::ImageAspectFlagBits::eColor,
                                  .baseMipLevel   = 0,
                                  .levelCount     = 1,
@@ -65,7 +101,17 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
                                     vk::ImageLayout::eTransferDstOptimal,
                                     1,
                                     CmdBuffer);
-        Image.CopyBufferToImage(StagingBuffer.Buffer, TextureInfo.Width, TextureInfo.Height, CmdBuffer);
+        Image.CopyBufferToImage(ImageBuffer.Buffer, Width, Height, CmdBuffer);
+        // Prepare texture for shader access
+        Image.TransitionImageLayout(vk::Format::eR8G8B8A8Unorm,
+                                    vk::ImageLayout::eTransferDstOptimal,
+                                    vk::ImageLayout::eShaderReadOnlyOptimal,
+                                    1,
+                                    CmdBuffer);
+    }
+    if (FreeImage)
+    {
+        UnloadImage(Data);
     }
 
     /* ============================================
@@ -90,17 +136,15 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
         .unnormalizedCoordinates = vk::False,
     };
     vk::Result Result;
-    std::tie(Result, Sampler) = Device.createSampler(SamplerInfo);
+    std::tie(Result, Sampler) = LogicalDevice.createSampler(SamplerInfo);
     VK_CHECK(Result, vk::Result::eSuccess, "Failed to create sampler");
-
-    this->Transparent = TextureInfo.Transparent;
-    this->Generation++;
 }
+
+void VulkanTexture::Trim() { ImageBuffer.Destroy(); }
 
 VulkanTexture::~VulkanTexture()
 {
     VK_CHECK(LogicalDevice.waitIdle(), vk::Result::eSuccess, "Failed to wait device idle");
-    Image.Destroy();
     LogicalDevice.destroySampler(Sampler);
 }
 } // namespace VT::Vulkan
