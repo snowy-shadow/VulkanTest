@@ -192,11 +192,12 @@ void Shader::Create(std::span<const HLSL::ShaderFileInfo> Shaders,
          // pos, 2 floats
          {
          .binding = VertexInputBindings[0].binding,
-         .format  = vk::Format::eR32G32Sfloat,
+         .format  = vk::Format::eR32G32B32Sfloat,
+         
          },       // color, 3 floats
        {
        .binding = VertexInputBindings[0].binding,
-       .format  = vk::Format::eR32G32B32Sfloat,
+       .format  = vk::Format::eR32G32Sfloat,
        }, //// tex coord, 2 floats
  //{
  //	.location = 2,

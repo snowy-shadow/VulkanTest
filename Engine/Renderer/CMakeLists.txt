@@ -16,6 +16,6 @@ target_sources(${PROJECT_NAME}
 		Renderer.cpp
 		"ProjectionCamera.cpp"
 				CameraController.cpp
-)
+ "Shader.cppm" "Pipeline.cppm")
 
 # add_subdirectory(Resource)

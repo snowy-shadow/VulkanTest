@@ -2,6 +2,7 @@ module;
 #include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
 #include "stb/stb_image.h"
 
 #include "EngineMacro.h"
@@ -29,7 +30,9 @@ export namespace VT
         // Image failed to load, load default texture
         if (Data == nullptr)
         {
-            VT_CORE_WARN("Could not load file : {0}. Loading {1}", File, "Engine/Asset/DefaultTexture.png");
+            VT_CORE_WARN("Could not load file : {0}. {1}\nLoading : {2}",
+                         File,
+                         stbi_failure_reason(), "Engine/Asset/DefaultTexture.png");
             Data = stbi_load("Engine/Asset/DefaultTexture.png", Width, Height, Channels, 0);
             VT_CORE_ASSERT(Data != nullptr, "Default Texture missing!");
         }

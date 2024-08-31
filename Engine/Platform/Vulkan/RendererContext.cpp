@@ -406,7 +406,6 @@ void RendererContext::Init()
              .initialLayout  = vk::ImageLayout::eUndefined,
              .finalLayout    = vk::ImageLayout::eDepthStencilAttachmentOptimal}}
         };
-
         std::vector<vk::AttachmentReference> ColorAttachmentReference {
             {{.attachment = 0, .layout = vk::ImageLayout::eColorAttachmentOptimal}}};
 

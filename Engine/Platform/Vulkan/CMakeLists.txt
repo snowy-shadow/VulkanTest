@@ -28,6 +28,6 @@ target_sources(${PROJECT_NAME}
 		VulkanTexture.cpp
 
 		RendererContext.cpp
-)
+ "PipelineManager.cppm")
 
 add_subdirectory(Native)
