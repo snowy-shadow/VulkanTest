@@ -1,6 +1,8 @@
 module;
 #include "Vulkan.h"
 
+#include "EngineMacro.h"
+
 module VT.Platform.Vulkan.Pipeline;
 
 import VT.Log;
@@ -129,27 +131,44 @@ Pipeline::~Pipeline() { Destroy(); }
 
 void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
 {
-    uint32_t VertexInputBindingCount;
-    auto VertexInputBinding = new vk::VertexInputBindingDescription[VertexInputBindingCount];
+    LogicalDevice            = reinterpret_cast<vk::Device>(CreateInfo.LogicalDevice.Handle);
+    //////////      Vertex Description     ///////////////////////
+    const auto& VertexLayout = CreateInfo.VertexLayout;
+    std::vector<vk::VertexInputBindingDescription> VertexInputBinding(VertexLayout.size());
+    std::vector<vk::VertexInputAttributeDescription> VertexAttribute;
 
-    uint32_t VertexInputAttributeCount;
-    auto VertexAttribute = new vk::VertexInputAttributeDescription[VertexInputAttributeCount];
+    for (uint32_t i = 0; i < VertexLayout.size(); i++)
+    {
+        VertexInputBinding[i].binding = i;
+        VertexInputBinding[i].stride  = VertexLayout.GetStride();
 
-    vk::PipelineVertexInputStateCreateInfo VertexInput {.vertexBindingDescriptionCount   = VertexInputBindingCount,
-                                                        .pVertexBindingDescriptions      = VertexInputBinding,
-                                                        .vertexAttributeDescriptionCount = VertexInputAttributeCount,
-                                                        .pVertexAttributeDescriptions    = VertexAttribute};
+        const auto& VertexAttrib = VertexLayout.GetElemnts();
+        for (uint32_t j = 0; j < VertexAttrib.size(); j++)
+        {
+            // location, binding. format, offset
+            VertexAttribute.emplace_back(j, i, static_cast<vk::Format>(VertexAttrib[j].Format), VertexAttrib[j].Offset)
+        }
+    }
 
-    vk::PipelineInputAssemblyStateCreateInfo InputAssemblyInfo {.topology = ToVulkan(CreateInfo.PrimitiveInfo.Topology),
-                                                                .primitiveRestartEnable =
-                                                                    CreateInfo.PrimitiveInfo.PrimitiveRestart};
+    vk::PipelineVertexInputStateCreateInfo VertexInput {
+        .vertexBindingDescriptionCount   = static_cast<uint32_t>(VertexInputBinding.size()),
+        .pVertexBindingDescriptions      = VertexInputBinding.data(),
+        .vertexAttributeDescriptionCount = static_cast<uint32_t>(VertexAttribute.size()),
+        .pVertexAttributeDescriptions    = VertexInputBinding.data()};
 
+    vk::PipelineInputAssemblyStateCreateInfo InputAssemblyInfo {
+        .topology               = static_cast<vk::PrimitiveTopology>(CreateInfo.PrimitiveInfo.Topology),
+        .primitiveRestartEnable = CreateInfo.PrimitiveInfo.PrimitiveRestart};
+
+    //////////      Tessellation     ///////////////////////
     vk::PipelineTessellationStateCreateInfo TessellationStateInfo {.patchControlPoints =
                                                                        CreateInfo.Tessellation.has_or({}).ControlPoint};
 
+    //////////      Viewport / Scissor     ///////////////////////
     vk::PipelineViewportStateCreateInfo ViewPortStateInfo {.viewportCount = CreateInfo.ViewportCount,
                                                            .scissorCount  = CreateInfo.ScissorCount};
 
+    //////////      Raster     ///////////////////////
     const auto& RasterInfo = CreateInfo.Rasterization;
     vk::PipelineRasterizationStateCreateInfo RasterizaitonStateInfo {
         .depthClampEnable        = RasterInfo.DepthClamp,
@@ -163,6 +182,7 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
         .depthBiasSlopeFactor    = RasterInfo.DepthBiasSlopeFactor,
         .lineWidth               = RasterInfo.LineWidth};
 
+    //////////      Multisample     ///////////////////////
     const auto& MultiSampleInfo = CreateInfo.MultiSample;
     vk::PipelineMultisampleStateCreateInfo MultisampleStateInfo {
         .rasterizationSamples  = MultiSampleInfo.RasterizationSampleCount,
@@ -171,6 +191,7 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
         .alphaToCoverageEnable = MultiSampleInfo.AlphaToCoverage,
         .alphaToOneEnable      = MultiSampleInfo.AlphaToOne};
 
+    //////////      Depth stencil     ///////////////////////
     const auto& DepthStencilInfo = CreateInfo.DepthStencil;
     vk::PipelineDepthStencilStateCreateInfo DepthStencilStateInfo {
         .depthTestEnable       = DepthStencilInfo.DepthTest,
@@ -181,42 +202,71 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
         .front                 = static_cast<vk::StencilOpState>(DepthStencilInfo.Front),
         .back                  = static_cast<vk::StencilOpState>(DepthStencilInfo.Back),
         .minDepthBounds        = DepthStencilInfo.MinDepthBounds,
-        .maxDepthBounds        = DepthStencilInfo.MaxDepthBounds
+        .maxDepthBounds        = DepthStencilInfo.MaxDepthBounds};
+
+    //////////      Color Blend     ///////////////////////
+    vk::PipelineColorBlendStateCreateInfo ColorBlendStateInfo {
+        .logicOpEnable   = CreateInfo.ColorBlend.LogicOpEnable,
+        .logicOp         = static_cast<vk::LogicOp>(CreateInfo.ColorBlend.LogicOp),
+        .attachmentCount = CreateInfo.ColorBlend.AttachmentCount,
     };
 
-    const auto& ColorBlendInfo = CreateInfo.ColorBlend;
-    vk::PipelineColorBlendStateCreateInfo ColorBlendStateInfo {.logicOpEnable = ColorBlendInfo.LogicOpEnable,
-                                                               .logicOp = static_cast<vk::LogicOp>(ColorBlendInfo.LogicOp),
-                                                               .attachmentCount = ColorBlendInfo.AttachmentCount,
-    };
-    vk::PipelineDynamicStateCreateInfo DynamicStateCreateInfo {};
-    vk::PipelineLayout PipelineLayoutInfo {};
+    //////////      Dynamic states     ///////////////////////
+    const std::array DynamicStates {vk::DynamicState::eViewport, vk::DynamicState::eScissor};
+    vk::PipelineDynamicStateCreateInfo DynamicStateCreateInfo {
+        .dynamicStateCount = static_cast<uint32_t>(DynamicStates.size()), .pDynamicStates = DynamicStates.data()};
 
-    vk::RenderPassCreateInfo RenderPassInfo {};
+    //////////      Push constant      ///////////////////////
+    const auto PushConstants = CreateInfo.PushConstant.GetElements();
+    std::vector<vk::PushConstantRange> PushConstantInfo(PushConstants.size());
 
-    std::vector<vk::SubpassDependency> SubpassDependency;
+    for (const auto& PC : PushConstants)
+    {
+        // flags, offset, size
+        PushConstantInfo.emplace_back({}, PC.Offset, PC.Size);
+    }
 
-    // -1 is null index
-    int32_t ParentPipelineIndex = -1;
+    //////////      Pipeline Layout      ///////////////////////
+    vk::PipelineLayoutCreateInfo PipelineLayoutInfo {.setLayoutCount =,
+                                                     .pSetLayouts    =,
+                                                     .pushConstantRangeCount =
+                                                         static_cast<uint32_t>(PushConstantInfo.size()),
+                                                     .pPushConstantRanges = PushConstantInfo.data()};
 
-    Info = {.stageCount          = static_cast<uint32_t>(Shaders.size()),
-            .pStages             = Shaders.data(),
-            .pVertexInputState   = &VertexInput,
-            .pInputAssemblyState = &InputAssemblyInfo,
-            .pTessellationState  = &TessellationStateInfo,
-            .pViewportState      = &ViewportStateInfo,
-            .pRasterizationState = &RasterizationStateInfo,
-            .pMultisampleState   = &MultisampleStateInfo,
-            .pDepthStencilState  = &DepthStencilStateInfo,
-            .pColorBlendState    = &ColorBlendStateInfo,
-            .pDynamicState       = &DynamicStateCreateInfo,
-            .layout              = PipelineLayoutInfo,
-            .renderPass          = Renderpass,
-            .subpass             = static_cast<uint32_t>(SubpassDependency.size()),
-            .basePipelineHandle  = Pipeline,
-            .basePipelineIndex   = ParentPipelineIndex};
+    //////////      Shader stage        ///////////////////////
+    std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfo(CreateInfo.Shader.size());
 
-    delete[] VertexInputBinding;
-    delete[] VertexAttribute;
+    for (const auto& ShaderInfo : CreateInfo.Shader)
+    {
+        const auto [Result, Module] =
+            LogicalDevice.createShaderModule({.codeSize = ShaderInfo.Spv.size(), .pCode = ShaderInfo.Spv.data()});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create shader module");
+
+        ShaderStageInfo.emplace_back({}, ShaderInfo.Stage, Module, "main");
+    }
+
+    vk::Result Result;
+    std::tie(Result, Pipeline) =
+        LogicalDevice.createGraphicsPipeline({.stageCount          = static_cast<uint32_t>(ShaderStageInfo.size()),
+                                              .pStages             = ShaderStageInfo.data(),
+                                              .pVertexInputState   = &VertexInput,
+                                              .pInputAssemblyState = &InputAssemblyInfo,
+                                              .pTessellationState  = &TessellationStateInfo,
+                                              .pViewportState      = &ViewportStateInfo,
+                                              .pRasterizationState = &RasterizationStateInfo,
+                                              .pMultisampleState   = &MultisampleStateInfo,
+                                              .pDepthStencilState  = &DepthStencilStateInfo,
+                                              .pColorBlendState    = &ColorBlendStateInfo,
+                                              .pDynamicState       = &DynamicStateCreateInfo,
+                                              .layout              = PipelineLayoutInfo,
+                                              .renderPass          = Renderpass,
+                                              .subpass             = CreateInfo.SubpassIndex});
+    VK_CHECK(Result, vk::Result::eSuccess, "Failed to create graphics pipeline");
+
+    // clean up Shader stage
+    for (const auto& ShaderStage : ShaderStageInfo)
+    {
+        LogicalDevice.destroyShaderModule(ShaderStage.module);
+    }
 }
 } // namespace VT::Vulkan

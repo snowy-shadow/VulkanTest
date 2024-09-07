@@ -93,6 +93,11 @@ constexpr uint32_t ComputeShaderDataElementCount(ShaderDataType Type)
     return 0;
 #endif
 }
+
+struct VT_ENGINE_EXPORT DescriptorLayout
+{
+    void* Handle;
+};
 /* ====================================
  *            BufferElement
  * ====================================
@@ -101,13 +106,12 @@ struct VT_ENGINE_EXPORT BufferElement
 {
     ShaderDataType Type;
     Format Format;
-    uint32_t DescriptorSlot;
     uint32_t Size;
     uint32_t Offset {0};
     bool Normalized;
 
-    BufferElement(ShaderDataType Type, Format DataFormat, uint32_t DescriptorSlot, bool Normalized = false) :
-        Type(Type), Format(DataFormat), DescriptorSlot(DescriptorSlot), Size(ShaderDataTypeSize(Type)), Normalized(Normalized)
+    BufferElement(ShaderDataType Type, Format DataFormat, bool Normalized = false) :
+        Type(Type), Format(DataFormat), Size(ShaderDataTypeSize(Type)), Normalized(Normalized)
     {
     }
 

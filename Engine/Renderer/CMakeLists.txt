@@ -2,7 +2,7 @@ target_sources(${PROJECT_NAME}
 	PUBLIC
 	FILE_SET CXX_MODULES
 	FILES
-		RendererType.cppm
+		"RendererEnum.cppm"
 		Renderer.cppm
 		RendererContext.cppm
 		"Buffer.cppm"
@@ -16,6 +16,6 @@ target_sources(${PROJECT_NAME}
 		Renderer.cpp
 		"ProjectionCamera.cpp"
 				CameraController.cpp
- "Shader.cppm" "Pipeline.cppm")
+ "Shader.cppm" "Pipeline.cppm" "RendererStructure.cppm")
 
 # add_subdirectory(Resource)

@@ -162,7 +162,7 @@ std::vector<std::byte> Compiler::CompileSpv(const ShaderFileInfo& File) const
     {
         CComPtr<IDxcBlobEncoding> Error;
         HRes = CompileResult->GetErrorBuffer(&Error);
-      
+
         if (SUCCEEDED(HRes) && Error)
         {
             VT_CORE_CRITICAL(static_cast<const char*>(Error->GetBufferPointer()));
