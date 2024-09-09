@@ -148,14 +148,10 @@ struct RenderpassCreateInfo
 
 struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
 {
-    Device LogicalDevice;
     std::vector<BufferLayout> VertexLayout {};
-    BufferLayout PushConstant;
-
     std::vector<ShaderSpv> Shader;
-
     PrimitiveInfo PrimitiveInfo {};
-    Optional<TessellationInfo> Tessellation;
+    Optional<TessellationInfo> Tessellation {};
     uint32_t ViewportCount = 1;
     uint32_t ScissorCount  = 1;
     RasterizationInfo Rasterization {};
@@ -163,8 +159,8 @@ struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
     DepthStencilInfo DepthStencil {};
     ColorBlendInfo ColorBlend {};
     Renderpass Renderpass;
-    std::vector<DescriptorLayout> DescriptorLayout;
-    uint32_t SubpassIndex = 0;
+    Device LogicalDevice;
+
 };
 
 class GraphicsPipeline : VT::Pipeline

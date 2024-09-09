@@ -216,19 +216,28 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
     vk::PipelineDynamicStateCreateInfo DynamicStateCreateInfo {
         .dynamicStateCount = static_cast<uint32_t>(DynamicStates.size()), .pDynamicStates = DynamicStates.data()};
 
-    //////////      Push constant      ///////////////////////
-    const auto PushConstants = CreateInfo.PushConstant.GetElements();
-    std::vector<vk::PushConstantRange> PushConstantInfo(PushConstants.size());
-
-    for (const auto& PC : PushConstants)
-    {
-        // flags, offset, size
-        PushConstantInfo.emplace_back({}, PC.Offset, PC.Size);
-    }
-
     //////////      Pipeline Layout      ///////////////////////
-    vk::PipelineLayoutCreateInfo PipelineLayoutInfo {.setLayoutCount =,
-                                                     .pSetLayouts    =,
+    std::vector<vk::DescriptorSetLayout> DescriptorSetLayout(CreateInfo.Shader.size());
+    std::vector<vk::PushConstantRange> PushConstantInfo;
+    uint32_t PC_Offset = 0;
+
+    for (const auto& Descriptor : CreateInfo.Shader)
+    {
+        // make a copy and store
+        DescriptorSetLayout.push_back(*static_cast<vk::DescriptroSetLayout*>(Descriptor.GetHandle()));
+
+        if (Descriptor.PushConstantSize != 0)
+        {
+            VT_CORE_ASSERT(DescriptorSetLayout.PushConstantSize % 4 == 0,
+                           "Vulkan Push Constants must be in multiples of 4 bytes");
+
+            PushConstantInfo.emplace_back(
+                static_cast<vk::ShaderStageFlags>(Descriptor.Stage), PC_Offset, Descriptor.PushConstantSize);
+            PC_Offset += Descriptor.PushConstantSize;
+        }
+    }
+    vk::PipelineLayoutCreateInfo PipelineLayoutInfo {.setLayoutCount = static_cast<uint32_t>(CreateInfo.Shader.size()),
+                                                     .pSetLayouts    = DescriptorSetLayout.data(),
                                                      .pushConstantRangeCount =
                                                          static_cast<uint32_t>(PushConstantInfo.size()),
                                                      .pPushConstantRanges = PushConstantInfo.data()};
@@ -246,21 +255,21 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
     }
 
     vk::Result Result;
-    std::tie(Result, Pipeline) =
-        LogicalDevice.createGraphicsPipeline({.stageCount          = static_cast<uint32_t>(ShaderStageInfo.size()),
-                                              .pStages             = ShaderStageInfo.data(),
-                                              .pVertexInputState   = &VertexInput,
-                                              .pInputAssemblyState = &InputAssemblyInfo,
-                                              .pTessellationState  = &TessellationStateInfo,
-                                              .pViewportState      = &ViewportStateInfo,
-                                              .pRasterizationState = &RasterizationStateInfo,
-                                              .pMultisampleState   = &MultisampleStateInfo,
-                                              .pDepthStencilState  = &DepthStencilStateInfo,
-                                              .pColorBlendState    = &ColorBlendStateInfo,
-                                              .pDynamicState       = &DynamicStateCreateInfo,
-                                              .layout              = PipelineLayoutInfo,
-                                              .renderPass          = Renderpass,
-                                              .subpass             = CreateInfo.SubpassIndex});
+    std::tie(Result, Pipeline) = LogicalDevice.createGraphicsPipeline({
+        .stageCount          = static_cast<uint32_t>(ShaderStageInfo.size()),
+        .pStages             = ShaderStageInfo.data(),
+        .pVertexInputState   = &VertexInput,
+        .pInputAssemblyState = &InputAssemblyInfo,
+        .pTessellationState  = &TessellationStateInfo,
+        .pViewportState      = &ViewportStateInfo,
+        .pRasterizationState = &RasterizationStateInfo,
+        .pMultisampleState   = &MultisampleStateInfo,
+        .pDepthStencilState  = &DepthStencilStateInfo,
+        .pColorBlendState    = &ColorBlendStateInfo,
+        .pDynamicState       = &DynamicStateCreateInfo,
+        .layout              = PipelineLayoutInfo,
+        .renderPass          = Renderpass,
+    });
     VK_CHECK(Result, vk::Result::eSuccess, "Failed to create graphics pipeline");
 
     // clean up Shader stage

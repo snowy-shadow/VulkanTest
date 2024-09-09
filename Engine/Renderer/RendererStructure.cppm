@@ -5,6 +5,7 @@ module;
 export module VT.RendererStructure;
 
 import VT.Texture;
+import VT.Util.DataStructure;
 
 
 export namespace VT
@@ -42,7 +43,8 @@ export namespace VT
         uint32_t Binding;
         DescriptorType DescriptorType;
         uint32_t DescriptorCount;
-        ShaderStageFlagBits Stage;
+        ShaderStageFlag Stage;
+        uint32_t PushConstantSize = 0;
 
         // handle to native api layout obj. nullptr if such doesn't exist
         virtual void* GetHandle() = 0;
