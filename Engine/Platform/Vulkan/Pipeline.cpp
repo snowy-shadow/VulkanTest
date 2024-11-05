@@ -162,7 +162,7 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
 
     //////////      Tessellation     ///////////////////////
     vk::PipelineTessellationStateCreateInfo TessellationStateInfo {.patchControlPoints =
-                                                                       CreateInfo.Tessellation.has_or({}).ControlPoint};
+                                                                       CreateInfo.Tessellation.ControlPoint};
 
     //////////      Viewport / Scissor     ///////////////////////
     vk::PipelineViewportStateCreateInfo ViewPortStateInfo {.viewportCount = CreateInfo.ViewportCount,
@@ -216,15 +216,23 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
     vk::PipelineDynamicStateCreateInfo DynamicStateCreateInfo {
         .dynamicStateCount = static_cast<uint32_t>(DynamicStates.size()), .pDynamicStates = DynamicStates.data()};
 
-    //////////      Pipeline Layout      ///////////////////////
+    //////////      Pipeline Layout &&   Shader stage     ///////////////////////
+    std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfo(CreateInfo.Shader.size());
     std::vector<vk::DescriptorSetLayout> DescriptorSetLayout(CreateInfo.Shader.size());
     std::vector<vk::PushConstantRange> PushConstantInfo;
     uint32_t PC_Offset = 0;
 
     for (const auto& Descriptor : CreateInfo.Shader)
     {
+        const auto [Result, Module] =
+            LogicalDevice.createShaderModule({.codeSize = ShaderInfo.Spv.size(), .pCode = ShaderInfo.Spv.data()});
+        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create shader module");
+
+        ShaderStageInfo.emplace_back({}, ShaderInfo.Stage, Module, "main");
+
         // make a copy and store
-        DescriptorSetLayout.push_back(*static_cast<vk::DescriptroSetLayout*>(Descriptor.GetHandle()));
+        // indirection operator `*` returns a lvalue
+        DescriptorSetLayout.push_back(*static_cast<const vk::DescriptroSetLayout*>(Descriptor.GetHandle()));
 
         if (Descriptor.PushConstantSize != 0)
         {
@@ -241,18 +249,6 @@ void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
                                                      .pushConstantRangeCount =
                                                          static_cast<uint32_t>(PushConstantInfo.size()),
                                                      .pPushConstantRanges = PushConstantInfo.data()};
-
-    //////////      Shader stage        ///////////////////////
-    std::vector<vk::PipelineShaderStageCreateInfo> ShaderStageInfo(CreateInfo.Shader.size());
-
-    for (const auto& ShaderInfo : CreateInfo.Shader)
-    {
-        const auto [Result, Module] =
-            LogicalDevice.createShaderModule({.codeSize = ShaderInfo.Spv.size(), .pCode = ShaderInfo.Spv.data()});
-        VK_CHECK(Result, vk::Result::eSuccess, "Failed to create shader module");
-
-        ShaderStageInfo.emplace_back({}, ShaderInfo.Stage, Module, "main");
-    }
 
     vk::Result Result;
     std::tie(Result, Pipeline) = LogicalDevice.createGraphicsPipeline({

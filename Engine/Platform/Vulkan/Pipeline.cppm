@@ -10,36 +10,30 @@ import VT.RendererType;
 
 export namespace VT::Vulkan
 {
-struct Pipeline
+
+struct VT_ENGINE_EXPORT StencilOpState
 {
-    void Create(const std::vector<vk::PipelineShaderStageCreateInfo>& Shaders,
-                vk::PipelineLayoutCreateInfo PipelineLayout,
-                vk::PipelineVertexInputStateCreateInfo VertexInput,
-                vk::RenderPass Renderpass,
-                vk::Device LogicalDevice);
-    vk::CommandBuffer Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
-
-    void Destroy();
-    ~Pipeline();
-
-    vk::Pipeline m_Pipeline;
-    vk::PipelineLayout m_Layout;
-
-    vk::Device m_LogicalDevice;
+    StencilOp FailOp;
+    StencilOp PassOp;
+    StencilOp DepthFailOp;
+    CompareOp CompareOp;
+    uint32_t CompareMask;
+    uint32_t WriteMask;
+    uint32_t Reference;
 };
 
-struct TessellationInfo
+struct VT_ENGINE_EXPORT TessellationInfo
 {
-    uint32_t ControlPoint;
+    uint32_t ControlPoint = 0;
 };
 
-struct PrimitiveInfo
+struct VT_ENGINE_EXPORT PrimitiveInfo
 {
     PrimitiveTopology Topology;
     bool PrimitiveRestart;
 };
 
-struct RasterizationInfo
+struct VT_ENGINE_EXPORT RasterizationInfo
 {
     bool DepthClamp;
     bool RasterizerDiscard;
@@ -53,8 +47,7 @@ struct RasterizationInfo
     float LineWidth;
 };
 
-
-struct MultisampleInfo
+struct VT_ENGINE_EXPORT MultisampleInfo
 {
     SampleCount RasterizationSampleCount = SampleCount::e1;
     bool SampleShading;
@@ -64,18 +57,7 @@ struct MultisampleInfo
     bool AlphaToOne;
 };
 
-struct StencilOpState
-{
-    StencilOp FailOp;
-    StencilOp PassOp;
-    StencilOp DepthFailOp;
-    CompareOp CompareOp;
-    uint32_t CompareMask;
-    uint32_t WriteMask;
-    uint32_t Reference;
-};
-
-struct DepthStencilInfo
+struct VT_ENGINE_EXPORT DepthStencilInfo
 {
     bool DepthTest;
     bool DepthWrite;
@@ -88,7 +70,7 @@ struct DepthStencilInfo
     float MaxDepthBounds;
 };
 
-struct ColorBlendInfo
+struct VT_ENGINE_EXPORT ColorBlendInfo
 {
     bool LogicOpEnable;
     LogicOp LogicOp;
@@ -97,7 +79,7 @@ struct ColorBlendInfo
     float BlendConstants[4];
 };
 
-struct AttachmentDescription
+struct VT_ENGINE_EXPORT AttachmentDescription
 {
     ImageLayout Use                  = ImageLayout::eUndefined;
     Format Format                    = Format::eUndefined;
@@ -109,8 +91,8 @@ struct AttachmentDescription
     ImageLayout InitialLayout        = ImageLayout::eUndefined;
     ImageLayout FinalLayout          = ImageLayout::eUndefined;
 };
-vk::ShaderStageFlagBits
-struct SubpassDescription
+
+struct VT_ENGINE_EXPORT SubpassDescription
 {
     PipelineBindPoint PipelineBindPoint;
     uint32_t InputAttachmentCount;
@@ -123,7 +105,7 @@ struct SubpassDescription
     const uint32_t* pPreserveAttachments;
 };
 
-struct SubpassDependency
+struct VT_ENGINE_EXPORT SubpassDependency
 {
     uint32_t SrcSubpass = SubpassExternal;
     uint32_t DstSubpass = 0;
@@ -134,7 +116,7 @@ struct SubpassDependency
     DependencyFlag DependencyFlags;
 };
 
-struct RenderpassCreateInfo
+struct VT_ENGINE_EXPORT RenderpassCreateInfo
 {
     uint32_t AttachmentCount                  = {};
     const AttachmentDescription* pAttachments = {};
@@ -160,11 +142,10 @@ struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
     ColorBlendInfo ColorBlend {};
     Renderpass Renderpass;
     Device LogicalDevice;
-
 };
 
-class GraphicsPipeline : VT::Pipeline
-{
+class GraphicsPipeline : VT::GraphicsPipeline
+{`
 public:
     void Create(GraphicsPipelineCreateInfo);
     void Destroy();

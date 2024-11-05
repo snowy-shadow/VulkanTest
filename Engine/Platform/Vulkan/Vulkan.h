@@ -12,4 +12,4 @@
         __LINE__,                                       \
                        __VA_ARGS__,                                    \
                        vk::to_string(static_cast<vk::Result>(res)));\
-}
+    }
