@@ -17,6 +17,7 @@ endif()
 
 if(WIN32)
   list(APPEND CMAKE_PREFIX_PATH "S:/Dev/Dependencies/Libraries")
+  set(CMAKE_INSTALL_DIR "S:/Dev/Dependencies/Libraries/VT_Engine")
 endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
@@ -24,7 +25,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 # clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(CMAKE_INSTALL_DIR S:/Dev/Dependencies/Libraries/VT_Engine)
 # C++20 std modules
 # set(VCTOOLS_INSTALL_DIR "S:/Dev/IDE/Visual Studio/VS/VC/Tools/MSVC/14.40.33807")
 # include(${CMAKE_SOURCE_DIR}/CMake/EnableStandardLibraryModule.cmake)

@@ -1,6 +1,8 @@
 module;
 #include <vulkan/vulkan.h>
 #include <type_traits>
+
+#include "VT_Export"
 export module VT.RendererEnum;
 
 export namespace VT

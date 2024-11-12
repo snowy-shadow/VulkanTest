@@ -1,11 +1,13 @@
 module;
 #include "VT_Export"
 #include <cstdint>
+#include <vector>
 #include <glm/glm.hpp>
 export module VT.RendererStructure;
 
 import VT.Texture;
 import VT.Util.DataStructure;
+import VT.RendererEnum;
 
 
 export namespace VT
@@ -43,7 +45,7 @@ export namespace VT
         uint32_t Binding;
         DescriptorType DescriptorType;
         uint32_t DescriptorCount;
-        ShaderStageFlag Stage;
+        ShaderStageFlags Stage;
         uint32_t PushConstantSize = 0;
 
         // handle to native api layout obj. nullptr if such doesn't exist

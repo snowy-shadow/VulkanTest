@@ -37,16 +37,16 @@ if (MSVC)
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE
 		/W4
-		# ignore warn struct padding
+			# ignore warn struct padding
 		/wd4820
-		# special member function implicit deleted
+			# special member function implicit deleted
 		/wd4623
 		/wd4626
 		/wd5027
 		/wd5262
 		/wd5267
-		# /Wall
-		# /WX
+			# /Wall
+			# /WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
 	# cl : Command line warning D9025 : overriding '/W3' with '/W4'.  Since this is

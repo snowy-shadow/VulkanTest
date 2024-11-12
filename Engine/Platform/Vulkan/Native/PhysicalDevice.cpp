@@ -17,7 +17,7 @@ PhysicalDevice::PhysicalDevice(
     const std::vector<const char*>& RequiredExtensions,
     const char* Name)
 {
-    for (int i = 0; i < DeviceList.size(); i++)
+    for (size_t i = 0; i < DeviceList.size(); i++)
     {
         if (ExtensionSupported(DeviceList[i], RequiredExtensions) && strcmp(DeviceProperties[i].deviceName, Name) == 0)
         {
@@ -42,7 +42,7 @@ bool PhysicalDevice::FindPhysicalDevice(
     BasicGPUs.reserve(DeviceList.size());
     DiscreteGPUs.reserve(DeviceList.size());
 
-    for (int i = 0; i < DeviceList.size(); i++)
+    for (size_t i = 0; i < DeviceList.size(); i++)
     {
         if (ExtensionSupported(DeviceList[i], RequiredExtensions))
         {
@@ -111,7 +111,7 @@ bool PhysicalDevice::FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, std::s
     // find queue
     auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
 
-    for (int Index = 0; Index < QueueFamilies.size(); Index++)
+    for (size_t index = 0; Index < QueueFamilies.size(); Index++)
     {
         auto& QF = QueueFamilies[Index];
 
@@ -186,7 +186,7 @@ bool PhysicalDevice::FindPresentQueue(vk::SurfaceKHR Surface)
         return true;
     }
 
-    for (int i = 0; i < m_DeviceQueues.size(); i++)
+    for (size_t i = 0; i < m_DeviceQueues.size(); i++)
     {
         if (m_PhysicalDevice
                 .getSurfaceSupportKHR(static_cast<uint32_t>(m_DeviceQueues[i].second.queueFamilyIndex), Surface)
@@ -207,7 +207,7 @@ vk::Device PhysicalDevice::CreateLogicalDevice(
     std::vector<vk::DeviceQueueCreateInfo> Queues;
     Queues.reserve(m_DeviceQueues.size());
 
-    for (int i = 0; i < m_DeviceQueues.size(); i++)
+    for (size_t i = 0; i < m_DeviceQueues.size(); i++)
     {
         Queues.push_back(m_DeviceQueues[i].second);
     }

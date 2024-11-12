@@ -11,13 +11,13 @@ export namespace VT::Vulkan
 	class PiplineManager
 	{
     public:
-        void Add(VT::Pipeline* Pipeline);
+        bool Add(VT::Pipeline* Pipeline, std::string Name);
     private:
-		std::unordered_map<std::string, VT::Pipeline> m_Pipeline;
+		std::unordered_map<std::string, VT::Pipeline*> m_Pipeline;
 	};
-    void PiplineManager::Add(VT::Pipeline* Pipeline, std::string Name)
+
+    bool PiplineManager::Add(VT::Pipeline* Pipeline, std::string Name)
     {
-        m_Pipeline.insert(std::move(Name), Pipeline);
+       return m_Pipeline.insert({std::move(Name), Pipeline}).second;
     }
-    } // namespace VT::Vulkan
-}
+} // namespace VT::Vulkan

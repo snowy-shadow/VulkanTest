@@ -54,10 +54,13 @@ private:
     std::function<void()> m_Dtor;
     T m_Data;
 };
+}
 
 struct NoneT {};
 static inline constexpr NoneT None = NoneT {};
 
+export namespace VT
+{
 template <typename T>
 struct Optional
 {
@@ -92,4 +95,4 @@ public:
 
     [[nodiscard]] auto value_or(T const& v) const -> T const& { return has_value() ? value() : v; }
 };
-} // namespace VT
+}

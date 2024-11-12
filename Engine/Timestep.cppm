@@ -5,7 +5,7 @@ export module VT.Timestep;
 
 namespace chrono = std::chrono;
 
-using Duration = chrono::duration;
+using Duration = chrono::duration<double>;
 using Clk      = chrono::high_resolution_clock;
 
 export namespace VT

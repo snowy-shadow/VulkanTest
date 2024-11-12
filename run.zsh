@@ -2,18 +2,20 @@
 
 BuildDir="build_mac"
 
+  # Set the C/C++ compiler
+
 case "$1" in
 	"")
 		cmake -B "$BuildDir" -S . -G Ninja  
 		;;
 
 	"build")
-		cmake -B "$BuildDir" -S . -G Ninja  
+		cmake -D CMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" -D CMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++" -B "$BuildDir" -S . -G Ninja  
 		cmake --build "$BuildDir"
 		;;
 		
 	"buildf")
-		cmake --fresh -B "$BuildDir" -S . -G Ninja  
+		cmake --fresh -D CMAKE_C_COMPILER="/opt/homebrew/opt/llvm/bin/clang" -D CMAKE_CXX_COMPILER="/opt/homebrew/opt/llvm/bin/clang++" -B "$BuildDir" -S . -G Ninja  
 		cmake --build "$BuildDir"
 		;;
 

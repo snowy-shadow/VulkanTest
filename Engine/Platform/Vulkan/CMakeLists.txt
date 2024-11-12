@@ -16,7 +16,10 @@ target_sources(${PROJECT_NAME}
 		VulkanTexture.cppm
 
 		RendererContext.cppm
+		"PipelineManager.cppm"
+)
 
+target_sources(${PROJECT_NAME}
 	PRIVATE
 		Swapchain.cpp
 		"Vulkan.h"
@@ -28,6 +31,6 @@ target_sources(${PROJECT_NAME}
 		VulkanTexture.cpp
 
 		RendererContext.cpp
- "PipelineManager.cppm")
+)
 
 add_subdirectory(Native)

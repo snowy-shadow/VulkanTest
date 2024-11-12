@@ -9,13 +9,19 @@ target_sources(${PROJECT_NAME}
 		Camera.cppm
 		"ProjectionCamera.cppm"
 		CameraController.cppm
-		 "Texture.cppm"
+		"Texture.cppm"
 
+		# should be private
+		Shader.cppm
+		Pipeline.cppm
+		RendererStructure.cppm
+)
+
+target_sources(${PROJECT_NAME}
 	PRIVATE
 		RendererContext.cpp
 		Renderer.cpp
-		"ProjectionCamera.cpp"
-				CameraController.cpp
- "Shader.cppm" "Pipeline.cppm" "RendererStructure.cppm")
-
+		ProjectionCamera.cpp
+		CameraController.cpp
+)
 # add_subdirectory(Resource)

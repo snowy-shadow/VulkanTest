@@ -16,4 +16,4 @@ CMakeSettings.json
 *.idb
 
 # cmake generated, changes with OS
-VT_Export
+Engine/VT_Export

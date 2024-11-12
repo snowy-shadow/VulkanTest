@@ -9,6 +9,8 @@ endif()
 project ("VT_Engine")
 add_library(${PROJECT_NAME} SHARED)
 
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
 # Project files
 include(GenerateExportHeader)
 
@@ -16,7 +18,6 @@ generate_export_header(${PROJECT_NAME}
 	EXPORT_FILE_NAME
 		${CMAKE_CURRENT_SOURCE_DIR}/VT_Export
 )
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Files
 target_sources(${PROJECT_NAME}
@@ -38,7 +39,7 @@ target_sources(${PROJECT_NAME}
 		Window.cpp
 		Input.cpp
 		ShaderCompiler.cpp
-        Platform/Vulkan/Util.cppm
+		Platform/Vulkan/Util.cppm
 )
 
 add_subdirectory(Event)
@@ -50,7 +51,7 @@ add_subdirectory(Util)
 #Libs
 add_subdirectory(Lib SYSTEM)
 
-find_package(Vulkan REQUIRED 
+find_package(Vulkan REQUIRED
 	COMPONENTS
 		shaderc_combined
 		dxc
@@ -83,11 +84,11 @@ target_compile_definitions(${PROJECT_NAME}
 		VT_ENABLE_MESSAGE
 		VT_ENABLE_ASSERT
 		VT_ENABLE_DEBUG
-		
+
 		GLM_FORCE_RADIANS
 		GLM_FORCE_DEPTH_ZERO_TO_ONE
 
-		# enable aggregate initialization
+																			# enable aggregate initialization
 		VULKAN_HPP_NO_CONSTRUCTORS
 		VULKAN_HPP_NO_EXCEPTIONS
 		VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
@@ -99,16 +100,16 @@ if (MSVC)
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE
 		/W4
-		# ignore warn struct padding
+															# ignore warn struct padding
 		/wd4820
-		# special member function implicit deleted
+															# special member function implicit deleted
 		/wd4623
 		/wd4626
 		/wd5027
 		/wd5262
 		/wd5267
-		# /Wall
-		# /WX
+															# /Wall
+															# /WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
 	# cl : Command line warning D9025 : overriding '/W3' with '/W4'.  Since this is
@@ -117,12 +118,18 @@ if (MSVC)
 	string(REGEX REPLACE " /W[0-4]" "" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}")
 	string(REGEX REPLACE " /W[0-4]" "" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 else()
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+		target_compile_options(${PROJECT_NAME}
+			PRIVATE
+				-fms-extensions
+		)
+	endif()
 	# additional warnings
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE
 		-Wall
 		-Wextra
-		-Werror
+												# -Werror
 		-Wno-error=unused-variable
 		-Wpedantic
 	)

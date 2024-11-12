@@ -13,7 +13,7 @@ public:
     vk::Device Get() const { return m_LogicalDevice; }
 
     // TODO : Implement
-    std::vector<vk::Buffer> BeginCommand() {}
+    std::vector<vk::Buffer> BeginCommand() { return {}; }
     void EndCmdBuffer() {}
 
 public:
