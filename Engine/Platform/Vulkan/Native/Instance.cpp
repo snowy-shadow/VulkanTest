@@ -11,7 +11,7 @@ VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
 #ifdef VT_ENABLE_DEBUG
 /* ======================================================
  *              DebugMessenger
- *  ======================================================
+ * ======================================================
  */
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
     VkInstance Instance,
@@ -64,7 +64,7 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
 
 /* ======================================================
  *              Instance
- *  ======================================================
+ * ======================================================
  */
 namespace VT::Vulkan::Native
 {
@@ -77,7 +77,7 @@ bool Instance::Init(
     VULKAN_HPP_DEFAULT_DISPATCHER.init();
     /* ======================================================
      *              API version check
-     *  ======================================================
+     * ======================================================
      */
     auto [Result, InstanceVersion] = vk::enumerateInstanceVersion();
     VK_CHECK(Result, vk::Result::eSuccess, "Failed to get instance version");
@@ -86,7 +86,7 @@ bool Instance::Init(
 
 /* ======================================================
  *              Extensions and Layer config
- *  ======================================================
+ * ======================================================
  */
 #ifdef VT_ENABLE_DEBUG
     Layers.emplace_back("VK_LAYER_KHRONOS_validation");
@@ -105,7 +105,7 @@ bool Instance::Init(
 
     /* ======================================================
      *              Create Vulkan instance
-     *  ======================================================
+     * ======================================================
      */
     const vk::InstanceCreateInfo InstanceCreateInfo {
 #ifdef __APPLE__
@@ -125,7 +125,7 @@ bool Instance::Init(
 
 /* ======================================================
  *              Validation Layer
- *  ======================================================
+ * ======================================================
  */
 #ifdef VT_ENABLE_DEBUG
 

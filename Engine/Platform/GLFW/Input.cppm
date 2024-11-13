@@ -5,6 +5,7 @@ export module VT.Platform.GLFW.Input;
 
 import VT.Input;
 import VT.Window;
+import VT.Key;
 
 export namespace VT::GLFW
 {

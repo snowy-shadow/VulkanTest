@@ -6,7 +6,7 @@ module VT.Platform.Windows.Window;
 
 import VT.Event;
 import VT.Log;
-import VT.RendererType;
+import VT.RendererEnum;
 import VT.Platform.GLFW.Key;
 
 namespace VT

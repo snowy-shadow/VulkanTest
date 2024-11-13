@@ -34,7 +34,7 @@ private:
 private:
     vk::Instance m_VulkanInstance;
 
-#ifndef NDEBUG
+#ifdef VT_ENABLE_DEBUG
     // Keep logger alive until debugger destroyed
     Shared<Log> m_Logger {Log::Instance()};
     vk::DebugUtilsMessengerEXT m_DebugMessenger;

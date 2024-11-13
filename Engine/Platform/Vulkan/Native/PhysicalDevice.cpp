@@ -111,7 +111,7 @@ bool PhysicalDevice::FindGraphicsQueueWithPresent(vk::SurfaceKHR Surface, std::s
     // find queue
     auto QueueFamilies {m_PhysicalDevice.getQueueFamilyProperties()};
 
-    for (size_t index = 0; Index < QueueFamilies.size(); Index++)
+    for (size_t Index = 0; Index < QueueFamilies.size(); Index++)
     {
         auto& QF = QueueFamilies[Index];
 

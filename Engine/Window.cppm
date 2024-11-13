@@ -4,7 +4,7 @@ module;
 export module VT.Window;
 
 import VT.Event;
-import VT.RendererType;
+import VT.RendererEnum;
 
 export namespace VT
 {

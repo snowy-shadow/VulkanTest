@@ -68,7 +68,7 @@ export namespace VT::HLSL
 	struct VT_ENGINE_EXPORT ShaderFileInfo : File::FileInfo
 	{
 		LPCWSTR pCL_Args;
-		uint32_t Encoding = static_cast<uint32_t>(FileEncodingUTF8);
+		uint32_t Encoding = static_cast<uint32_t>(FileEncoding::FileEncodingUTF8);
 	};
 
 	class VT_ENGINE_EXPORT Compiler

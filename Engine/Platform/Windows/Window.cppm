@@ -6,7 +6,7 @@ export module VT.Platform.Windows.Window;
 
 import VT.Window;
 import VT.Event;
-import VT.RendererType;
+import VT.RendererEnum;
 
 export namespace VT::Windows
 {

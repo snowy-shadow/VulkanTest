@@ -2,7 +2,8 @@ module;
 #include "VT_Export"
 export module VT.Renderer;
 
-import VT.RendererType;
+import VT.RendererEnum;
+import VT.RendererStructure;
 import VT.Texture;
 import VT.RendererContext;
 import VT.Window;

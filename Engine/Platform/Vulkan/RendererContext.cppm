@@ -16,7 +16,7 @@ import VT.Platform.Vulkan.Pipeline;
 import VT.Platform.Vulkan.Buffer;
 import VT.Platform.Vulkan.Shader;
 
-import VT.RendererType;
+import VT.RendererEnum;
 import VT.RendererContext;
 import VT.Util;
 import VT.Window;

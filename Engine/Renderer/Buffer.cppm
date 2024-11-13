@@ -5,6 +5,8 @@ module;
 #include "EngineMacro.h"
 export module VT.Buffer;
 
+import VT.RendererEnum;
+
 #ifdef VT_ENABLE_MESSAGE
 import VT.Log;
 #endif
@@ -94,10 +96,6 @@ constexpr uint32_t ComputeShaderDataElementCount(ShaderDataType Type)
 #endif
 }
 
-struct VT_ENGINE_EXPORT DescriptorLayout
-{
-    void* Handle;
-};
 /* ====================================
  *            BufferElement
  * ====================================
@@ -105,13 +103,13 @@ struct VT_ENGINE_EXPORT DescriptorLayout
 struct VT_ENGINE_EXPORT BufferElement
 {
     ShaderDataType Type;
-    Format Format;
+    Format DataFormat;
     uint32_t Size;
     uint32_t Offset {0};
     bool Normalized;
 
     BufferElement(ShaderDataType Type, Format DataFormat, bool Normalized = false) :
-        Type(Type), Format(DataFormat), Size(ShaderDataTypeSize(Type)), Normalized(Normalized)
+        Type(Type), DataFormat(DataFormat), Size(ShaderDataTypeSize(Type)), Normalized(Normalized)
     {
     }
 

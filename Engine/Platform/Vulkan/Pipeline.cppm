@@ -3,10 +3,15 @@ module;
 #include "VT_Export"
 
 export module VT.Platform.Vulkan.Pipeline;
+
+import VT.RendererStructure;
 import VT.Pipeline;
-import VT.Util.Datastructure;
+import VT.Util.DataStructure;
 import VT.ShaderCompiler;
-import VT.RendererType;
+import VT.RendererEnum;
+import VT.Buffer;
+
+import VT.Platform.Vulkan.Device;
 
 export namespace VT::Vulkan
 {
@@ -140,19 +145,22 @@ struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
     MultisampleInfo MultiSample {};
     DepthStencilInfo DepthStencil {};
     ColorBlendInfo ColorBlend {};
-    Renderpass Renderpass;
-    Device LogicalDevice;
+    vk::RenderPass Renderpass;
+    Vulkan::LogicalDevice LogicalDevice;
 };
 
+/*
+ * FIX : VT::GraphicsPipeline not defined
 class GraphicsPipeline : VT::GraphicsPipeline
-{`
+{
 public:
     void Create(GraphicsPipelineCreateInfo);
-    void Destroy();
+    void Destroy(){};
 
-    virtual void Bind() override;
+    virtual void Bind() override{};
 
     vk::Pipeline Pipline = VK_NULL_HANDLE;
     vk::Device LogicalDevice = VK_NULL_HANDLE;
 };
+*/
 } // namespace VT::Vulkan

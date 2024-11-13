@@ -131,7 +131,7 @@ Pipeline::~Pipeline() { Destroy(); }
 
 void GraphicsPipeline::Create(GraphicsPipelineCreateInfo CreateInfo)
 {
-    LogicalDevice            = reinterpret_cast<vk::Device>(CreateInfo.LogicalDevice.Handle);
+    LogicalDevice            = CreateInfo.LogicalDevice.Get();
     //////////      Vertex Description     ///////////////////////
     const auto& VertexLayout = CreateInfo.VertexLayout;
     std::vector<vk::VertexInputBindingDescription> VertexInputBinding(VertexLayout.size());

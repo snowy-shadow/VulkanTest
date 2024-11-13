@@ -13,7 +13,7 @@ export namespace VT
  *                                 m_LayerBeginIndex
  *
  */
-export class LayerStack
+class LayerStack
 {
 public:
     VT_ENGINE_EXPORT void PushOverlay(Layer*);
