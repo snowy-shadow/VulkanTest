@@ -8,22 +8,23 @@ export module VT.Platform.Vulkan.Shader;
 import VT.Platform.Vulkan.Buffer;
 import VT.Platform.Vulkan.Pipeline;
 import VT.Platform.Vulkan.DescriptorSet;
+import VT.Platform.Vulkan.Pipeline;
 
-import VT.RendererType;
+import VT.RendererStructure;
+import VT.RendererEnum;
 import VT.ShaderCompiler;
 import VT.Buffer;
 import VT.Camera;
 import VT.Timestep;
 
-constexpr uint32_t MaxObjectDescriptor = 1024;
+constexpr uint32_t MaxObjectDescriptor         = 1024;
 constexpr uint32_t ObjectShaderDescriptorCount = 2;
 
 namespace VT::Vulkan
 {
 struct DescriptorState
 {
-    uint32_t MaxDescriptor     = 0;
-    
+    uint32_t MaxDescriptor = 0;
 };
 struct ObjectState
 {
@@ -49,9 +50,7 @@ public:
     void Bind(vk::CommandBuffer CommandBuffer, vk::PipelineBindPoint BindPoint);
 
     void UploadCameraView(const UniformCameraData& Data);
-    void UploadGeometry(const GeometryRenderData& Data,
-                            vk::CommandBuffer CmdBuffer,
-                            const Timestep& Timestep);
+    void UploadGeometry(const GeometryRenderData& Data, vk::CommandBuffer CmdBuffer, const Timestep& Timestep);
 
     uint32_t CreateObject();
     void ReleaseObject(uint32_t ID);

@@ -132,7 +132,6 @@ struct VT_ENGINE_EXPORT RenderpassCreateInfo
     const void* pNext                         = nullptr;
 };
 
-
 struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
 {
     std::vector<BufferLayout> VertexLayout {};
@@ -149,18 +148,22 @@ struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
     Vulkan::LogicalDevice LogicalDevice;
 };
 
-/*
- * FIX : VT::GraphicsPipeline not defined
-class GraphicsPipeline : VT::GraphicsPipeline
+class Pipeline : VT::Pipeline
+{
+public:
+    virtual void Bind() override {}
+};
+
+// FIX : VT::GraphicsPipeline not defined
+class GraphicsPipeline //: VT::GraphicsPipeline
 {
 public:
     void Create(GraphicsPipelineCreateInfo);
-    void Destroy(){};
+    // void Destroy();
 
-    virtual void Bind() override{};
+    // virtual void Bind() override{};
 
-    vk::Pipeline Pipline = VK_NULL_HANDLE;
+    vk::Pipeline Pipline     = VK_NULL_HANDLE;
     vk::Device LogicalDevice = VK_NULL_HANDLE;
 };
-*/
 } // namespace VT::Vulkan

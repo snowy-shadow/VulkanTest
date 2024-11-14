@@ -15,7 +15,7 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
                              vk::CommandBuffer CmdBuffer,
                              vk::Device Device)
 {
-    LogicalDevice   = Device;
+    LogicalDevice     = Device;
     /* ============================================
      *            Read Image from file
      * ============================================
@@ -24,7 +24,7 @@ VulkanTexture::VulkanTexture(const TextureCreateInfo& TextureInfo,
     std::byte* Data   = nullptr;
     uint32_t DataSize = 0;
 
-    if (TextureInfo.File != "")
+    if (std::strcmp(TextureInfo.File, "") != 0)
     {
         VT_CORE_ASSERT(TextureInfo.Width < (uint32_t) std::numeric_limits<int>::max() &&
                            TextureInfo.Height < (uint32_t) std::numeric_limits<int>::max() &&

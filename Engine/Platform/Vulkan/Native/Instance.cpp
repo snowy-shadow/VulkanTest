@@ -6,13 +6,17 @@ module;
 
 module VT.Platform.Vulkan.Native.Instance;
 
+#if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
 VULKAN_HPP_DEFAULT_DISPATCH_LOADER_DYNAMIC_STORAGE;
+#endif
 
 #ifdef VT_ENABLE_DEBUG
 /* ======================================================
  *              DebugMessenger
  * ======================================================
- */
+ *
+ * NOTE : don't think we need this anymore
+
 VKAPI_ATTR VkResult VKAPI_CALL vkCreateDebugUtilsMessengerEXT(
     VkInstance Instance,
     const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
@@ -43,19 +47,18 @@ VKAPI_ATTR void VKAPI_CALL vkDestroyDebugUtilsMessengerEXT(
 
     return pfnVkDestroyDebugUtilsMessengerEXT(Instance, Messenger, pAllocator);
 }
+*/
 
 namespace VT::Vulkan::Native
 {
-VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT,
-    // MessageSeverity
-    VkDebugUtilsMessageTypeFlagsEXT,
-    // MessageType
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData)
+VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT,
+                                               // MessageSeverity
+                                               VkDebugUtilsMessageTypeFlagsEXT,
+                                               // MessageType
+                                               const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+                                               void* pUserData)
 {
-    reinterpret_cast<Log*>(pUserData)->CoreLogger->error(
-        pCallbackData->pMessage);
+    reinterpret_cast<Log*>(pUserData)->CoreLogger->error(pCallbackData->pMessage);
 
     return vk::False;
 }
@@ -69,12 +72,13 @@ VKAPI_ATTR vk::Bool32 VKAPI_CALL DebugCallback(
 namespace VT::Vulkan::Native
 {
 
-bool Instance::Init(
-    const vk::ApplicationInfo& ApplicationInfo,
-    std::vector<const char*> Extensions,
-    std::vector<const char*> Layers)
+bool Instance::Init(const vk::ApplicationInfo& ApplicationInfo,
+                    std::vector<const char*> Extensions,
+                    std::vector<const char*> Layers)
 {
+#if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
     VULKAN_HPP_DEFAULT_DISPATCHER.init();
+#endif
     /* ======================================================
      *              API version check
      * ======================================================
@@ -120,7 +124,9 @@ bool Instance::Init(
     std::tie(Result, m_VulkanInstance) = vk::createInstance(InstanceCreateInfo, nullptr);
     VK_CHECK(Result, vk::Result::eSuccess, "Failed to create instance");
 
+#if VULKAN_HPP_DISPATCH_LOADER_DYNAMIC == 1
     VULKAN_HPP_DEFAULT_DISPATCHER.init(m_VulkanInstance);
+#endif
     VT_CORE_TRACE("Instance created");
 
 /* ======================================================
