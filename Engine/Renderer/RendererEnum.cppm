@@ -1,4 +1,5 @@
 module;
+#include <compare>
 #include <vulkan/vulkan.h>
 #include <type_traits>
 
@@ -507,9 +508,9 @@ enum class Format
 };
 
 /* //////////////////////////////////////////////////
-*               Flag bits
-* //////////////////////////////////////////////////
-*/
+ *               Flag bits
+ * //////////////////////////////////////////////////
+ */
 
 //////////// IsBitmask flag /////////////////////
 template <typename T>
@@ -639,7 +640,6 @@ inline constexpr Flag<BitType> operator^(BitType lhs, BitType rhs) noexcept
 // }
 
 ///////////// Enum ////////////////////////
-
 
 enum class PipelineStageFlag
 {

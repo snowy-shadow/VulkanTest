@@ -11,9 +11,11 @@ target_sources(${PROJECT_NAME}
 		CameraController.cppm
 		"Texture.cppm"
 
-		# should be private
+			# should be private
 		Shader.cppm
 		Pipeline.cppm
+		Device.cppm
+		RenderPass.cppm
 		RendererStructure.cppm
 )
 

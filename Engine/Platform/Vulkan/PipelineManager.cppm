@@ -5,6 +5,7 @@ module;
 export module VT.Platform.Vulkan.PipelineManager;
 
 import VT.Pipeline;
+import VT.RendererStructure;
 
 export namespace VT::Vulkan
 {

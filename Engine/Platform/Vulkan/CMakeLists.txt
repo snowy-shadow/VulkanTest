@@ -15,8 +15,10 @@ target_sources(${PROJECT_NAME}
 		VulkanImage.cppm
 		VulkanTexture.cppm
 
+# make these private
 		RendererContext.cppm
 		"PipelineManager.cppm"
+		"TypeConversion.cppm"
 )
 
 target_sources(${PROJECT_NAME}

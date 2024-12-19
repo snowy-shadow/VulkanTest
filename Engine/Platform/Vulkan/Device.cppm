@@ -2,10 +2,11 @@ module;
 #include <vulkan/vulkan.hpp>
 
 export module VT.Platform.Vulkan.Device;
+import VT.Device;
 
 export namespace VT::Vulkan
 {
-class LogicalDevice
+class LogicalDevice : public VT::Device
 {
 public:
     void Init(vk::Device LogicalDevice) { m_LogicalDevice = LogicalDevice; }
