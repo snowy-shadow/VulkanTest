@@ -9,16 +9,11 @@ import VT.Texture;
 import VT.Util.DataStructure;
 import VT.RendererEnum;
 import VT.Buffer;
-import VT.Device;
-import VT.RenderPass;
-import VT.Pipeline;
 
 export namespace VT
 {
 using ID                             = uint32_t;
-constexpr ID InvalidID               = (ID) -1;
-constexpr uint32_t InvalidIndex      = (ID) -1;
-constexpr uint32_t TextureInvalideID = (ID) -1;
+constexpr ID InvalidID               = ~static_cast<ID>(0);
 
 struct VT_ENGINE_EXPORT RenderPacket {};
 
@@ -40,23 +35,43 @@ struct VT_ENGINE_EXPORT GeometryRenderData
     uint32_t TextureCount;
     Texture** pTexture;
 };
-
-struct VT_ENGINE_EXPORT DescriptorLayout
+struct VT_ENGINE_EXPORT DescriptorPoolSize
 {
+    DescriptorType Type;
+    uint32_t DescriptorCount;
+};
+
+struct VT_ENGINE_EXPORT DescriptorPoolInfo
+{
+    std::vector<DescriptorPoolSize> PoolSize;
+    uint32_t MaxSets = 5000;
+};
+
+struct VT_ENGINE_EXPORT DescriptorLayoutBindingInfo
+{
+    const char* Pool;
     uint32_t Binding;
     DescriptorType DescriptorType;
     uint32_t DescriptorCount;
     ShaderStageFlags Stage;
-    uint32_t PushConstantSize = 0;
+};
 
-    // handle to native api layout obj. nullptr if such doesn't exist
-    virtual void* GetHandle() = 0;
+struct VT_ENGINE_EXPORT DescriptorAllocateInfo
+{
+    const char* Pool;
+    std::vector<const char*> DescriptorLayouts;
+};
+
+struct VT_ENGINE_EXPORT PushConstantInfo
+{
+    uint32_t Size;
+    ShaderStageFlags StageFlags;
 };
 
 struct VT_ENGINE_EXPORT ShaderSpv
 {
     std::vector<uint32_t> Spv;
-    DescriptorLayout& Layout;
+    ShaderStageFlagBit Stage;
 };
 
 struct VT_ENGINE_EXPORT StencilOpState
@@ -100,7 +115,7 @@ struct VT_ENGINE_EXPORT MultisampleInfo
     SampleCount RasterizationSampleCount = SampleCount::e1;
     bool SampleShading;
     float MinSampleShading;
-    // To add const VkSampleMask* pSampleMask
+    // const VkSampleMask* pSampleMask
     bool AlphaToCoverage;
     bool AlphaToOne;
 };
@@ -156,6 +171,7 @@ struct VT_ENGINE_EXPORT SubpassDescription
 struct VT_ENGINE_EXPORT SubpassDependency
 {
     uint32_t SrcSubpass = SubpassExternal;
+    // Index to dependency
     uint32_t DstSubpass = 0;
     PipelineStageFlag SrcStageMask;
     PipelineStageFlag DstStageMask;
@@ -164,7 +180,7 @@ struct VT_ENGINE_EXPORT SubpassDependency
     DependencyFlag DependencyFlags;
 };
 
-struct VT_ENGINE_EXPORT RenderpassCreateInfo
+struct VT_ENGINE_EXPORT RenderPassCreateInfo
 {
     uint32_t AttachmentCount                  = {};
     const AttachmentDescription* pAttachments = {};
@@ -187,7 +203,7 @@ struct VT_ENGINE_EXPORT GraphicsPipelineCreateInfo
     MultisampleInfo MultiSample {};
     DepthStencilInfo DepthStencil {};
     ColorBlendInfo ColorBlend {};
-    RenderPass& Renderpass;
-    Device& LogicalDevice;
+    const char* PipelineLayout;
+    const char* RenderPass;
 };
 } // namespace VT

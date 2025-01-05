@@ -7,7 +7,6 @@ target_sources(${PROJECT_NAME}
 		"RendererContext.cppm"
 		Device.cppm
 		"Synchronization.cppm"
-		Pipeline.cppm
 		"VulkanBuffer.cppm"
 		DescriptorSet.cppm
 		Util.cppm
@@ -25,7 +24,7 @@ target_sources(${PROJECT_NAME}
 	PRIVATE
 		Swapchain.cpp
 		"Vulkan.h"
-		"Pipeline.cpp"
+		"PipelineManager.cpp"
 		VulkanBuffer.cpp
 		DescriptorSet.cpp
 		Shader.cpp

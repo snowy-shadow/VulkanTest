@@ -3,6 +3,8 @@ module;
 #include "EngineMacro.h"
 #include "glm/glm.hpp"
 
+#include <vulkan/vulkan_structs.hpp>
+
 module Application;
 
 import ImageLayer;
@@ -15,6 +17,8 @@ Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Cr
 
     m_Renderer.reset(new VT::Renderer(VT::GraphicsAPI::eVulkan, m_Window));
 
+    CreateTrianglePipeline();
+
     m_Camera.reset(new VT::ProjectionCamera(m_Window->GetWidth(), m_Window->GetHeight()));
     m_CameraController.reset(new VT::CameraController);
     m_CameraController->BindInput(m_Input.get());
@@ -24,6 +28,27 @@ Application::Application() : m_Window(std::unique_ptr<VT::Window>(VT::Window::Cr
     m_Textures[0] = m_Renderer->CreateTexture({.File = "D:/ktz/Images/ramen.jpg"});
     m_Textures[1] = m_Renderer->CreateTexture({.File = "D:/ktz/Images/ramen2.jpg"});
     m_Textures[2] = m_Renderer->CreateTexture({.File = "should fail"});
+}
+
+void Application::CreateTrianglePipeline()
+{
+    auto& Manager = m_Renderer->PipelineManager();
+    VT::DescriptorLayoutBindingInfo one
+    {
+        .Binding = 0,
+        .DescriptorType = VT::DescriptorType::eUniformBuffer,
+        .DescriptorCount = 1,
+        .Stage = VT::ShaderStageFlagBit::eVertex,
+    };
+
+    Manager.CreateDescriptorLayout({one}
+    , "Triangle");
+    Manager.CreatePipelineLayout({
+    });
+    Manager.CreateGraphicsPipeline({
+        .PipelineLayout = "TriangleLayout",
+        .RenderPass = "TriangleRenderPass"
+    }, "TrianglePipeline");
 }
 
 void Application::Run()

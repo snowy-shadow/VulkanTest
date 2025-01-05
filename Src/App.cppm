@@ -18,6 +18,8 @@ private:
 
     void OnUpdate(const VT::Timestep& Ts);
 
+    void CreateTrianglePipeline();
+
 private:
     VT::Shared<VT::Window> m_Window;
     VT::Uniq<VT::Input> m_Input;

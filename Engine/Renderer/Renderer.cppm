@@ -11,6 +11,7 @@ import VT.Event;
 import VT.Camera;
 import VT.Util;
 import VT.Timestep;
+import VT.PipelineManager;
 
 export namespace VT
 {
@@ -31,6 +32,8 @@ public:
    
     VT_ENGINE_EXPORT Texture* CreateTexture(const TextureCreateInfo& TextureInfo);
 
+    VT_ENGINE_EXPORT PipelineManager& PipelineManager() const;
+
     VT_ENGINE_EXPORT void Submit();
 
     VT_ENGINE_EXPORT void OnUpdate(const Timestep& Time);
@@ -43,6 +46,7 @@ private:
 
 private:
     Uniq<RendererContext> m_API;
+    Uniq<VT::PipelineManager> m_PipelineManager;
     bool m_FrameBegun {false};
 };
 } // namespace VT

@@ -541,6 +541,9 @@ public:
 
     auto operator<=>(Flag<BitType> const&) const = default;
 
+    // Get
+    constexpr MaskType Value() const noexcept { return m_mask; }
+
     // logical operator
     constexpr bool operator!() const noexcept { return !m_mask; }
 
@@ -727,7 +730,7 @@ enum class DependencyFlag
     eFeedbackLoopEXT = VK_DEPENDENCY_FEEDBACK_LOOP_BIT_EXT
 };
 
-inline constexpr uint32_t SubpassExternal = VK_SUBPASS_EXTERNAL;
+constexpr uint32_t SubpassExternal = VK_SUBPASS_EXTERNAL;
 enum class ShaderStageFlagBit
 {
     eVertex                 = VK_SHADER_STAGE_VERTEX_BIT,

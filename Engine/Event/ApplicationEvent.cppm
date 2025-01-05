@@ -2,6 +2,7 @@ module;
 
 #include "VT_Export"
 #include "EngineMacro.h"
+#include "EventMacro.h"
 
 #include <array>
 #include <cstdint>

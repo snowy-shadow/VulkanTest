@@ -44,7 +44,7 @@
 
     #define VT_HALT(...)                   \
         {                                  \
-            VT_CRITICAL(__VA_ARGS__); \
+            VT_CRITICAL(__VA_ARGS__);      \
             std::exit(-1);                 \
         }
     #define VT_CORE_HALT(...)              \
@@ -82,15 +82,3 @@
             VT_CORE_CRITICAL("Program Halt : {}", __VA_ARGS__); \
         }
 #endif
-
-/* ==========================================
- *              Event Class Helper
- * ==========================================
- */
-#define EVENT_CLASS_TYPE(Type)                                              \
-    static constexpr EventType GetType() { return Type; }                   \
-    constexpr EventType GetEventType() const override { return GetType(); } \
-    constexpr const char* GetName() const override { return #Type; }
-
-#define EVENT_CLASS_CATEGORY(Category) \
-    constexpr unsigned int GetCategoryFlag() const override { return Category; }

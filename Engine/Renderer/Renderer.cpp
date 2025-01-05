@@ -28,6 +28,8 @@ void Renderer::EndScene()
 
 Texture* Renderer::CreateTexture(const TextureCreateInfo& TextureInfo) { return m_API->CreateTexture(TextureInfo); }
 
+PipelineManager& Renderer::PipelineManager() const { return *m_PipelineManager; }
+
 void Renderer::UploadView(UniformCameraData Data) { m_API->UploadView(Data); }
 
 void Renderer::UploadGeometry(GeometryRenderData Data) { m_API->UploadGeometry(Data); }

@@ -1,12 +1,13 @@
 ﻿cmake_minimum_required (VERSION 3.28)
 
+project ("VT_Engine")
+
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
 	cmake_policy(SET CMP0141 NEW)
 	set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
-project ("VT_Engine")
 add_library(${PROJECT_NAME} SHARED)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
@@ -33,13 +34,13 @@ target_sources(${PROJECT_NAME}
 		ShaderCompiler.cppm
 		File.cppm
 		Key.cppm
+		Platform/Vulkan/Util.cppm
 
 	PRIVATE
 		Engine.cpp
 		Window.cpp
 		Input.cpp
 		ShaderCompiler.cpp
-		Platform/Vulkan/Util.cppm
 )
 
 add_subdirectory(Event)
@@ -88,7 +89,7 @@ target_compile_definitions(${PROJECT_NAME}
 		GLM_FORCE_RADIANS
 		GLM_FORCE_DEPTH_ZERO_TO_ONE
 
-																			# enable aggregate initialization
+		# enable aggregate initialization
 		VULKAN_HPP_NO_CONSTRUCTORS
 		VULKAN_HPP_NO_EXCEPTIONS
 		VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
@@ -100,16 +101,16 @@ if (MSVC)
 	target_compile_options(${PROJECT_NAME}
 		PRIVATE
 		/W4
-															# ignore warn struct padding
+		# ignore warn struct padding
 		/wd4820
-															# special member function implicit deleted
+		# special member function implicit deleted
 		/wd4623
 		/wd4626
 		/wd5027
 		/wd5262
 		/wd5267
-															# /Wall
-															# /WX
+		# /Wall
+		# /WX
 	)
 	# CMake appends /W3 by default, and having /W3 followed by /W4 will result in
 	# cl : Command line warning D9025 : overriding '/W3' with '/W4'.  Since this is
@@ -129,7 +130,7 @@ else()
 		PRIVATE
 		-Wall
 		-Wextra
-												# -Werror
+		# -Werror
 		-Wno-error=unused-variable
 		-Wpedantic
 	)

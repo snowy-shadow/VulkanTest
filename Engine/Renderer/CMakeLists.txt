@@ -10,12 +10,10 @@ target_sources(${PROJECT_NAME}
 		"ProjectionCamera.cppm"
 		CameraController.cppm
 		"Texture.cppm"
+		PipelineManager.cppm
 
-			# should be private
+		# should be private
 		Shader.cppm
-		Pipeline.cppm
-		Device.cppm
-		RenderPass.cppm
 		RendererStructure.cppm
 )
 
